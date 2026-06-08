@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "project-notes": {
+      "command": "uv",
+      "args": ["run", "python", "-m", "project_notes_mcp"],
+      "cwd": "/home/marco-oliveri/pvt/AI-Planner/mcp",
+      "env": {
+        "BACKEND_URL": "http://localhost:8088"
+      }
+    }
+  }
+}
