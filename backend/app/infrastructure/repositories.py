@@ -179,6 +179,16 @@ class SqlTechnologyRepository:
         )
         return mappers.technology_to_domain(orm) if orm else None
 
+    def slug_exists(self, kind: TechnologyKind, slug: str) -> bool:
+        return (
+            self.db.scalar(
+                select(m.Technology.id).where(
+                    m.Technology.kind == kind, m.Technology.slug == slug
+                )
+            )
+            is not None
+        )
+
     def list(self, *, kind: TechnologyKind | None = None) -> list[e.Technology]:
         stmt = select(m.Technology)
         if kind is not None:
