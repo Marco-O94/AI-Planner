@@ -1,0 +1,79 @@
+/**
+ * i18n dictionary barrel.
+ *
+ * Each UI surface owns a namespace file under `locales/{en,it}/<namespace>.ts`
+ * (so parallel translation work never edits the same file). This barrel merges
+ * them into the two locale dictionaries. Translation passes edit the namespace
+ * files only — never this barrel.
+ */
+
+import { artifactTypes as enArtifactTypes } from "./locales/en/artifactTypes";
+import { artifacts as enArtifacts } from "./locales/en/artifacts";
+import { common as enCommon } from "./locales/en/common";
+import { dashboard as enDashboard } from "./locales/en/dashboard";
+import { documents as enDocuments } from "./locales/en/documents";
+import { enums as enEnums } from "./locales/en/enums";
+import { files as enFiles } from "./locales/en/files";
+import { nav as enNav } from "./locales/en/nav";
+import { notes as enNotes } from "./locales/en/notes";
+import { project as enProject } from "./locales/en/project";
+import { skills as enSkills } from "./locales/en/skills";
+import { tasks as enTasks } from "./locales/en/tasks";
+import { templates as enTemplates } from "./locales/en/templates";
+
+import { artifactTypes as itArtifactTypes } from "./locales/it/artifactTypes";
+import { artifacts as itArtifacts } from "./locales/it/artifacts";
+import { common as itCommon } from "./locales/it/common";
+import { dashboard as itDashboard } from "./locales/it/dashboard";
+import { documents as itDocuments } from "./locales/it/documents";
+import { enums as itEnums } from "./locales/it/enums";
+import { files as itFiles } from "./locales/it/files";
+import { nav as itNav } from "./locales/it/nav";
+import { notes as itNotes } from "./locales/it/notes";
+import { project as itProject } from "./locales/it/project";
+import { skills as itSkills } from "./locales/it/skills";
+import { tasks as itTasks } from "./locales/it/tasks";
+import { templates as itTemplates } from "./locales/it/templates";
+
+export type Locale = "en" | "it";
+
+export const LOCALES: Locale[] = ["en", "it"];
+
+export const LOCALE_LABELS: Record<Locale, string> = {
+  en: "EN",
+  it: "IT",
+};
+
+const en = {
+  common: enCommon,
+  nav: enNav,
+  enums: enEnums,
+  dashboard: enDashboard,
+  project: enProject,
+  notes: enNotes,
+  tasks: enTasks,
+  documents: enDocuments,
+  artifacts: enArtifacts,
+  skills: enSkills,
+  templates: enTemplates,
+  artifactTypes: enArtifactTypes,
+  files: enFiles,
+};
+
+const it = {
+  common: itCommon,
+  nav: itNav,
+  enums: itEnums,
+  dashboard: itDashboard,
+  project: itProject,
+  notes: itNotes,
+  tasks: itTasks,
+  documents: itDocuments,
+  artifacts: itArtifacts,
+  skills: itSkills,
+  templates: itTemplates,
+  artifactTypes: itArtifactTypes,
+  files: itFiles,
+};
+
+export const dictionaries: Record<Locale, Record<string, unknown>> = { en, it };
