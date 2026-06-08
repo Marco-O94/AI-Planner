@@ -9,6 +9,9 @@ export const tasks = {
     },
     columnEmpty: "Niente qui per ora",
   },
+  dnd: {
+    dragHandle: "Trascina per spostare tra le colonne",
+  },
   empty: {
     title: "Nessuna attività",
     description:

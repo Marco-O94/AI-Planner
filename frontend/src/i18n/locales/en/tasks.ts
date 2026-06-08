@@ -9,6 +9,9 @@ export const tasks = {
     },
     columnEmpty: "Nothing here yet",
   },
+  dnd: {
+    dragHandle: "Drag to move between columns",
+  },
   empty: {
     title: "No tasks yet",
     description:

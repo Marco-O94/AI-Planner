@@ -39,6 +39,8 @@ interface TaskCardProps {
   onEdit: (task: TaskRead) => void;
   patchTask: UseTasksResult["patchTask"];
   onDeleted: () => void;
+  /** Optional drag handle (wired by the board's DnD context). */
+  dragHandle?: React.ReactNode;
 }
 
 /** A single task on the board: inline status/priority, blocked badge, actions. */
@@ -48,6 +50,7 @@ export function TaskCard({
   onEdit,
   patchTask,
   onDeleted,
+  dragHandle,
 }: TaskCardProps) {
   const t = useT();
   const [deleting, setDeleting] = useState(false);
@@ -91,8 +94,11 @@ export function TaskCard({
       size="sm"
       className="gap-2 px-3 ring-foreground/10 transition-shadow hover:ring-foreground/20"
     >
-      <div className="flex items-start justify-between gap-2">
-        <h4 className="text-sm leading-snug font-medium text-balance">{task.title}</h4>
+      <div className="flex items-start gap-1.5">
+        {dragHandle}
+        <h4 className="flex-1 text-sm leading-snug font-medium text-balance">
+          {task.title}
+        </h4>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
