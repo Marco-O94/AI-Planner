@@ -39,6 +39,29 @@ services:
     networks:
       - pnnet
 
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-projectnotes}:${POSTGRES_PASSWORD:-projectnotes}@postgres:5432/${POSTGRES_DB:-projectnotes}
+      QDRANT_URL: http://qdrant:6333
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health').status==200 else 1)"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - pnnet
+
 volumes:
   pgdata:
   qdrantdata:

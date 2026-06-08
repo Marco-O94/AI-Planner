@@ -98,6 +98,18 @@ class ArtifactRead(BaseModel):
         return cls.model_validate(artifact)
 
 
+class VersionFilesRead(BaseModel):
+    id: uuid.UUID
+    artifact_id: uuid.UUID
+    version_number: int
+    source_note_ids: list[uuid.UUID]
+    source_task_ids: list[uuid.UUID]
+    source_document_ids: list[uuid.UUID]
+    change_note: str | None
+    created_at: datetime | None
+    files: list[ArtifactFileRead]
+
+
 class ArtifactDetailRead(BaseModel):
     artifact: ArtifactRead
     artifact_type_slug: str
