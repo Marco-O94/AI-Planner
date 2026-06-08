@@ -25,6 +25,7 @@ from app.domain.repositories import (
     DomainRepository,
     ProjectRepository,
 )
+from app.domain.vector import KIND_ARTIFACT_FILE
 
 _UPDATABLE = {"title", "status", "domain_id"}
 
@@ -36,11 +37,13 @@ class ArtifactService:
         type_repo: ArtifactTypeRepository,
         project_repo: ProjectRepository,
         domain_repo: DomainRepository,
+        indexer=None,
     ) -> None:
         self.repo = repo
         self.type_repo = type_repo
         self.project_repo = project_repo
         self.domain_repo = domain_repo
+        self.indexer = indexer
 
     # --- helpers ---------------------------------------------------------
 
@@ -110,6 +113,11 @@ class ArtifactService:
 
         slug = slugify(title) or "artifact"
         artifact = self.repo.get_by_slug(project.id, slug)
+        previous_files = (
+            self.repo.list_files(artifact.current_version_id)
+            if artifact is not None and artifact.current_version_id is not None
+            else []
+        )
         if artifact is None:
             artifact = self.repo.add(
                 Artifact(
@@ -135,7 +143,7 @@ class ArtifactService:
                 change_note=change_note,
             )
         )
-        self.repo.add_files(
+        new_files = self.repo.add_files(
             [
                 ArtifactFile(
                     id=uuid.uuid4(),
@@ -150,7 +158,23 @@ class ArtifactService:
         )
         self._create_phases(artifact_type.output_files, files, version.id)
         self.repo.set_current_version(artifact.id, version.id)
+        self._reindex_files(artifact, previous_files, new_files)
         return self.get_detail(artifact.id)
+
+    def _reindex_files(self, artifact, previous_files, new_files) -> None:
+        if self.indexer is None:
+            return
+        for old in previous_files:
+            self.indexer.remove(KIND_ARTIFACT_FILE, old.id)
+        for file in new_files:
+            self.indexer.index_artifact_file(
+                file_id=file.id,
+                project_id=artifact.project_id,
+                domain_id=artifact.domain_id,
+                title=artifact.title,
+                path=file.path,
+                content=file.content,
+            )
 
     def _create_phases(
         self, manifest: list[dict], files: list[dict], version_id: uuid.UUID
@@ -183,7 +207,11 @@ class ArtifactService:
         return self.get_detail(artifact_id)
 
     def delete(self, artifact_id: uuid.UUID) -> None:
-        self.repo.delete(self._require(artifact_id).id)
+        artifact = self._require(artifact_id)
+        if self.indexer is not None and artifact.current_version_id is not None:
+            for file in self.repo.list_files(artifact.current_version_id):
+                self.indexer.remove(KIND_ARTIFACT_FILE, file.id)
+        self.repo.delete(artifact.id)
 
     def update_phase(
         self,

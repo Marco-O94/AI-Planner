@@ -9,6 +9,7 @@ from app.domain.entities import Note
 from app.domain.enums import NoteType
 from app.domain.errors import NotFoundError, ValidationError
 from app.domain.repositories import DomainRepository, NoteRepository, ProjectRepository
+from app.domain.vector import KIND_NOTE
 
 _UPDATABLE = {"domain_id", "type", "title", "content", "tags"}
 
@@ -19,10 +20,12 @@ class NoteService:
         repo: NoteRepository,
         project_repo: ProjectRepository,
         domain_repo: DomainRepository,
+        indexer=None,
     ) -> None:
         self.repo = repo
         self.project_repo = project_repo
         self.domain_repo = domain_repo
+        self.indexer = indexer
 
     def _require_project_id(self, project_slug: str) -> uuid.UUID:
         project = self.project_repo.get_by_slug(project_slug)
@@ -49,7 +52,7 @@ class NoteService:
     ) -> Note:
         project_id = self._require_project_id(project_slug)
         self._validate_domain(project_id, domain_id)
-        return self.repo.add(
+        note = self.repo.add(
             Note(
                 id=uuid.uuid4(),
                 project_id=project_id,
@@ -60,6 +63,9 @@ class NoteService:
                 tags=tags or [],
             )
         )
+        if self.indexer is not None:
+            self.indexer.index_note(note)
+        return note
 
     def get(self, note_id: uuid.UUID) -> Note:
         note = self.repo.get_by_id(note_id)
@@ -83,7 +89,13 @@ class NoteService:
         applied = {k: v for k, v in changes.items() if k in _UPDATABLE}
         if "domain_id" in applied:
             self._validate_domain(note.project_id, applied["domain_id"])
-        return self.repo.update(replace(note, **applied))
+        updated = self.repo.update(replace(note, **applied))
+        if self.indexer is not None:
+            self.indexer.index_note(updated)
+        return updated
 
     def delete(self, note_id: uuid.UUID) -> None:
-        self.repo.delete(self.get(note_id).id)
+        note = self.get(note_id)
+        self.repo.delete(note.id)
+        if self.indexer is not None:
+            self.indexer.remove(KIND_NOTE, note.id)

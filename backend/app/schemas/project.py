@@ -22,6 +22,8 @@ class ProjectCreate(BaseModel):
     repository_url: str | None = None
     metadata: dict | None = None
     technologies: list[TechnologyInput] = []
+    # Optional: materialize this template's structure into the new project.
+    template_slug: str | None = None
 
 
 class ProjectUpdate(BaseModel):
