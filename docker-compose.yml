@@ -1,0 +1,48 @@
+name: project-notes
+
+# Phase 1: data services only. backend / mcp / frontend are added in their
+# respective phases (culminating in Phase 6 orchestration).
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-projectnotes}
+      POSTGRES_USER: ${POSTGRES_USER:-projectnotes}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-projectnotes}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-projectnotes} -d ${POSTGRES_DB:-projectnotes}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - pnnet
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    restart: unless-stopped
+    ports:
+      - "${QDRANT_HTTP_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    volumes:
+      - qdrantdata:/qdrant/storage
+    healthcheck:
+      # qdrant image ships bash but no curl/wget; probe the HTTP port via /dev/tcp.
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - pnnet
+
+volumes:
+  pgdata:
+  qdrantdata:
+
+networks:
+  pnnet:
+    driver: bridge
