@@ -238,7 +238,14 @@ export function Sidebar() {
           />
         </Button>
 
-        <div className={cn("flex items-center", collapsed ? "justify-center" : "pr-3")}>
+        <div
+          className={cn(
+            "flex items-center",
+            // Collapsed: cancel the rail's left padding so the glyph centers on
+            // the full width, aligned with the nav icons and avatar below.
+            collapsed ? "-ml-4 w-[4.75rem] justify-center" : "pr-3",
+          )}
+        >
           <Brand collapsed={collapsed} t={t} />
         </div>
 
