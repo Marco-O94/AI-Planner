@@ -84,6 +84,9 @@ def test_dependency_cycle_is_rejected(client: TestClient, make_project) -> None:
     # t1 -> t2 would close the cycle t1 -> t2 -> t1.
     resp = client.patch(f"/tasks/{t1['id']}", json={"depends_on": [t2["id"]]})
     assert resp.status_code == 422
+    detail = resp.json()["detail"]
+    assert "cycle detected" in detail
+    assert "t1" in detail and "t2" in detail  # names the offending tasks
 
 
 def test_blocked_flag_tracks_dependency_status(client: TestClient, make_project) -> None:
