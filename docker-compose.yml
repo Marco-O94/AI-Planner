@@ -67,6 +67,22 @@ services:
     networks:
       - pnnet
 
+  mcp:
+    build: ./mcp
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:8000
+      MCP_TRANSPORT: ${MCP_TRANSPORT:-sse}
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: 8050
+    ports:
+      - "${MCP_PORT:-8050}:8050"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - pnnet
+
 volumes:
   pgdata:
   qdrantdata:

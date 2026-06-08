@@ -95,11 +95,13 @@ class SearchIndexer:
         tags: list[str],
         text: str,
     ) -> None:
-        self.index.delete_parent(kind, parent_id)
+        # Embed first: if embedding fails, the existing vectors are left intact
+        # (the failure propagates to _safe before we delete anything).
         chunks = chunk_text(text)
+        vectors = self.embeddings.embed_texts(chunks)
+        self.index.delete_parent(kind, parent_id)
         if not chunks:
             return
-        vectors = self.embeddings.embed_texts(chunks)
         self.index.upsert(
             [
                 VectorPoint(

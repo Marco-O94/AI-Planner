@@ -1,0 +1,29 @@
+[project]
+name = "project-notes-mcp"
+version = "0.1.0"
+description = "ProjectNotes MCP server — exposes project context & typed artifact generation to AI agents"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=1.2",
+    "httpx>=0.27",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.8",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

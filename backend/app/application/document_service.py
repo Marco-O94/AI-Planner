@@ -61,8 +61,9 @@ class DocumentService:
     ) -> Document:
         project = self._require_project(project_slug)
         self._validate_domain(project.id, domain_id)
-        storage_path = self.storage.save(filename, content)
+        # Extract before persisting the file so a parser failure leaves no orphan.
         extracted = self.extractor(filename, mime_type, content)
+        storage_path = self.storage.save(filename, content)
         document = self.repo.add(
             Document(
                 id=uuid.uuid4(),

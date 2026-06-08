@@ -10,7 +10,7 @@ Built as a decoupled monorepo:
 
 | Service | Stack | Status |
 |---------|-------|--------|
-| `backend/` | FastAPI + SQLAlchemy + Alembic + Postgres + Qdrant/FastEmbed | Phases 1–2 ✅ |
+| `backend/` | FastAPI + SQLAlchemy + Alembic + Postgres + Qdrant/FastEmbed | Phases 1–3 ✅ |
 | `mcp/` | Python MCP server (HTTP → backend) | planned |
 | `frontend/` | Next.js 15 + shadcn/ui + framer-motion | planned |
 
@@ -104,20 +104,63 @@ note→/task→artifact reverse lookups, dependency cycle rejection + blocked fl
 protected default artifact type, artifact version increment + current pointer +
 multi-file storage + manifest coverage + phase parsing, and export (single + zip).
 
+---
+
+## Phase 3 — Documents, search & templates
+
+Upload documents (PDF/DOCX/MD/TXT → text extracted + stored on a volume), index
+notes + documents + artifact files for **lexical** (Postgres FTS) and
+**semantic** (Qdrant + FastEmbed) retrieval, fuse them with **hybrid** RRF, and
+support reusable **project templates**.
+
+```bash
+# Upload a document (multipart):
+curl -F 'file=@spec.pdf' -F 'title=Spec' localhost:8000/projects/<slug>/documents
+
+# Search — mode = lexical | semantic | hybrid (default hybrid), scopable by project/domain:
+curl 'localhost:8000/search?q=refund+policy&mode=hybrid&project_slug=<slug>'
+
+# File explorer (in-file full-text), grouped by project:
+curl 'localhost:8000/files?q=invoices'
+
+# Templates: create, apply on project create (template_slug), or snapshot a project:
+curl -X POST localhost:8000/projects/<slug>/save-as-template -d '{"name":"DDD Starter"}'
+
+# Rebuild the vector collection from Postgres:
+curl -X POST localhost:8000/admin/reindex
+```
+
+Endpoint groups added: `/projects/{slug}/documents` + `/documents/{id}`
+(+ `/download`), `/search` + `/projects/{slug}/search`, `/files` +
+`/projects/{slug}/files`, `/templates` (+ apply / save-as-template),
+`/admin/reindex`. Indexing is **resilient** — Postgres is authoritative; an
+embedding failure never blocks a write, and `/admin/reindex` repairs drift.
+
+### Test
+
+```bash
+cd backend && uv run pytest      # 53 tests (schema + API + search/documents/templates)
+```
+
+Phase 3 coverage: document upload/extraction/dual-index, lexical exact-word match
+inside files (scoped by project), semantic by-meaning, hybrid fusion, project
+scoping isolation, file-explorer grouping + in-file search, template apply +
+save-as-template round-trip (incl. enum-safe technology serialization), reindex.
+
 ### Layout
 
 ```
 backend/app/
-├─ config.py                 # pydantic-settings (DATABASE_URL, QDRANT_URL, ...)
+├─ config.py                 # pydantic-settings (DATABASE_URL, QDRANT_URL, EMBEDDING_MODEL, STORAGE_DIR)
 ├─ main.py                   # FastAPI app: routers, CORS, error handlers, /health
-├─ domain/                   # pure: entities, enums, read models, repository Protocols, errors
-├─ application/              # services (one per aggregate) — invariants live here
-├─ infrastructure/           # SQLAlchemy models, repositories, ORM<->domain mappers, db/UoW
+├─ domain/                   # pure: entities, enums, read models, repo + VectorIndex Protocols, errors
+├─ application/              # services (one per aggregate) + indexer/search/reindex/template — invariants here
+├─ infrastructure/           # SQLAlchemy models/repos/mappers, db/UoW, embeddings, qdrant, fulltext, storage, extract
 ├─ schemas/                  # Pydantic Create/Update/Read DTOs
 └─ api/                      # thin routers + DI wiring (deps.py) + error mapping
 alembic/                     # migration env + versions
-tests/                       # schema + API behavior verification
-docker-compose.yml           # postgres + qdrant + backend (mcp/frontend added later)
+tests/                       # schema + API + search/documents/templates verification
+docker-compose.yml           # postgres + qdrant + backend (+ doc storage volume); mcp/frontend added later
 ```
 
 Layering rule (Hexagonal/DDD): `domain` depends on nothing; `application`

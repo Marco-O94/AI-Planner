@@ -203,7 +203,16 @@ class ArtifactService:
         applied = {k: v for k, v in changes.items() if k in _UPDATABLE}
         if "domain_id" in applied:
             self._validate_domain(artifact.project_id, applied["domain_id"])
-        self.repo.update(replace(artifact, **applied))
+        updated = self.repo.update(replace(artifact, **applied))
+        # title / domain are denormalized into each file's vector payload, so a
+        # change to them must re-index the current files to stay consistent.
+        if (
+            self.indexer is not None
+            and ("title" in applied or "domain_id" in applied)
+            and updated.current_version_id is not None
+        ):
+            files = self.repo.list_files(updated.current_version_id)
+            self._reindex_files(updated, files, files)
         return self.get_detail(artifact_id)
 
     def delete(self, artifact_id: uuid.UUID) -> None:

@@ -14,7 +14,8 @@ from app.domain.vector import VectorHit, VectorPoint
 
 class QdrantVectorIndex:
     def __init__(self, url: str, collection: str, dimension: int) -> None:
-        self._client = QdrantClient(url=url)
+        # check_compatibility silences a cosmetic client/server minor-version warning.
+        self._client = QdrantClient(url=url, check_compatibility=False)
         self._collection = collection
         self._dimension = dimension
         self._ready = False
