@@ -194,8 +194,9 @@ def _notes_section(
             lines.append("")
             lines.append(f"**{note_type.title()}**")
             for note in items:
+                title = (note.get("title") or "").strip() or "(untitled note)"
                 lines.append("")
-                lines.append(f"- **{note['title']}**{_tags(note.get('tags'))}")
+                lines.append(f"- **{title}**{_tags(note.get('tags'))}")
                 body = (note.get("content") or "").strip()
                 if body:
                     lines.append(_indent(body))

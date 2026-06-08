@@ -1,5 +1,6 @@
 """Tool logic against the fake backend (conftest)."""
 
+import httpx
 import pytest
 
 from project_notes_mcp import tools
@@ -68,6 +69,26 @@ def test_get_skill_falls_back_to_global(client: BackendClient):
     body = tools.get_skill(client, "clean-code", PROJECT_SLUG)
 
     assert "KISS." in body
+
+
+def test_get_skill_short_circuits_on_project_match_without_fetching_global():
+    seen: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request.url.path)
+        if request.url.path.endswith("/skills"):
+            return httpx.Response(200, json=[
+                {"slug": "billing-rules", "content": "Always prorate."},
+            ])
+        return httpx.Response(404, json={"detail": "unexpected"})
+
+    http = httpx.Client(transport=httpx.MockTransport(handler), base_url="http://b.test")
+    spy = BackendClient(http_client=http)
+
+    body = tools.get_skill(spy, "billing-rules", PROJECT_SLUG)
+
+    assert "Always prorate." in body
+    assert seen == [f"/projects/{PROJECT_SLUG}/skills"]  # global /skills never hit
 
 
 def test_get_skill_unknown_raises(client: BackendClient):

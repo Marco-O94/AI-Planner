@@ -67,6 +67,7 @@ async def main() -> None:
             assert "# Generate: Development Plan" in bundle
             print("[prepare_generation] bundle assembled")
 
+            # Idempotent across re-runs: assert version increments, not absolutes.
             files = [{"path": "DEVELOPMENT_PLAN.md",
                       "content": "# Plan\n## Phase 1\nSchema.\n## Phase 2\nUI."}]
             saved = await call("save_artifact", {
@@ -74,20 +75,23 @@ async def main() -> None:
                 "title": "Acme Dev Plan", "files": files,
             })
             artifact_id = saved["artifact"]["id"]
-            print(f"[save_artifact] v{saved['current_version_number']} id={artifact_id} "
+            v1 = saved["current_version_number"]
+            print(f"[save_artifact] v{v1} id={artifact_id} "
                   f"coverage_complete={saved['coverage']['is_complete']}")
-            assert saved["current_version_number"] == 1
+            assert v1 >= 1
 
             saved2 = await call("save_artifact", {
                 "project_slug": SLUG, "artifact_type_slug": "development-plan",
                 "title": "Acme Dev Plan",
-                "files": [{"path": "DEVELOPMENT_PLAN.md", "content": "# Plan v2\n## Phase 1\nRevised."}],
+                "files": [{"path": "DEVELOPMENT_PLAN.md",
+                           "content": "# Plan v2\n## Phase 1\nRevised."}],
             })
-            assert saved2["current_version_number"] == 2, saved2["current_version_number"]
-            print(f"[save_artifact] same title -> v{saved2['current_version_number']}")
+            v2 = saved2["current_version_number"]
+            assert v2 == v1 + 1, (v1, v2)
+            print(f"[save_artifact] same title -> v{v2} (was v{v1})")
 
             versions = await call("list_artifact_versions", {"artifact_id": artifact_id})
-            assert len(versions) == 2
+            assert len(versions) == v2  # one version row per save
             print(f"[list_artifact_versions] {[v['version_number'] for v in versions]}")
 
             phase_id = saved2["phases"][0]["id"]

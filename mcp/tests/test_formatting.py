@@ -73,6 +73,19 @@ def test_project_context_has_all_sections_and_ubiquitous_language():
     assert md.index("t-b") < md.index("t-a")
 
 
+def test_project_context_renders_untitled_note_without_literal_none():
+    notes = [{"id": "n1", "domain_id": None, "type": "SNIPPET",
+              "title": None, "content": "orphan snippet", "tags": []}]
+
+    md = render_project_context(
+        project=_PROJECT, domains=[], notes=notes, tasks=[],
+        documents=[], skills=[],
+    )
+
+    assert "**None**" not in md
+    assert "(untitled note)" in md
+
+
 def test_project_context_scopes_to_a_domain():
     notes = [
         {"id": "n1", "domain_id": "d1", "type": "REQUIREMENT",

@@ -22,4 +22,5 @@ RUN uv sync --no-dev
 # Default service port for SSE/HTTP transport (override with MCP_PORT).
 EXPOSE 8050
 
-CMD ["uv", "run", "python", "-m", "project_notes_mcp"]
+# --no-dev: don't let `uv run` re-sync dev deps (pytest/ruff) into the runtime image.
+CMD ["uv", "run", "--no-dev", "python", "-m", "project_notes_mcp"]

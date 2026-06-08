@@ -10,7 +10,7 @@ def test_defaults_target_localhost_stdio():
 
     assert settings.backend_url == "http://localhost:8000"
     assert settings.transport == "stdio"
-    assert settings.host == "0.0.0.0"
+    assert settings.host == "127.0.0.1"  # secure-by-default: loopback unless opted in
     assert settings.port == 8050
 
 

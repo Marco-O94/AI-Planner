@@ -167,13 +167,15 @@ def get_project_skills(client: BackendClient, project_slug: str) -> list[JSON]:
 def get_skill(
     client: BackendClient, skill_slug: str, project_slug: str | None = None
 ) -> str:
-    candidates: list[JSON] = []
+    # Project skills win and short-circuit, so the common case avoids the extra
+    # GET /skills round trip (and its full global-skill payload).
     if project_slug:
-        candidates.extend(client.list_project_skills(project_slug))
-    candidates.extend(client.list_global_skills())
-    for skill in candidates:
-        if skill.get("slug") == skill_slug:
-            return skill.get("content") or ""
+        body = _find_skill_body(client.list_project_skills(project_slug), skill_slug)
+        if body is not None:
+            return body
+    body = _find_skill_body(client.list_global_skills(), skill_slug)
+    if body is not None:
+        return body
     raise ValueError(f"skill {skill_slug!r} not found")
 
 
@@ -296,6 +298,13 @@ def _resolve_artifact_type(
             return artifact_type
     scope = f" for project {project_slug!r}" if project_slug else ""
     raise ValueError(f"artifact type {type_slug!r} not found{scope}")
+
+
+def _find_skill_body(skills: list[JSON], skill_slug: str) -> str | None:
+    for skill in skills:
+        if skill.get("slug") == skill_slug:
+            return skill.get("content") or ""
+    return None
 
 
 def _domain_id(domains: list[JSON], domain_slug: str) -> str:

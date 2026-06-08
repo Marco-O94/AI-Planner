@@ -11,7 +11,9 @@ from dataclasses import dataclass
 
 DEFAULT_BACKEND_URL = "http://localhost:8000"
 DEFAULT_TRANSPORT = "stdio"
-DEFAULT_HOST = "0.0.0.0"
+# Secure by default: bind loopback for network transports unless the operator
+# opts in via MCP_HOST. The compose service sets MCP_HOST=0.0.0.0 explicitly.
+DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8050
 DEFAULT_TIMEOUT = 30.0
 

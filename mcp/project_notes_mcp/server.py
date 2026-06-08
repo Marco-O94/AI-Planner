@@ -28,7 +28,7 @@ SERVER_INSTRUCTIONS = (
 
 
 def build_server(
-    client: BackendClient, *, host: str = "0.0.0.0", port: int = 8050
+    client: BackendClient, *, host: str = "127.0.0.1", port: int = 8050
 ) -> FastMCP:
     """Construct a FastMCP server whose tools call ``client``."""
     mcp = FastMCP("project-notes", instructions=SERVER_INSTRUCTIONS, host=host, port=port)
