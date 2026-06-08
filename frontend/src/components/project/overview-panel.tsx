@@ -3,15 +3,16 @@
 import { useState } from "react";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
-import { BookmarkPlus, Loader2, Save } from "lucide-react";
-
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  BookmarkPlus,
+  ExternalLink,
+  FileText,
+  Layers,
+  Loader2,
+  Save,
+  StickyNote,
+} from "lucide-react";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -23,8 +24,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProjectStatusBadge } from "@/components/status-badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ProjectStatusBadge, TechKindBadge } from "@/components/status-badge";
 import { titleCase } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { api, ApiError } from "@/lib/api";
 import {
   PROJECT_STATUSES,
@@ -43,19 +53,98 @@ import {
 } from "./metadata-editor";
 import { SaveAsTemplateDialog } from "./save-as-template-dialog";
 
-interface OverviewPanelProps {
+interface ProjectMetaRailProps {
   project: ProjectRead;
+  className?: string;
+}
+
+const MAX_RAIL_TECHS = 5;
+
+/**
+ * Compact, read-only project context strip for the page header. Surfaces the
+ * tech stack, repository link and note/task/artifact counts without the
+ * always-on edit forms. Editing happens on demand via {@link EditProjectSheet}.
+ */
+export function ProjectMetaRail({ project, className }: ProjectMetaRailProps) {
+  const techs = project.technologies;
+  const shown = techs.slice(0, MAX_RAIL_TECHS);
+  const overflow = techs.length - shown.length;
+
+  return (
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground",
+        className,
+      )}
+    >
+      {shown.length ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {shown.map((tech) => (
+            <TechKindBadge key={tech.id} kind={tech.kind}>
+              {tech.version ? `${tech.name} ${tech.version}` : tech.name}
+            </TechKindBadge>
+          ))}
+          {overflow > 0 ? (
+            <span className="text-xs text-muted-foreground">+{overflow} more</span>
+          ) : null}
+        </div>
+      ) : null}
+
+      {project.repository_url ? (
+        <>
+          <RailDivider />
+          <a
+            href={project.repository_url}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center gap-1.5 font-medium text-foreground transition-colors hover:text-primary"
+          >
+            <ExternalLink className="size-3.5" />
+            Repository
+          </a>
+        </>
+      ) : null}
+
+      <RailDivider />
+      <span className="inline-flex items-center gap-1.5">
+        <StickyNote className="size-3.5" />
+        <span className="tabular-nums">{project.note_count}</span> notes
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <Layers className="size-3.5" />
+        <span className="tabular-nums">{project.artifact_count}</span> artifacts
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <FileText className="size-3.5" />
+        <span className="tabular-nums">{project.task_count}</span> tasks
+      </span>
+    </div>
+  );
+}
+
+function RailDivider() {
+  return <span aria-hidden className="hidden h-3.5 w-px bg-border sm:inline-block" />;
+}
+
+interface EditProjectSheetProps {
+  project: ProjectRead;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 /**
- * Editable project metadata: status, repository URL, technology stack (with
- * versions) and free-form key/value metadata. Writes go through `api.*` and
- * revalidate the project's SWR cache; technology changes apply optimistically.
+ * On-demand editor for project status, repository URL, free-form metadata and
+ * the technology stack, plus a "Save as template" entry point. Mounted in a
+ * right-side Sheet so it does not clutter the working surface.
  *
  * The editable form is keyed by `project.updated_at` so it re-initializes from
  * the latest cache after a mutation, avoiding a setState-in-effect resync.
  */
-export function OverviewPanel({ project }: OverviewPanelProps) {
+export function EditProjectSheet({
+  project,
+  open,
+  onOpenChange,
+}: EditProjectSheetProps) {
   const { mutate } = useSWRConfig();
   const cacheKey = `/projects/${project.slug}`;
 
@@ -103,47 +192,63 @@ export function OverviewPanel({ project }: OverviewPanelProps) {
   }
 
   return (
-    <Card className="gap-0">
-      <CardHeader className="flex-row items-start justify-between gap-3 space-y-0">
-        <div className="space-y-1">
-          <CardTitle className="flex items-center gap-2 text-base">
-            Overview
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full gap-0 sm:max-w-md"
+        aria-describedby={undefined}
+      >
+        <SheetHeader className="gap-1">
+          <SheetTitle className="flex items-center gap-2">
+            Edit project
             <ProjectStatusBadge status={project.status} />
-          </CardTitle>
-          <CardDescription>Edit metadata, stack and repository.</CardDescription>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => setTemplateOpen(true)}>
-          <BookmarkPlus className="size-3.5" />
-          Save as template
-        </Button>
-      </CardHeader>
+          </SheetTitle>
+          <SheetDescription>
+            Status, repository, metadata and technology stack.
+          </SheetDescription>
+        </SheetHeader>
 
-      <CardContent className="space-y-5 pt-4">
-        <OverviewForm
-          key={project.updated_at}
-          project={project}
-          cacheKey={cacheKey}
-        />
+        <ScrollArea className="flex-1">
+          <div className="space-y-5 px-4 pb-6">
+            <OverviewForm
+              key={project.updated_at}
+              project={project}
+              cacheKey={cacheKey}
+            />
 
-        <Separator />
+            <Separator />
 
-        <div className="space-y-2">
-          <Label>Technologies</Label>
-          <TechPicker
-            attached={project.technologies}
-            onAttach={attachTechnology}
-            onDetach={detachTechnology}
-            busy={techBusy}
-          />
-        </div>
-      </CardContent>
+            <div className="space-y-2">
+              <Label>Technologies</Label>
+              <TechPicker
+                attached={project.technologies}
+                onAttach={attachTechnology}
+                onDetach={detachTechnology}
+                busy={techBusy}
+              />
+            </div>
+
+            <Separator />
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => setTemplateOpen(true)}
+            >
+              <BookmarkPlus className="size-3.5" />
+              Save as template
+            </Button>
+          </div>
+        </ScrollArea>
+      </SheetContent>
 
       <SaveAsTemplateDialog
         project={project}
         open={templateOpen}
         onOpenChange={setTemplateOpen}
       />
-    </Card>
+    </Sheet>
   );
 }
 
@@ -187,7 +292,7 @@ function OverviewForm({ project, cacheKey }: OverviewFormProps) {
   }
 
   return (
-    <>
+    <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="project-status">Status</Label>
@@ -236,6 +341,6 @@ function OverviewForm({ project, cacheKey }: OverviewFormProps) {
           Save changes
         </Button>
       </div>
-    </>
+    </div>
   );
 }
