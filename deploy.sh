@@ -70,13 +70,15 @@ env_get() {
   printf '%s' "${val:-$def}"
 }
 
-# Upsert KEY=VALUE in .env (replace in place, or append if missing).
+# Upsert KEY=VALUE in .env — replaced in place (position preserved), or
+# appended when absent. awk keeps it portable across GNU/BSD (no sed -i quirks).
 env_set() {
   local key="$1" value="$2"
   if grep -qE "^${key}=" "$ENV_FILE"; then
-    # Use a tmp file to stay portable across GNU/BSD sed.
-    grep -vE "^${key}=" "$ENV_FILE" > "$ENV_FILE.tmp"
-    printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE.tmp"
+    awk -v k="$key" -v v="$value" 'BEGIN{FS=OFS="="}
+      $1==k{print k"="v; done=1; next}
+      {print}
+      END{if(!done) print k"="v}' "$ENV_FILE" > "$ENV_FILE.tmp"
     mv "$ENV_FILE.tmp" "$ENV_FILE"
   else
     printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"

@@ -88,9 +88,29 @@ No reverse dependencies.
 
 **Prerequisites:** Docker + Docker Compose.
 
+One command — [`deploy.sh`](./deploy.sh) bootstraps `.env`, builds the images, waits for the
+backend to go healthy, and prints the URLs:
+
+```bash
+./deploy.sh                   # = ./deploy.sh up  (localhost)
+```
+
+Prefer raw compose? It's the same thing under the hood:
+
 ```bash
 cp .env.example .env          # localhost defaults (adjust ports if they collide)
 docker compose up --build     # postgres, qdrant, backend, mcp, frontend
+```
+
+Everyday `deploy.sh` commands:
+
+```bash
+./deploy.sh status            # docker compose ps
+./deploy.sh logs [svc]        # follow logs (all, or one service)
+./deploy.sh restart mcp       # restart one service; the rest stay up
+./deploy.sh update            # git pull + rebuild + restart
+./deploy.sh down              # stop everything (named volumes persist)
+./deploy.sh help              # full command list
 ```
 
 Startup is healthcheck‑gated: **postgres + qdrant healthy → backend (migrates on start) →
@@ -135,6 +155,75 @@ All variables live in `.env` (copy from `.env.example`); every one has a sensibl
 | `MCP_PORT` | `8050` | host‑published MCP port |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | **browser‑reachable** backend URL, baked into the frontend bundle |
 | `FRONTEND_PORT` | `3000` | host‑published frontend port |
+
+---
+
+## Deploy on a VPS
+
+The same stack runs on any Docker‑capable VPS. The one catch is that
+`NEXT_PUBLIC_API_URL` is **baked into the frontend bundle at build time**, so it must point at the
+**publicly reachable** backend — not `localhost`. `deploy.sh vps` rewrites `.env` for you (browser
+URL + CORS), generates a random `POSTGRES_PASSWORD` if it's still the shipped default, then builds
+and starts everything.
+
+**Prerequisites on the VPS:** Docker + Docker Compose, and the repo cloned (`git clone … && cd
+AI-Planner`).
+
+### Option A — direct ports (quickest)
+
+Expose the published ports and address the box by IP or domain:
+
+```bash
+./deploy.sh vps 203.0.113.10           # or: ./deploy.sh vps planner.example.com
+```
+
+This sets `NEXT_PUBLIC_API_URL=http://<host>:8000` and `CORS_ORIGINS=http://<host>:3000`, then
+brings the stack up. Open the host ports on the VPS firewall:
+
+```bash
+# ufw example — frontend, backend, mcp
+sudo ufw allow 3000/tcp && sudo ufw allow 8000/tcp && sudo ufw allow 8050/tcp
+```
+
+App at `http://<host>:3000`. Lock Postgres/Qdrant ports down — keep `5432`/`6333` off the public
+internet (they only need to be reachable inside the compose network).
+
+### Option B — domain + HTTPS behind a reverse proxy (recommended)
+
+Front the stack with a TLS terminator (Caddy, Nginx, or Traefik) and tell `deploy.sh` to target the
+hostname over `https`:
+
+```bash
+./deploy.sh vps planner.example.com --tls
+```
+
+This sets `NEXT_PUBLIC_API_URL=https://planner.example.com` and matching CORS, so the proxy routes
+`/` → frontend `:3000` and the API host/path → backend `:8000`. Minimal **Caddy** example
+(`/etc/caddy/Caddyfile`, automatic Let's Encrypt):
+
+```caddyfile
+planner.example.com {
+    reverse_proxy localhost:3000          # the Next.js frontend
+}
+
+api.planner.example.com {
+    reverse_proxy localhost:8000          # the FastAPI backend
+}
+```
+
+If you split the API onto its own subdomain like above, run
+`./deploy.sh vps api.planner.example.com --tls` so the bundle and CORS use the API host. Then only
+`80`/`443` need to be open on the firewall; the app ports stay bound to the VPS.
+
+### Updating a running deployment
+
+```bash
+./deploy.sh update            # git pull --ff-only, rebuild changed images, restart, re‑health‑check
+```
+
+> **Hardening checklist for production:** change `POSTGRES_USER`/`POSTGRES_DB` from the defaults,
+> keep the generated `POSTGRES_PASSWORD` (it's written to `.env`, which is git‑ignored), restrict
+> `CORS_ORIGINS` to your real origin(s), and never publish the Postgres/Qdrant ports publicly.
 
 ---
 
@@ -222,6 +311,7 @@ AI-Planner/
 │  ├─ src/app/                                # routes
 │  └─ e2e/                                    # Playwright smoke
 ├─ docker-compose.yml        # all 5 services, healthcheck‑gated
+├─ deploy.sh                 # one-command local / VPS deploy helper
 ├─ .env.example
 └─ IMPLEMENTATION_PLAN.md    # the full, phased build plan
 ```
