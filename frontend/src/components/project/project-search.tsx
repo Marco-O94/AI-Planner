@@ -16,25 +16,26 @@ import {
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/common";
+import { useT } from "@/i18n/locale-context";
 import { HighlightedSnippet } from "@/components/markdown";
 import { AnimatedItem, AnimatedList } from "@/components/motion";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import type { SearchHitRead, SearchKind, SearchMode } from "@/lib/types";
 
-const MODES: { value: SearchMode; label: string }[] = [
-  { value: "lexical", label: "Exact words" },
-  { value: "semantic", label: "By meaning" },
-  { value: "hybrid", label: "Hybrid" },
+const MODES: { value: SearchMode; labelKey: string }[] = [
+  { value: "lexical", labelKey: "project.search.modeExact" },
+  { value: "semantic", labelKey: "project.search.modeMeaning" },
+  { value: "hybrid", labelKey: "project.search.modeHybrid" },
 ];
 
 const KIND_META: Record<
   SearchKind,
-  { label: string; icon: React.ComponentType<{ className?: string }> }
+  { labelKey: string; icon: React.ComponentType<{ className?: string }> }
 > = {
-  note: { label: "Note", icon: StickyNote },
-  document: { label: "Document", icon: FileText },
-  artifact_file: { label: "Artifact file", icon: Layers },
+  note: { labelKey: "project.search.kindNote", icon: StickyNote },
+  document: { labelKey: "project.search.kindDocument", icon: FileText },
+  artifact_file: { labelKey: "project.search.kindArtifactFile", icon: Layers },
 };
 
 interface ProjectSearchButtonProps {
@@ -47,6 +48,7 @@ interface ProjectSearchButtonProps {
  * the working surface.
  */
 export function ProjectSearchButton({ projectSlug }: ProjectSearchButtonProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
 
   return (
@@ -55,11 +57,11 @@ export function ProjectSearchButton({ projectSlug }: ProjectSearchButtonProps) {
         <Button
           variant="outline"
           size="sm"
-          aria-label="Search this project"
+          aria-label={t("project.search.triggerAria")}
           className="gap-1.5"
         >
           <Search className="size-3.5" />
-          <span className="hidden sm:inline">Search</span>
+          <span className="hidden sm:inline">{t("common.search")}</span>
         </Button>
       </SheetTrigger>
       <SheetContent
@@ -68,7 +70,7 @@ export function ProjectSearchButton({ projectSlug }: ProjectSearchButtonProps) {
         aria-describedby={undefined}
       >
         <SheetHeader className="gap-1">
-          <SheetTitle>Search project</SheetTitle>
+          <SheetTitle>{t("project.search.title")}</SheetTitle>
         </SheetHeader>
         {open ? <ProjectSearchPanel projectSlug={projectSlug} /> : null}
       </SheetContent>
@@ -86,6 +88,7 @@ interface ProjectSearchPanelProps {
  * snippets. Debounced; only queries once at least two characters are entered.
  */
 function ProjectSearchPanel({ projectSlug }: ProjectSearchPanelProps) {
+  const t = useT();
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<SearchMode>("hybrid");
   const debounced = useDebounce(query.trim(), 300);
@@ -104,15 +107,15 @@ function ProjectSearchPanel({ projectSlug }: ProjectSearchPanelProps) {
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search notes, documents and artifact files…"
+            placeholder={t("project.search.inputPlaceholder")}
             className="h-9 pl-9"
-            aria-label="Search this project"
+            aria-label={t("project.search.triggerAria")}
             autoFocus
           />
         </div>
         <div
           role="tablist"
-          aria-label="Search mode"
+          aria-label={t("project.search.modeAria")}
           className="inline-flex w-full rounded-lg border border-border bg-muted/50 p-0.5"
         >
           {MODES.map((option) => (
@@ -130,7 +133,7 @@ function ProjectSearchPanel({ projectSlug }: ProjectSearchPanelProps) {
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {option.label}
+              {t(option.labelKey)}
             </button>
           ))}
         </div>
@@ -141,9 +144,7 @@ function ProjectSearchPanel({ projectSlug }: ProjectSearchPanelProps) {
           <SearchResults projectSlug={projectSlug} hits={data} isLoading={isLoading} />
         </ScrollArea>
       ) : (
-        <p className="text-sm text-muted-foreground">
-          Type at least two characters to search this project.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("project.search.hint")}</p>
       )}
     </div>
   );
@@ -158,6 +159,7 @@ function SearchResults({
   hits: SearchHitRead[] | undefined;
   isLoading: boolean;
 }) {
+  const t = useT();
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -172,8 +174,8 @@ function SearchResults({
     return (
       <EmptyState
         icon={Search}
-        title="No matches"
-        description="Try a different query or switch the search mode."
+        title={t("project.search.noMatchesTitle")}
+        description={t("project.search.noMatchesDescription")}
         className="py-10"
       />
     );
@@ -203,6 +205,7 @@ function SearchHit({
   projectSlug: string;
   hit: SearchHitRead;
 }) {
+  const t = useT();
   const meta = KIND_META[hit.kind];
   const Icon = meta.icon;
   return (
@@ -216,10 +219,10 @@ function SearchHit({
       <div className="flex items-center gap-2">
         <Icon className="size-3.5 shrink-0 text-muted-foreground" />
         <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {meta.label}
+          {t(meta.labelKey)}
         </span>
         <span className="truncate text-sm font-medium text-foreground">
-          {hit.title || "Untitled"}
+          {hit.title || t("project.search.untitled")}
         </span>
         {hit.path ? (
           <span className="ml-auto truncate font-mono text-xs text-muted-foreground">

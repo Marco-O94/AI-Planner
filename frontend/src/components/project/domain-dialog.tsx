@@ -156,11 +156,13 @@ function DomainForm({ projectSlug, domain, onSaved, onCancel }: DomainFormProps)
       </div>
       <div className="flex justify-end gap-2">
         <Button variant="ghost" onClick={onCancel} disabled={saving}>
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button onClick={save} disabled={saving}>
           {saving ? <Loader2 className="size-4 animate-spin" /> : null}
-          {domain ? "Save domain" : "Create domain"}
+          {domain
+            ? t("project.domainDialog.saveDomain")
+            : t("project.domainDialog.createDomain")}
         </Button>
       </div>
     </div>

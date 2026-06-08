@@ -26,7 +26,7 @@ for (const route of ROUTES) {
     expect(response?.status() ?? 0).toBeLessThan(400);
 
     // App shell is present on every page.
-    await expect(page.getByRole("link", { name: "ProjectNotes" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "AI Planner" })).toBeVisible();
     // Let client data fetching settle, then assert no runtime errors surfaced.
     await page.waitForTimeout(1500);
     expect(errors, errors.join("\n")).toEqual([]);

@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { EmptyState } from "@/components/common";
+import { useT } from "@/i18n/locale-context";
 import { ArtifactStatusBadge } from "@/components/status-badge";
 import { FadeIn } from "@/components/motion";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,7 @@ export function ItemArtifactPreview({
   projectSlug,
   onClose,
 }: ItemArtifactPreviewProps) {
+  const t = useT();
   const open = itemId !== null;
   const key = itemId ? `/${kind}s/${itemId}/artifacts` : null;
   const { data: artifacts, isLoading } = useSWR<ArtifactRead[]>(key);
@@ -58,19 +60,25 @@ export function ItemArtifactPreview({
         className="w-full gap-0 sm:max-w-3xl"
       >
         <SheetHeader className="border-b border-border">
-          <SheetTitle className="truncate">{title || "Untitled"}</SheetTitle>
+          <SheetTitle className="truncate">
+            {title || t("project.preview.untitled")}
+          </SheetTitle>
           <SheetDescription>
-            Associated artifacts for this {kind}.
+            {kind === "note"
+              ? t("project.preview.associatedNote")
+              : t("project.preview.associatedTask")}
           </SheetDescription>
         </SheetHeader>
 
         <div className="grid flex-1 grid-cols-1 overflow-hidden md:grid-cols-2">
           <aside className="border-border p-4 md:border-r">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-              {kind === "note" ? "Note" : "Task"}
+              {kind === "note"
+                ? t("project.preview.labelNote")
+                : t("project.preview.labelTask")}
             </Label>
             <p className="mt-2 text-sm font-medium text-foreground">
-              {title || "Untitled"}
+              {title || t("project.preview.untitled")}
             </p>
             <p className="mt-1 font-mono text-xs text-muted-foreground">{itemId}</p>
           </aside>
@@ -108,10 +116,11 @@ function ArtifactList({
   artifacts: ArtifactRead[];
   projectSlug: string;
 }) {
+  const t = useT();
   return (
     <div className="space-y-2">
       <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-        Artifacts ({artifacts.length})
+        {t("project.preview.artifactsCount", { count: artifacts.length })}
       </Label>
       {artifacts.map((artifact) => (
         <Link
@@ -142,6 +151,7 @@ function GenerateFromItem({
   title: string;
   projectSlug: string;
 }) {
+  const t = useT();
   const [typeSlug, setTypeSlug] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<ArtifactTypeRead | null>(null);
 
@@ -159,12 +169,12 @@ function GenerateFromItem({
     <FadeIn className="space-y-4">
       <EmptyState
         icon={Sparkles}
-        title="No artifacts yet"
-        description="Generate one focused on this item."
+        title={t("project.preview.noArtifactsTitle")}
+        description={t("project.preview.noArtifactsDescription")}
         className="py-8"
       />
       <div className="space-y-2">
-        <Label className="text-xs">Artifact type</Label>
+        <Label className="text-xs">{t("project.preview.artifactType")}</Label>
         <ArtifactTypePicker
           projectSlug={projectSlug}
           value={typeSlug}

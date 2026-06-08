@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/i18n/locale-context";
 
 export interface TermEntry {
   term: string;
@@ -50,6 +51,7 @@ export function UbiquitousLanguageEditor({
   onChange,
   readOnly,
 }: UbiquitousLanguageEditorProps) {
+  const t = useT();
   const [draftTerm, setDraftTerm] = useState("");
   const [draftDefinition, setDraftDefinition] = useState("");
 
@@ -72,15 +74,15 @@ export function UbiquitousLanguageEditor({
   if (readOnly) {
     if (!entries.length) {
       return (
-        <p className="text-sm text-muted-foreground">No ubiquitous language defined.</p>
+        <p className="text-sm text-muted-foreground">{t("project.language.empty")}</p>
       );
     }
     return (
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-1/3">Term</TableHead>
-            <TableHead>Definition</TableHead>
+            <TableHead className="w-1/3">{t("project.language.termHead")}</TableHead>
+            <TableHead>{t("project.language.definitionHead")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -104,23 +106,25 @@ export function UbiquitousLanguageEditor({
           <Input
             value={entry.term}
             onChange={(event) => updateRow(index, { term: event.target.value })}
-            placeholder="term"
+            placeholder={t("project.language.termPlaceholder")}
             className="h-8 w-40"
-            aria-label={`Term ${index + 1}`}
+            aria-label={t("project.language.termAria", { index: index + 1 })}
           />
           <Input
             value={entry.definition}
             onChange={(event) => updateRow(index, { definition: event.target.value })}
-            placeholder="definition"
+            placeholder={t("project.language.definitionPlaceholder")}
             className="h-8 flex-1"
-            aria-label={`Definition ${index + 1}`}
+            aria-label={t("project.language.definitionAria", { index: index + 1 })}
           />
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
             onClick={() => removeRow(index)}
-            aria-label={`Remove ${entry.term || "term"}`}
+            aria-label={t("project.language.removeAria", {
+              label: entry.term || t("project.language.termFallback"),
+            })}
             className="text-muted-foreground hover:text-destructive"
           >
             <X className="size-3.5" />
@@ -131,16 +135,16 @@ export function UbiquitousLanguageEditor({
         <Input
           value={draftTerm}
           onChange={(event) => setDraftTerm(event.target.value)}
-          placeholder="new term"
+          placeholder={t("project.language.newTermPlaceholder")}
           className="h-8 w-40"
-          aria-label="New term"
+          aria-label={t("project.language.newTermAria")}
         />
         <Input
           value={draftDefinition}
           onChange={(event) => setDraftDefinition(event.target.value)}
-          placeholder="new definition"
+          placeholder={t("project.language.newDefinitionPlaceholder")}
           className="h-8 flex-1"
-          aria-label="New definition"
+          aria-label={t("project.language.newDefinitionAria")}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
@@ -154,7 +158,7 @@ export function UbiquitousLanguageEditor({
           size="icon-sm"
           onClick={addRow}
           disabled={!draftTerm.trim()}
-          aria-label="Add term"
+          aria-label={t("project.language.addAria")}
         >
           <Plus className="size-3.5" />
         </Button>

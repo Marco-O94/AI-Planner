@@ -1,6 +1,7 @@
 "use client";
 
 import { CopyButton } from "@/components/common";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 
 /**
@@ -44,6 +45,7 @@ export function McpInstructionBlock({
   instruction: string;
   className?: string;
 }) {
+  const t = useT();
   return (
     <div className={cn("space-y-2", className)}>
       <div className="relative overflow-hidden rounded-lg border border-border bg-muted/50">
@@ -54,9 +56,7 @@ export function McpInstructionBlock({
           <CopyButton value={instruction} size="icon" />
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Paste this into Claude Code. The artifacts list refreshes once the agent saves.
-      </p>
+      <p className="text-xs text-muted-foreground">{t("project.mcp.pasteHint")}</p>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useT } from "@/i18n/locale-context";
 import type { ArtifactTypeRead } from "@/lib/types";
 
 interface ArtifactTypePickerProps {
@@ -30,6 +31,7 @@ export function ArtifactTypePicker({
   onChange,
   disabled,
 }: ArtifactTypePickerProps) {
+  const t = useT();
   const { data, isLoading } = useSWR<ArtifactTypeRead[]>(
     `/projects/${projectSlug}/artifact-types`,
   );
@@ -40,9 +42,7 @@ export function ArtifactTypePicker({
 
   if (!types.length) {
     return (
-      <p className="text-sm text-muted-foreground">
-        No artifact types available. Create one in the Artifact Types library.
-      </p>
+      <p className="text-sm text-muted-foreground">{t("project.artifactType.empty")}</p>
     );
   }
 
@@ -56,13 +56,13 @@ export function ArtifactTypePicker({
       }}
     >
       <SelectTrigger className="w-full">
-        <SelectValue placeholder="Choose an artifact type" />
+        <SelectValue placeholder={t("project.artifactType.placeholder")} />
       </SelectTrigger>
       <SelectContent>
         {types.map((type) => (
           <SelectItem key={type.id} value={type.slug}>
             {type.name}
-            {type.is_default ? " (default)" : ""}
+            {type.is_default ? t("project.artifactType.defaultSuffix") : ""}
           </SelectItem>
         ))}
       </SelectContent>

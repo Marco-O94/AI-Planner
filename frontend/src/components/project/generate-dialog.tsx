@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScopeBadge } from "@/components/status-badge";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 import type { ArtifactTypeRead, ProjectRead } from "@/lib/types";
 
@@ -35,6 +36,7 @@ interface GenerateDialogProps {
  * notes + tasks; "selected" is a focused run the user wires up by hand.
  */
 export function GenerateDialog({ project, open, onOpenChange }: GenerateDialogProps) {
+  const t = useT();
   const [typeSlug, setTypeSlug] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<ArtifactTypeRead | null>(null);
   const [scope, setScope] = useState<GenerationScope>("complete");
@@ -54,16 +56,14 @@ export function GenerateDialog({ project, open, onOpenChange }: GenerateDialogPr
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="size-4 text-primary" />
-            Generate an artifact
+            {t("project.generate.title")}
           </DialogTitle>
-          <DialogDescription>
-            Choose a type and scope, then run the instruction in Claude Code.
-          </DialogDescription>
+          <DialogDescription>{t("project.generate.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Artifact type</Label>
+            <Label>{t("project.generate.artifactType")}</Label>
             <ArtifactTypePicker
               projectSlug={project.slug}
               value={typeSlug}
@@ -78,37 +78,35 @@ export function GenerateDialog({ project, open, onOpenChange }: GenerateDialogPr
           </div>
 
           <div className="space-y-1.5">
-            <Label>Scope</Label>
+            <Label>{t("project.generate.scope")}</Label>
             <div className="grid grid-cols-2 gap-2">
               <ScopeOption
-                label="Complete"
-                hint="All notes + tasks"
+                label={t("project.generate.scopeComplete")}
+                hint={t("project.generate.scopeCompleteHint")}
                 active={scope === "complete"}
                 onSelect={() => setScope("complete")}
               />
               <ScopeOption
-                label="Selected"
-                hint="Focused items only"
+                label={t("project.generate.scopeSelected")}
+                hint={t("project.generate.scopeSelectedHint")}
                 active={scope === "selected"}
                 onSelect={() => setScope("selected")}
               />
             </div>
             {scope === "selected" ? (
               <p className="text-xs text-muted-foreground">
-                Add <code className="rounded bg-muted px-1">note_ids</code> /{" "}
-                <code className="rounded bg-muted px-1">task_ids</code> to the prepare
-                call to focus the run, or generate per item from the Notes / Tasks tabs.
+                {t("project.generate.selectedHelp")}
               </p>
             ) : null}
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="generate-title">Title (optional)</Label>
+            <Label htmlFor="generate-title">{t("project.generate.titleLabel")}</Label>
             <Input
               id="generate-title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="e.g. v1 Development Plan"
+              placeholder={t("project.generate.titlePlaceholder")}
             />
           </div>
 
@@ -117,7 +115,7 @@ export function GenerateDialog({ project, open, onOpenChange }: GenerateDialogPr
               <Separator />
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>MCP instruction</Label>
+                  <Label>{t("project.generate.mcpInstruction")}</Label>
                   {selectedType ? <ScopeBadge scope={selectedType.scope} /> : null}
                 </div>
                 <McpInstructionBlock instruction={instruction} />
@@ -125,13 +123,13 @@ export function GenerateDialog({ project, open, onOpenChange }: GenerateDialogPr
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Select an artifact type to see the instruction.
+              {t("project.generate.selectTypePrompt")}
             </p>
           )}
 
           <div className="flex justify-end">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Done
+              {t("project.generate.done")}
             </Button>
           </div>
         </div>

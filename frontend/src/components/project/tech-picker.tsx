@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TechKindBadge } from "@/components/status-badge";
 import { titleCase } from "@/lib/format";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 import {
   TECHNOLOGY_KINDS,
@@ -44,6 +45,7 @@ interface TechPickerProps {
  * one with an optional version.
  */
 export function TechPicker({ attached, onAttach, onDetach, busy }: TechPickerProps) {
+  const t = useT();
   const { data: catalog } = useSWR<TechnologyRead[]>("/technologies");
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -92,7 +94,7 @@ export function TechPicker({ attached, onAttach, onDetach, busy }: TechPickerPro
                 type="button"
                 disabled={busy}
                 onClick={() => onDetach(tech.id)}
-                aria-label={`Remove ${tech.name}`}
+                aria-label={t("project.tech.removeAria", { name: tech.name })}
                 className="grid size-4 place-items-center rounded text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
               >
                 <X className="size-3" />
@@ -100,7 +102,7 @@ export function TechPicker({ attached, onAttach, onDetach, busy }: TechPickerPro
             </span>
           ))
         ) : (
-          <p className="text-sm text-muted-foreground">No technologies yet.</p>
+          <p className="text-sm text-muted-foreground">{t("project.tech.empty")}</p>
         )}
       </div>
 
@@ -108,13 +110,13 @@ export function TechPicker({ attached, onAttach, onDetach, busy }: TechPickerPro
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm" disabled={busy}>
             <Plus className="size-3.5" />
-            Add technology
+            {t("project.tech.addTechnology")}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-80 p-0">
           <div className="grid grid-cols-2 gap-2 border-b border-border p-2.5">
             <div className="space-y-1">
-              <Label className="text-xs">Kind</Label>
+              <Label className="text-xs">{t("project.tech.kind")}</Label>
               <div className="flex flex-wrap gap-1">
                 {TECHNOLOGY_KINDS.map((option) => (
                   <button
@@ -135,13 +137,13 @@ export function TechPicker({ attached, onAttach, onDetach, busy }: TechPickerPro
             </div>
             <div className="space-y-1">
               <Label htmlFor="tech-version" className="text-xs">
-                Version
+                {t("project.tech.version")}
               </Label>
               <Input
                 id="tech-version"
                 value={version}
                 onChange={(event) => setVersion(event.target.value)}
-                placeholder="e.g. 1.2"
+                placeholder={t("project.tech.versionPlaceholder")}
                 className="h-7"
               />
             </div>
@@ -150,23 +152,28 @@ export function TechPicker({ attached, onAttach, onDetach, busy }: TechPickerPro
             <CommandInput
               value={search}
               onValueChange={setSearch}
-              placeholder="Search or type a name…"
+              placeholder={t("project.tech.searchPlaceholder")}
             />
             <CommandList>
-              {!canCreateNew ? <CommandEmpty>No matches.</CommandEmpty> : null}
+              {!canCreateNew ? (
+                <CommandEmpty>{t("project.tech.noMatches")}</CommandEmpty>
+              ) : null}
               {canCreateNew ? (
-                <CommandGroup heading="Create new">
+                <CommandGroup heading={t("project.tech.createNew")}>
                   <CommandItem
                     value={`create-${search}`}
                     onSelect={() => attach(search, kind)}
                   >
                     <Plus className="size-3.5" />
-                    Add &quot;{search.trim()}&quot; as {titleCase(kind)}
+                    {t("project.tech.addAs", {
+                      name: search.trim(),
+                      kind: titleCase(kind),
+                    })}
                   </CommandItem>
                 </CommandGroup>
               ) : null}
               {suggestions.length ? (
-                <CommandGroup heading="Known">
+                <CommandGroup heading={t("project.tech.known")}>
                   {suggestions.map((tech) => (
                     <CommandItem
                       key={tech.id}
