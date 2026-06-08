@@ -1,6 +1,8 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
-import { titleCase } from "@/lib/format";
 import type {
   ArtifactStatus,
   NoteType,
@@ -72,31 +74,43 @@ const TECH_KIND_TONE: Record<TechnologyKind, Tone> = {
   TOOL: "slate",
 };
 
-export const TaskStatusBadge = ({ status }: { status: TaskStatus }) => (
-  <Pill tone={TASK_STATUS_TONE[status]}>{titleCase(status)}</Pill>
-);
-export const TaskPriorityBadge = ({ priority }: { priority: TaskPriority }) => (
-  <Pill tone={TASK_PRIORITY_TONE[priority]}>{titleCase(priority)}</Pill>
-);
-export const ProjectStatusBadge = ({ status }: { status: ProjectStatus }) => (
-  <Pill tone={PROJECT_STATUS_TONE[status]}>{titleCase(status)}</Pill>
-);
-export const ArtifactStatusBadge = ({ status }: { status: ArtifactStatus }) => (
-  <Pill tone={ARTIFACT_STATUS_TONE[status]}>{titleCase(status)}</Pill>
-);
-export const PhaseStatusBadge = ({ status }: { status: PhaseStatus }) => (
-  <Pill tone={PHASE_STATUS_TONE[status]}>{titleCase(status)}</Pill>
-);
-export const NoteTypeBadge = ({ type }: { type: NoteType }) => (
-  <Pill tone={NOTE_TYPE_TONE[type]}>{titleCase(type)}</Pill>
-);
+export const TaskStatusBadge = ({ status }: { status: TaskStatus }) => {
+  const t = useT();
+  return <Pill tone={TASK_STATUS_TONE[status]}>{t(`enums.taskStatus.${status}`)}</Pill>;
+};
+export const TaskPriorityBadge = ({ priority }: { priority: TaskPriority }) => {
+  const t = useT();
+  return <Pill tone={TASK_PRIORITY_TONE[priority]}>{t(`enums.taskPriority.${priority}`)}</Pill>;
+};
+export const ProjectStatusBadge = ({ status }: { status: ProjectStatus }) => {
+  const t = useT();
+  return <Pill tone={PROJECT_STATUS_TONE[status]}>{t(`enums.projectStatus.${status}`)}</Pill>;
+};
+export const ArtifactStatusBadge = ({ status }: { status: ArtifactStatus }) => {
+  const t = useT();
+  return <Pill tone={ARTIFACT_STATUS_TONE[status]}>{t(`enums.artifactStatus.${status}`)}</Pill>;
+};
+export const PhaseStatusBadge = ({ status }: { status: PhaseStatus }) => {
+  const t = useT();
+  return <Pill tone={PHASE_STATUS_TONE[status]}>{t(`enums.phaseStatus.${status}`)}</Pill>;
+};
+export const NoteTypeBadge = ({ type }: { type: NoteType }) => {
+  const t = useT();
+  return <Pill tone={NOTE_TYPE_TONE[type]}>{t(`enums.noteType.${type}`)}</Pill>;
+};
 export const TechKindBadge = ({
   kind,
   children,
 }: {
   kind: TechnologyKind;
   children?: React.ReactNode;
-}) => <Pill tone={TECH_KIND_TONE[kind]}>{children ?? titleCase(kind)}</Pill>;
-export const ScopeBadge = ({ scope }: { scope: ScopeKind }) => (
-  <Pill tone={scope === "GLOBAL" ? "violet" : "slate"}>{titleCase(scope)}</Pill>
-);
+}) => {
+  const t = useT();
+  return <Pill tone={TECH_KIND_TONE[kind]}>{children ?? t(`enums.techKind.${kind}`)}</Pill>;
+};
+export const ScopeBadge = ({ scope }: { scope: ScopeKind }) => {
+  const t = useT();
+  return (
+    <Pill tone={scope === "GLOBAL" ? "violet" : "slate"}>{t(`enums.scope.${scope}`)}</Pill>
+  );
+};

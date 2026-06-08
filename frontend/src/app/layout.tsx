@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ProjectNotes",
+  title: "AI Planner",
   description:
     "Capture notes, tasks and documents per project and domain, then generate typed artifacts.",
 };

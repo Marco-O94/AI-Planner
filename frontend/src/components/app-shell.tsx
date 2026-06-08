@@ -4,22 +4,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FileText, FolderGit2, LayoutGrid, Layers, Sparkles } from "lucide-react";
 
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
   href: string;
-  label: string;
+  /** Key into the `nav` dictionary namespace. */
+  labelKey: string;
   icon: React.ComponentType<{ className?: string }>;
   /** Match this exact path only (else prefix-match). */
   exact?: boolean;
 }
 
 const NAV: NavItem[] = [
-  { href: "/", label: "Projects", icon: LayoutGrid, exact: true },
-  { href: "/files", label: "Files", icon: FileText },
-  { href: "/artifact-types", label: "Artifact Types", icon: Layers },
-  { href: "/templates", label: "Templates", icon: FolderGit2 },
-  { href: "/skills", label: "Skills", icon: Sparkles },
+  { href: "/", labelKey: "nav.projects", icon: LayoutGrid, exact: true },
+  { href: "/files", labelKey: "nav.files", icon: FileText },
+  { href: "/artifact-types", labelKey: "nav.artifactTypes", icon: Layers },
+  { href: "/templates", labelKey: "nav.templates", icon: FolderGit2 },
+  { href: "/skills", labelKey: "nav.skills", icon: Sparkles },
 ];
 
 function isActive(pathname: string, item: NavItem): boolean {
@@ -29,6 +32,7 @@ function isActive(pathname: string, item: NavItem): boolean {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const t = useT();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -38,7 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground">
               <Sparkles className="size-4" />
             </span>
-            <span className="hidden sm:inline">ProjectNotes</span>
+            <span className="hidden sm:inline">{t("nav.brand")}</span>
           </Link>
           <nav className="flex items-center gap-1 overflow-x-auto">
             {NAV.map((item) => {
@@ -56,11 +60,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   )}
                 >
                   <Icon className="size-4" />
-                  <span className="hidden md:inline">{item.label}</span>
+                  <span className="hidden md:inline">{t(item.labelKey)}</span>
                 </Link>
               );
             })}
           </nav>
+          <LanguageSwitcher className="ml-auto shrink-0" />
         </div>
       </header>
       <main className="mx-auto w-full max-w-screen-2xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
