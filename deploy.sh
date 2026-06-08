@@ -177,9 +177,18 @@ cmd_vps() {
   info "Building images and starting the stack…"
   "${COMPOSE[@]}" up --build -d
   wait_for_health
-  print_urls "$host" "$scheme"
-  printf '\n%sNote:%s open these host ports on the VPS firewall (or front them with a reverse proxy):\n' "$YELLOW" "$RESET"
-  printf '  frontend %s · backend %s · mcp %s\n' "$fport" "$bport" "$(env_get MCP_PORT 8050)"
+
+  if [ "$scheme" = "https" ]; then
+    printf '\n'
+    ok "Stack is up behind your reverse proxy."
+    printf '  %sApp%s   https://%s   %s(proxy → frontend :%s, backend :%s)%s\n' \
+      "$BOLD" "$RESET" "$host" "$DIM" "$fport" "$bport" "$RESET"
+    printf '\n%sNext:%s point a TLS reverse proxy (Caddy/Nginx/Traefik) at the container ports above.\n' "$YELLOW" "$RESET"
+  else
+    print_urls "$host" "$scheme"
+    printf '\n%sNote:%s open these host ports on the VPS firewall (Postgres/Qdrant should stay private):\n' "$YELLOW" "$RESET"
+    printf '  frontend %s · backend %s · mcp %s\n' "$fport" "$bport" "$(env_get MCP_PORT 8050)"
+  fi
 }
 
 cmd_down()    { "${COMPOSE[@]}" down; ok "Stopped (volumes persist; use 'docker compose down -v' to wipe data)."; }
