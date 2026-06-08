@@ -5,14 +5,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.errors import register_error_handlers
 from app.api.routers import (
+    admin,
     artifact_types,
     artifacts,
+    documents,
     domains,
     notes,
     projects,
+    search,
     skills,
     tasks,
     technologies,
+    templates,
 )
 from app.config import settings
 
@@ -37,6 +41,10 @@ for module in (
     artifact_types,
     artifacts,
     skills,
+    documents,
+    search,
+    templates,
+    admin,
 ):
     app.include_router(module.router)
 

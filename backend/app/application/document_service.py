@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Protocol
 
 from app.domain.entities import Document
@@ -78,7 +78,7 @@ class DocumentService:
         )
         if self.indexer is not None:
             self.indexer.index_document(document)
-            self.repo.set_indexed(document.id, datetime.now(timezone.utc))
+            self.repo.set_indexed(document.id, datetime.now(UTC))
             document = self.repo.get_by_id(document.id)
         return document
 

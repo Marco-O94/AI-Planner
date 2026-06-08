@@ -47,10 +47,15 @@ services:
       QDRANT_URL: http://qdrant:6333
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      STORAGE_DIR: /data/storage
     ports:
       - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - docstore:/data/storage
     depends_on:
       postgres:
+        condition: service_healthy
+      qdrant:
         condition: service_healthy
     healthcheck:
       test:
@@ -65,6 +70,7 @@ services:
 volumes:
   pgdata:
   qdrantdata:
+  docstore:
 
 networks:
   pnnet:

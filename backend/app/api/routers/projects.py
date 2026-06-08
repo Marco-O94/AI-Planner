@@ -4,8 +4,9 @@ import uuid
 
 from fastapi import APIRouter, Depends
 
-from app.api.deps import get_project_service
+from app.api.deps import get_project_service, get_template_service
 from app.application.project_service import ProjectService
+from app.application.template_service import ProjectTemplateService
 from app.domain.enums import ProjectStatus
 from app.schemas.project import (
     AttachTechnologyRequest,
@@ -41,6 +42,7 @@ def list_projects(
 def create_project(
     payload: ProjectCreate,
     service: ProjectService = Depends(get_project_service),
+    template_service: ProjectTemplateService = Depends(get_template_service),
 ) -> ProjectRead:
     detail = service.create(
         name=payload.name,
@@ -50,6 +52,8 @@ def create_project(
         metadata=payload.metadata,
         technologies=[t.model_dump() for t in payload.technologies],
     )
+    if payload.template_slug:
+        detail = template_service.apply(payload.template_slug, detail.project.slug)
     return ProjectRead.from_detail(detail)
 
 

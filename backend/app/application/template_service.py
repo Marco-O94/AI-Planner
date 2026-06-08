@@ -39,7 +39,9 @@ class ProjectTemplateService:
 
     # --- CRUD ------------------------------------------------------------
 
-    def create(self, *, name: str, definition: dict, description: str | None = None) -> ProjectTemplate:
+    def create(
+        self, *, name: str, definition: dict, description: str | None = None
+    ) -> ProjectTemplate:
         slug = make_unique_slug(name, self.repo.slug_exists)
         return self.repo.add(
             ProjectTemplate(

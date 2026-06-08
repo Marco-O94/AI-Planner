@@ -17,5 +17,8 @@ node_modules/
 .next/
 dist/
 
+# Local document storage
+var/
+
 # OS
 .DS_Store
