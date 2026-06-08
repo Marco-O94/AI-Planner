@@ -1,261 +1,242 @@
+<div align="center">
+
 # AI Planner
 
-Capture typed **notes**, **tasks**, and **documents** about software projects —
-organized by project and DDD bounded context — and expose them to an AI (Claude
-Code) over an **MCP server** to generate typed, versioned **artifacts**
-(default: a Development Plan). Notes and documents are searchable via Postgres
-full-text **and** Qdrant semantic vectors.
+![AI Planner — Collect. Organize. Transform. Plan.](./project-image.png)
 
-Built as a decoupled monorepo:
+**Collect anything. Organize & understand. Turn your knowledge into plans for your AI agent.**
 
-| Service | Stack | Status |
-|---------|-------|--------|
-| `backend/` | FastAPI + SQLAlchemy + Alembic + Postgres + Qdrant/FastEmbed | Phases 1–3 ✅ |
-| `mcp/` | Python MCP server (FastMCP, HTTP → backend, stdio/SSE) | Phase 4 ✅ |
-| `frontend/` | Next.js 16 + shadcn/ui + framer-motion + SWR | Phase 5 ✅ |
-| infra | docker-compose (all 5 services, healthcheck-gated) | Phase 6 ✅ |
+Capture typed **notes**, **tasks**, and **documents** about your software projects —
+organized by project and DDD bounded context — make them **searchable** (full‑text + semantic),
+and hand them to an AI agent (Claude Code) over an **MCP server** to generate typed,
+versioned **artifacts** such as a Development Plan.
 
-See [`IMPLEMENTATION_PLAN.md`](./IMPLEMENTATION_PLAN.md) for the full, phased plan.
-
-**Run the whole stack:** `cp .env.example .env && docker compose up --build` →
-frontend http://localhost:3000 · backend http://localhost:8000/docs · MCP SSE
-http://localhost:8050/sse · Qdrant http://localhost:6333/dashboard.
-See [Phase 6](#phase-6--full-stack-orchestration) below.
+</div>
 
 ---
 
-## Phase 1 — Database & backend foundation
+## What it is
 
-Postgres + Qdrant via Docker, the full 15-table schema migrated by Alembic, and
-a FastAPI `/health` endpoint.
+AI Planner is a small, **fully decoupled** system for turning scattered project knowledge into
+structured, AI‑generated deliverables:
 
-### Prerequisites
-- Docker + Docker Compose
-- [uv](https://docs.astral.sh/uv/) (Python toolchain; pins Python 3.12)
+1. **Collect** — notes (requirement / constraint / decision / question / snippet / reference),
+   tasks (with dependencies), and uploaded documents (PDF / DOCX / MD / TXT), each scoped to a
+   project and an optional DDD **domain** (bounded context).
+2. **Organize & understand** — tag, link, and **search** across everything: exact words inside
+   files (Postgres full‑text), by meaning (Qdrant vectors), or both fused (hybrid RRF).
+3. **Turn into plans** — an AI agent pulls the assembled context through the MCP server, picks an
+   **artifact type** (its instructions + file manifest), and writes back a **typed, versioned**
+   multi‑file artifact (e.g. a Development Plan with phases it can mark done as it implements).
+4. **For your AI agent** — the agent reads context, produces the declared files, saves the
+   artifact, iterates to new versions, and updates execution phases live.
 
-### Run
-
-```bash
-# 1. Start data services (Postgres + Qdrant).
-cp .env.example .env          # adjust ports if 5432/6333 are taken locally
-docker compose up -d          # → postgres + qdrant healthy
-
-# 2. Install backend deps and apply migrations.
-cd backend
-uv sync
-uv run alembic upgrade head   # creates 15 tables + full-text GIN indexes + seed
-
-# 3. Serve the API.
-uv run uvicorn app.main:app --reload
-curl localhost:8000/health    # {"status":"ok"}
-```
-
-> The local `.env` in this repo remaps host ports (Postgres `5544`, Qdrant
-> `6343`) to avoid colliding with other stacks; `.env.example` keeps the
-> conventional `5432`/`6333` defaults.
-
-### Test
-
-```bash
-cd backend
-docker compose -f ../docker-compose.yml up -d   # Postgres must be running
-uv run pytest                                    # applies migrations, verifies schema + /health
-```
-
-The suite verifies the migrated schema directly against the plan: all 15 tables,
-FK cascade/SET NULL rules, the circular `artifacts ↔ artifact_versions` FK,
-generated `tsvector` columns + GIN indexes, the scope `CHECK` constraints,
-partial unique slug indexes, and the seeded technologies + default
-"Development Plan" artifact type.
+Everything runs locally; your data stays in your Postgres + Qdrant.
 
 ---
 
-## Phase 2 — Backend domain + application + API
+## Features
 
-Full CRUD REST API over all aggregates with DDD layering and invariants
-enforced in the service layer (cross-project domain rejection, slug collisions,
-skill/artifact-type scope, technology resolve-or-create, task dependency
-same-project + cycle rejection + blocked computation, artifact versioning with
-manifest coverage and phase parsing, diff, and export).
-
-```bash
-# Build + run the whole backend (postgres healthcheck-gated) in one command:
-docker compose up -d --build backend     # backend runs migrations on start, then serves
-curl localhost:8000/health               # {"status":"ok"}
-open http://localhost:8000/docs          # OpenAPI: all routers
-
-# Or run locally against the compose Postgres:
-cd backend && uv run uvicorn app.main:app --reload
-```
-
-Key endpoint groups: `/projects` (+ filters, technologies), `/technologies`,
-`/projects/{slug}/domains` + `/domains/{id}`, `/projects/{slug}/notes` +
-`/notes/{id}` (+ `/artifacts` reverse lookup), `/projects/{slug}/tasks` +
-`/tasks/{id}` (+ deps/blocked, `/artifacts`), `/artifact-types`,
-`/projects/{slug}/artifacts` + `/artifacts/{id}` (versions, diff, files,
-phases, export), `/skills` (+ SKILL.md export, attach/detach).
-
-### Test
-
-```bash
-cd backend
-docker compose -f ../docker-compose.yml up -d postgres   # Postgres must be running
-uv run pytest                                             # 42 tests: schema + API behavior
-```
-
-The API suite covers the Phase 2 done criteria: cross-project domain → 422,
-slug collisions, note/task filtering, skill & artifact-type scope, GLOBAL-skill
-attach/detach, combined project filtering, technology resolve-or-create,
-note→/task→artifact reverse lookups, dependency cycle rejection + blocked flag,
-protected default artifact type, artifact version increment + current pointer +
-multi-file storage + manifest coverage + phase parsing, and export (single + zip).
+- **Projects & domains** — DDD bounded contexts with ubiquitous‑language tables; per‑project tech
+  stack (language / framework / database / tool) with versions.
+- **Notes** — typed, markdown, tagged, optionally domain‑scoped; fast quick‑capture composer.
+- **Tasks** — status board (Todo / In Progress / Done), priorities, tags, **dependencies** with an
+  automatic **blocked** flag and cycle rejection; optimistic inline edits.
+- **Documents** — drag‑and‑drop upload, text extraction, dual indexing, extracted‑text preview,
+  download.
+- **Search** — lexical, semantic, and hybrid; scopable by project/domain; a File Explorer that
+  searches **inside** file contents, grouped by project.
+- **Artifact types** — define your own output types (instructions + file manifest); the built‑in
+  **Development Plan** ships by default and is non‑deletable.
+- **Artifacts** — multi‑file, versioned; manifest‑coverage indicator, per‑file version **diff**,
+  execution **phase** checklist, export (single file or zip), links back to source notes/tasks.
+- **Templates** — snapshot a project as a template; create new projects from one.
+- **Skills** — attach GLOBAL skills to projects or define PROJECT skills; upload `.md` with
+  frontmatter.
+- **MCP server** — 20 tools exposing all of the above to Claude Code over stdio or SSE.
 
 ---
 
-## Phase 3 — Documents, search & templates
+## Architecture
 
-Upload documents (PDF/DOCX/MD/TXT → text extracted + stored on a volume), index
-notes + documents + artifact files for **lexical** (Postgres FTS) and
-**semantic** (Qdrant + FastEmbed) retrieval, fuse them with **hybrid** RRF, and
-support reusable **project templates**.
+A monorepo of independently‑built services that talk **only over HTTP** — no shared in‑process
+imports across deliverables.
 
-```bash
-# Upload a document (multipart):
-curl -F 'file=@spec.pdf' -F 'title=Spec' localhost:8000/projects/<slug>/documents
-
-# Search — mode = lexical | semantic | hybrid (default hybrid), scopable by project/domain:
-curl 'localhost:8000/search?q=refund+policy&mode=hybrid&project_slug=<slug>'
-
-# File explorer (in-file full-text), grouped by project:
-curl 'localhost:8000/files?q=invoices'
-
-# Templates: create, apply on project create (template_slug), or snapshot a project:
-curl -X POST localhost:8000/projects/<slug>/save-as-template -d '{"name":"DDD Starter"}'
-
-# Rebuild the vector collection from Postgres:
-curl -X POST localhost:8000/admin/reindex
-```
-
-Endpoint groups added: `/projects/{slug}/documents` + `/documents/{id}`
-(+ `/download`), `/search` + `/projects/{slug}/search`, `/files` +
-`/projects/{slug}/files`, `/templates` (+ apply / save-as-template),
-`/admin/reindex`. Indexing is **resilient** — Postgres is authoritative; an
-embedding failure never blocks a write, and `/admin/reindex` repairs drift.
-
-### Test
-
-```bash
-cd backend && uv run pytest      # 53 tests (schema + API + search/documents/templates)
-```
-
-Phase 3 coverage: document upload/extraction/dual-index, lexical exact-word match
-inside files (scoped by project), semantic by-meaning, hybrid fusion, project
-scoping isolation, file-explorer grouping + in-file search, template apply +
-save-as-template round-trip (incl. enum-safe technology serialization), reindex.
-
-### Layout
+| Service | Stack | Role |
+|---------|-------|------|
+| `backend/` | FastAPI · SQLAlchemy · Alembic · PostgreSQL · Qdrant/FastEmbed | REST API; owns all data (Postgres = source of truth, Qdrant = rebuildable vectors) |
+| `mcp/` | Python · FastMCP · httpx | Exposes the backend to an AI agent (stdio / SSE); calls the API over HTTP |
+| `frontend/` | Next.js 16 · React 19 · shadcn/ui · framer‑motion · SWR · Tailwind v4 | Capture & browsing UI |
+| infra | `docker-compose` | Postgres · Qdrant · backend · mcp · frontend on one network |
 
 ```
-backend/app/
-├─ config.py                 # pydantic-settings (DATABASE_URL, QDRANT_URL, EMBEDDING_MODEL, STORAGE_DIR)
-├─ main.py                   # FastAPI app: routers, CORS, error handlers, /health
-├─ domain/                   # pure: entities, enums, read models, repo + VectorIndex Protocols, errors
-├─ application/              # services (one per aggregate) + indexer/search/reindex/template — invariants here
-├─ infrastructure/           # SQLAlchemy models/repos/mappers, db/UoW, embeddings, qdrant, fulltext, storage, extract
-├─ schemas/                  # Pydantic Create/Update/Read DTOs
-└─ api/                      # thin routers + DI wiring (deps.py) + error mapping
-alembic/                     # migration env + versions
-tests/                       # schema + API + search/documents/templates verification
-docker-compose.yml           # postgres + qdrant + backend (+ doc storage volume); mcp/frontend added later
+                 ┌────────────┐        ┌──────────┐
+   Browser ────► │  frontend  │ ─HTTP─►│          │ ─►  PostgreSQL  (entities, full‑text)
+                 └────────────┘        │ backend  │
+   Claude Code ─► ┌────────┐  ─HTTP─►  │  (API)   │ ─►  Qdrant      (semantic vectors)
+                  │  mcp   │           │          │
+                  └────────┘           └──────────┘
 ```
 
-Layering rule (Hexagonal/DDD): `domain` depends on nothing; `application`
-depends on `domain` + repository interfaces; `infrastructure` implements those
-interfaces; `api` depends on `application`. No reverse dependencies.
+**Backend layering (Hexagonal / DDD):** `domain` (pure) ← `application` (services + invariants) ←
+`infrastructure` (SQLAlchemy, Qdrant, FastEmbed, storage) ; `api` (thin routers) → `application`.
+No reverse dependencies.
 
 ---
 
-## Phase 4 — MCP server
+## Quick start — run the whole stack
 
-A Python [FastMCP](https://github.com/modelcontextprotocol/python-sdk) server
-(`mcp/`) that exposes the backend to an AI agent (Claude Code) so it can discover
-projects, pull pre-assembled context, choose an artifact type, and write typed,
-versioned artifacts back. It talks to the backend **over HTTP only** — never
-imports backend code.
-
-20 tools: discovery (`list_projects`, `get_project_context`), artifact types,
-artifacts + versions, notes/tasks/documents, skills, `search_knowledge`
-(lexical/semantic/hybrid), `prepare_generation` (the unified bundle), and the
-writes `save_artifact` + `update_phase_status`.
+**Prerequisites:** Docker + Docker Compose.
 
 ```bash
-# stdio (local Claude Code):
-cd mcp && uv sync
-BACKEND_URL=http://localhost:8088 uv run python -m project_notes_mcp
-# tests:
-uv run pytest          # 34 tests (mock-backed); uv run ruff check .
+cp .env.example .env          # localhost defaults (adjust ports if they collide)
+docker compose up --build     # postgres, qdrant, backend, mcp, frontend
 ```
 
-Register with Claude Code via [`mcp/.mcp.stdio.json`](./mcp/.mcp.stdio.json)
-(local) or [`mcp/.mcp.sse.json`](./mcp/.mcp.sse.json) (the always-on compose
-service). See [`mcp/README.md`](./mcp/README.md) for tool docs and when to use
-which transport.
-
----
-
-## Phase 5 — Next.js frontend
-
-A capture-first UI (`frontend/`): Next.js 16 (App Router, Turbopack), shadcn/ui,
-framer-motion, SWR, Tailwind v4. Dashboard with faceted filters; project view
-with Notes / Tasks / Artifacts / Documents / Skills tabs, editable metadata,
-domains, and project search (mode toggle); a File Explorer with in-file search;
-Tasks board with dependencies + blocked badges; document drag-drop upload;
-artifact detail with files, manifest coverage, version diff, and phase checklist;
-artifact-type and template libraries; global + project skills with `.md` upload.
-
-```bash
-cd frontend
-npm install
-NEXT_PUBLIC_API_URL=http://localhost:8088 npm run dev   # http://localhost:3000
-npm run build          # production build (Turbopack)
-npm run test:e2e       # Playwright smoke (uses system Chrome)
-```
-
-The typed API client (`src/lib/api.ts`) + types (`src/lib/types.ts`) mirror the
-backend OpenAPI; `NEXT_PUBLIC_API_URL` is the browser-reachable backend URL.
-
----
-
-## Phase 6 — Full-stack orchestration
-
-One command brings up the whole decoupled stack on a shared network, gated by
-healthchecks: **postgres + qdrant healthy → backend healthy → mcp + frontend**.
-Services reach each other by compose service name (`backend:8000`,
-`qdrant:6333`); each image builds only its own directory (no in-process imports).
-
-```bash
-cp .env.example .env            # localhost defaults; this repo's .env remaps host ports
-docker compose up --build       # postgres, qdrant, backend (migrates on start), mcp, frontend
-```
+Startup is healthcheck‑gated: **postgres + qdrant healthy → backend (migrates on start) →
+mcp + frontend**. Services reference each other by compose name (`backend:8000`, `qdrant:6333`).
 
 | Service | URL |
 |---------|-----|
-| Frontend | http://localhost:3000 |
-| Backend API + docs | http://localhost:8000 · /docs |
-| MCP (SSE) | http://localhost:8050/sse |
-| Qdrant dashboard | http://localhost:6333/dashboard |
+| **Frontend** | http://localhost:3000 |
+| **Backend API + docs** | http://localhost:8000 · http://localhost:8000/docs |
+| **MCP (SSE)** | http://localhost:8050/sse |
+| **Qdrant dashboard** | http://localhost:6333/dashboard |
 
-> The local `.env` remaps host ports (backend `8088`, postgres `5544`, qdrant
-> `6343`); with it, set `NEXT_PUBLIC_API_URL=http://localhost:8088` (already in
-> `.env`) so the browser bundle targets the published backend port.
+Restarting any single service never requires rebuilding the others:
 
-Decoupling: restarting any one service (`docker compose restart mcp`) never
-requires rebuilding the others. The full loop — create a project + notes + tasks
-+ a document in the UI, find the document by meaning via semantic search, then
-generate a typed artifact from Claude Code through the MCP server and watch it
-appear in the UI — runs entirely over the network between independently-built
-services.
+```bash
+docker compose restart mcp          # backend, frontend, data stay up
+docker compose down                 # stop everything (volumes persist)
+```
 
-Register the MCP server with Claude Code in either transport: **stdio** (point
-`BACKEND_URL` at the backend) for local use, or **SSE** at
-`http://localhost:8050/sse` against the running `mcp` container.
+> **Port note:** this repo's local `.env` remaps host ports (backend `8088`, Postgres `5544`,
+> Qdrant `6343`) to avoid colliding with other stacks, and sets
+> `NEXT_PUBLIC_API_URL=http://localhost:8088` so the browser bundle targets the published backend
+> port. `.env.example` keeps the conventional `8000 / 5432 / 6333` defaults.
+
+---
+
+## Configuration
+
+All variables live in `.env` (copy from `.env.example`); every one has a sensible localhost default.
+
+| Variable | Default | Used by |
+|----------|---------|---------|
+| `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | `projectnotes` | postgres, backend |
+| `POSTGRES_PORT` | `5432` | host‑published Postgres port |
+| `QDRANT_HTTP_PORT` / `QDRANT_GRPC_PORT` | `6333` / `6334` | host‑published Qdrant ports |
+| `DATABASE_URL` | `postgresql+psycopg://…@localhost:5432/projectnotes` | local backend runs |
+| `QDRANT_URL` | `http://localhost:6333` | local backend runs |
+| `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | FastEmbed (CPU) |
+| `BACKEND_PORT` | `8000` | host‑published backend port |
+| `CORS_ORIGINS` | `http://localhost:3000` | backend CORS allow‑list |
+| `MCP_TRANSPORT` | `sse` | mcp container transport (`sse` \| `streamable-http`) |
+| `MCP_PORT` | `8050` | host‑published MCP port |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | **browser‑reachable** backend URL, baked into the frontend bundle |
+| `FRONTEND_PORT` | `3000` | host‑published frontend port |
+
+---
+
+## Use it with Claude Code (MCP)
+
+The MCP server gives Claude Code 20 tools — discovery (`list_projects`,
+`get_project_context`), artifact types, artifacts + versions, notes/tasks/documents, skills,
+`search_knowledge` (lexical / semantic / hybrid), `prepare_generation` (the unified context
+bundle), and the writes `save_artifact` + `update_phase_status`.
+
+**Register it** (copy into your Claude Code MCP config):
+
+- **stdio** (simplest for local use) — [`mcp/.mcp.stdio.json`](./mcp/.mcp.stdio.json):
+  ```json
+  { "mcpServers": { "project-notes": {
+      "command": "uv", "args": ["run", "python", "-m", "project_notes_mcp"],
+      "cwd": "/path/to/AI-Planner/mcp", "env": { "BACKEND_URL": "http://localhost:8088" } } } }
+  ```
+- **SSE** (the always‑on compose service) — [`mcp/.mcp.sse.json`](./mcp/.mcp.sse.json):
+  ```json
+  { "mcpServers": { "project-notes": { "type": "sse", "url": "http://localhost:8050/sse" } } }
+  ```
+
+**The loop:** `list_artifact_types(project)` → `prepare_generation(project, "development-plan")`
+→ the agent produces the declared files → `save_artifact(...)` (same title ⇒ a new version) →
+`update_phase_status(...)` as it implements. See [`mcp/README.md`](./mcp/README.md) for details.
+
+---
+
+## Local development (per service)
+
+Each service runs on its own; you only need Postgres + Qdrant up (`docker compose up -d postgres qdrant`).
+
+**Backend** — Python 3.12, [uv](https://docs.astral.sh/uv/):
+```bash
+cd backend && uv sync
+uv run alembic upgrade head                 # 15 tables + GIN indexes + seed
+uv run uvicorn app.main:app --reload        # http://localhost:8000/docs
+```
+
+**MCP** — talks to the running backend over HTTP:
+```bash
+cd mcp && uv sync
+BACKEND_URL=http://localhost:8088 uv run python -m project_notes_mcp   # stdio (default)
+```
+
+**Frontend** — Node 20.9+ (Node 24 recommended):
+```bash
+cd frontend && npm install
+NEXT_PUBLIC_API_URL=http://localhost:8088 npm run dev   # http://localhost:3000
+npm run build                                            # production build
+```
+
+---
+
+## Testing
+
+```bash
+cd backend && uv run pytest      # 53 tests: schema + API + search/documents/templates
+cd mcp     && uv run pytest      # 34 tests: client, formatting, tools, server (mock‑backed)
+cd frontend && npm run test:e2e  # Playwright smoke (uses system Chrome)
+```
+
+Backend tests run migrations against the compose Postgres and verify the real schema + API
+behaviour; MCP tests back the client with `httpx.MockTransport` (no live backend needed); the
+frontend smoke checks every route renders without runtime errors.
+
+---
+
+## Project structure
+
+```
+AI-Planner/
+├─ backend/                  # FastAPI + Postgres + Qdrant/FastEmbed
+│  ├─ app/{domain,application,infrastructure,schemas,api}/   # hexagonal layers
+│  ├─ alembic/               # migrations
+│  └─ tests/
+├─ mcp/                      # FastMCP server (HTTP → backend only)
+│  ├─ project_notes_mcp/{config,client,formatting,tools,server,__main__}.py
+│  ├─ .mcp.stdio.json / .mcp.sse.json
+│  └─ tests/
+├─ frontend/                 # Next.js 16 App Router
+│  ├─ src/lib/{api,types,format}.ts          # typed client mirroring the OpenAPI
+│  ├─ src/components/                         # ui (shadcn), shared, per‑surface features
+│  ├─ src/app/                                # routes
+│  └─ e2e/                                    # Playwright smoke
+├─ docker-compose.yml        # all 5 services, healthcheck‑gated
+├─ .env.example
+└─ IMPLEMENTATION_PLAN.md    # the full, phased build plan
+```
+
+---
+
+## Tech stack
+
+**Backend:** FastAPI · SQLAlchemy 2 · Alembic · PostgreSQL 16 (`tsvector`/GIN full‑text) ·
+Qdrant · FastEmbed · pydantic‑settings · uv.
+**MCP:** Python · FastMCP (`mcp` SDK) · httpx.
+**Frontend:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind v4 ·
+shadcn/ui · framer‑motion · SWR · react‑markdown.
+**Infra:** Docker Compose · multi‑stage images · named volumes for Postgres, Qdrant, and document
+storage.
+
+See [`IMPLEMENTATION_PLAN.md`](./IMPLEMENTATION_PLAN.md) for the complete phased plan and design
+decisions.
