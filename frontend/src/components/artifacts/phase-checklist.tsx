@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { EmptyState } from "@/components/common";
 import { PhaseStatusBadge } from "@/components/status-badge";
 import { AnimatedItem, AnimatedList } from "@/components/motion";
+import { useT } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
 import { titleCase } from "@/lib/format";
 import { cn } from "@/lib/utils";

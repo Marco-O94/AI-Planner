@@ -55,7 +55,7 @@ export function NotesFilterBar({
 
       <div className="flex flex-wrap items-center gap-1.5">
         <FilterChip
-          label="All"
+          label={t("common.all")}
           count={total}
           active={activeType === "ALL"}
           onClick={() => onTypeChange("ALL")}

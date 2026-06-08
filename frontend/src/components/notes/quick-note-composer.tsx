@@ -21,6 +21,7 @@ import {
 import { ApiError, api } from "@/lib/api";
 import type { DomainRead, NoteCreate, NoteRead } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/locale-context";
 import {
   EMPTY_NOTE_FORM,
   NO_DOMAIN,
@@ -67,6 +68,7 @@ export function QuickNoteComposer({
   fixedDomainId,
   notesKey,
 }: QuickNoteComposerProps) {
+  const t = useT();
   const { mutate } = useSWRConfig();
   const [values, setValues] = useState<NoteFormValues>(EMPTY_NOTE_FORM);
   const [submitting, setSubmitting] = useState(false);
@@ -120,7 +122,7 @@ export function QuickNoteComposer({
         { revalidate: false },
       );
       mutate(notesKey);
-      toast.success(`${noteTypeLabel(values.type)} note captured`);
+      toast.success(t("notes.toasts.captured", { type: noteTypeLabel(values.type) }));
       setValues((prev) => ({
         ...EMPTY_NOTE_FORM,
         // Keep type + domain so rapid same-context capture stays fast.

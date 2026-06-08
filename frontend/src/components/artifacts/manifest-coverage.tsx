@@ -90,19 +90,19 @@ export function ManifestCoverage({ coverage }: ManifestCoverageProps) {
         <CoverageRow
           icon={CheckCircle2}
           tone="text-emerald-600 dark:text-emerald-400"
-          label="Present"
+          label={t("artifacts.coverage.present")}
           paths={coverage.present}
         />
         <CoverageRow
           icon={MinusCircle}
           tone="text-amber-600 dark:text-amber-400"
-          label="Missing"
+          label={t("artifacts.coverage.missing")}
           paths={coverage.missing}
         />
         <CoverageRow
           icon={PlusCircle}
           tone="text-blue-600 dark:text-blue-400"
-          label="Extra"
+          label={t("artifacts.coverage.extra")}
           paths={coverage.extra}
         />
       </div>

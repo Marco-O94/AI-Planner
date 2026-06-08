@@ -95,6 +95,7 @@ function FileViewerBody({
   snippet,
   unavailableReason,
 }: FileViewerBodyProps) {
+  const t = useT();
   if (isLoading) {
     return (
       <div className="space-y-2.5">
@@ -116,13 +117,15 @@ function FileViewerBody({
     <div className="space-y-4">
       <div className="flex items-start gap-2.5 rounded-lg border border-dashed border-border/80 bg-muted/40 p-3 text-sm text-muted-foreground">
         <FileWarning className="mt-0.5 size-4 shrink-0" />
-        <span>{unavailableReason ?? "No readable content for this file."}</span>
+        <span>{unavailableReason ?? t("files.viewer.noContent")}</span>
       </div>
       {snippet ? (
         <>
           <Separator />
           <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground">Matched snippet</p>
+            <p className="text-xs font-medium text-muted-foreground">
+              {t("files.viewer.matchedSnippet")}
+            </p>
             <HighlightedSnippet snippet={snippet} />
           </div>
         </>

@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScopeBadge } from "@/components/status-badge";
+import { useT } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
 import type { ScopeKind, SkillCreate, SkillRead, SkillUpdate } from "@/lib/types";
 import { toast } from "sonner";
@@ -65,6 +66,7 @@ export function SkillDialog({
   initial,
   onSaved,
 }: SkillDialogProps) {
+  const t = useT();
   const isEdit = Boolean(skill);
   const [values, setValues] = useState<SkillFormValues>(EMPTY_SKILL_FORM);
   const [saving, setSaving] = useState(false);
@@ -98,7 +100,7 @@ export function SkillDialog({
           tags,
         };
         result = await api.updateSkill(skill.id, body);
-        toast.success("Skill updated");
+        toast.success(t("skills.toasts.skillUpdated"));
       } else {
         const scope = lockScope ?? values.scope;
         const body: SkillCreate = {

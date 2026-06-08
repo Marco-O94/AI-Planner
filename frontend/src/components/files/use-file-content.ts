@@ -3,6 +3,7 @@
 import useSWR from "swr";
 
 import { api, ApiError } from "@/lib/api";
+import { useT } from "@/i18n/locale-context";
 import type { FileEntryRead } from "@/lib/types";
 
 export interface FileContentResult {

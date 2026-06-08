@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useT } from "@/i18n/locale-context";
 import type { OutputFile } from "@/lib/types";
 
 interface ManifestEditorProps {
@@ -18,6 +19,8 @@ interface ManifestEditorProps {
  * {path, note} rows the user can add, edit and remove. Immutable updates only.
  */
 export function ManifestEditor({ value, onChange, disabled }: ManifestEditorProps) {
+  const t = useT();
+
   function updateRow(index: number, patch: Partial<OutputFile>): void {
     onChange(value.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   }
@@ -33,15 +36,15 @@ export function ManifestEditor({ value, onChange, disabled }: ManifestEditorProp
   return (
     <div className="space-y-2.5">
       <div className="flex items-center justify-between">
-        <Label className="text-sm">File manifest</Label>
+        <Label className="text-sm">{t("artifactTypes.manifest.label")}</Label>
         <span className="text-xs text-muted-foreground">
-          Declared files this artifact should produce
+          {t("artifactTypes.manifest.hint")}
         </span>
       </div>
 
       {value.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border/80 px-3 py-4 text-center text-sm text-muted-foreground">
-          No files declared yet.
+          {t("artifactTypes.manifest.emptyState")}
         </p>
       ) : (
         <div className="space-y-2">

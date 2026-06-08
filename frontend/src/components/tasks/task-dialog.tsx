@@ -154,33 +154,35 @@ function TaskDialogForm({
   return (
     <>
       <DialogHeader className="pb-4">
-        <DialogTitle>{isEdit ? "Edit task" : "New task"}</DialogTitle>
+        <DialogTitle>
+          {isEdit ? t("tasks.dialog.editTitle") : t("tasks.dialog.newTitle")}
+        </DialogTitle>
         <DialogDescription>
           {isEdit
-            ? "Update the details, status, and dependencies for this task."
-            : "Capture a task with status, priority, tags, and dependencies."}
+            ? t("tasks.dialog.editDescription")
+            : t("tasks.dialog.newDescription")}
         </DialogDescription>
       </DialogHeader>
 
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="task-title">Title</Label>
+          <Label htmlFor="task-title">{t("tasks.dialog.titleLabel")}</Label>
           <Input
             id="task-title"
             value={form.title}
             onChange={(event) => update("title", event.target.value)}
-            placeholder="What needs to be done?"
+            placeholder={t("tasks.dialog.titlePlaceholder")}
             autoFocus
           />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="task-description">Description</Label>
+          <Label htmlFor="task-description">{t("tasks.dialog.descriptionLabel")}</Label>
           <Textarea
             id="task-description"
             value={form.description}
             onChange={(event) => update("description", event.target.value)}
-            placeholder="Markdown supported…"
+            placeholder={t("tasks.dialog.descriptionPlaceholder")}
             className="min-h-28"
           />
         </div>

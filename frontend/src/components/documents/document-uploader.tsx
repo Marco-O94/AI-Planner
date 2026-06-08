@@ -177,9 +177,9 @@ export function DocumentUploader({
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="document-tags" className="text-xs">
-              Tags{" "}
+              {t("documents.uploader.tagsLabel")}{" "}
               <span className="font-normal text-muted-foreground">
-                (comma-separated, optional)
+                {t("documents.uploader.tagsHint")}
               </span>
             </Label>
             <div className="relative">
@@ -187,14 +187,14 @@ export function DocumentUploader({
                 id="document-tags"
                 value={tags}
                 onChange={(event) => setTags(event.target.value)}
-                placeholder="spec, reference"
+                placeholder={t("documents.uploader.tagsPlaceholder")}
                 className="h-8 pr-8"
               />
               {tags ? (
                 <button
                   type="button"
                   onClick={() => setTags("")}
-                  aria-label="Clear tags"
+                  aria-label={t("documents.uploader.clearTags")}
                   className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <X className="size-3.5" />

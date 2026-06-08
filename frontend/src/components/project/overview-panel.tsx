@@ -142,10 +142,10 @@ export function EditProjectSheet({
     try {
       const updated = await api.attachTechnology(project.slug, input);
       await mutate(cacheKey, updated, { revalidate: false });
-      toast.success(`Added ${input.name}.`);
+      toast.success(t("project.edit.techAdded", { name: input.name }));
     } catch (error) {
       toast.error(
-        error instanceof ApiError ? error.message : "Could not add the technology.",
+        error instanceof ApiError ? error.message : t("project.edit.techAddFailed"),
       );
     } finally {
       setTechBusy(false);
@@ -170,7 +170,7 @@ export function EditProjectSheet({
     } catch (error) {
       await mutate(cacheKey, previous, { revalidate: false });
       toast.error(
-        error instanceof ApiError ? error.message : "Could not remove the technology.",
+        error instanceof ApiError ? error.message : t("project.edit.techRemoveFailed"),
       );
     } finally {
       setTechBusy(false);
@@ -186,12 +186,10 @@ export function EditProjectSheet({
       >
         <SheetHeader className="gap-1">
           <SheetTitle className="flex items-center gap-2">
-            Edit project
+            {t("project.edit.title")}
             <ProjectStatusBadge status={project.status} />
           </SheetTitle>
-          <SheetDescription>
-            Status, repository, metadata and technology stack.
-          </SheetDescription>
+          <SheetDescription>{t("project.edit.description")}</SheetDescription>
         </SheetHeader>
 
         <ScrollArea className="flex-1">
@@ -205,7 +203,7 @@ export function EditProjectSheet({
             <Separator />
 
             <div className="space-y-2">
-              <Label>Technologies</Label>
+              <Label>{t("project.edit.technologies")}</Label>
               <TechPicker
                 attached={project.technologies}
                 onAttach={attachTechnology}
