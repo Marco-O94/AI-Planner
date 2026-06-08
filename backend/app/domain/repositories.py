@@ -8,6 +8,7 @@ entities / read models and primitives only — never ORM objects or Pydantic DTO
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 from typing import Protocol
 
 from app.domain.entities import (
@@ -16,9 +17,11 @@ from app.domain.entities import (
     ArtifactPhase,
     ArtifactType,
     ArtifactVersion,
+    Document,
     Domain,
     Note,
     Project,
+    ProjectTemplate,
     Skill,
     Task,
     Technology,
@@ -33,6 +36,7 @@ from app.domain.enums import (
     TechnologyKind,
 )
 from app.domain.read_models import ProjectDetail, ProjectTechnologyRef
+from app.domain.search import IndexableFile
 
 
 class ProjectRepository(Protocol):
@@ -82,6 +86,7 @@ class NoteRepository(Protocol):
     def get_by_id(self, note_id: uuid.UUID) -> Note | None: ...
     def update(self, note: Note) -> Note: ...
     def delete(self, note_id: uuid.UUID) -> None: ...
+    def list_all(self) -> list[Note]: ...
     def list(
         self,
         project_id: uuid.UUID,
@@ -148,6 +153,7 @@ class ArtifactRepository(Protocol):
     # reverse lookups
     def list_by_source_note(self, note_id: uuid.UUID) -> list[Artifact]: ...
     def list_by_source_task(self, task_id: uuid.UUID) -> list[Artifact]: ...
+    def iter_indexable_files(self) -> list[IndexableFile]: ...
 
 
 class SkillRepository(Protocol):
@@ -166,6 +172,31 @@ class SkillRepository(Protocol):
     def is_attached(self, project_id: uuid.UUID, skill_id: uuid.UUID) -> bool: ...
 
 
+class DocumentRepository(Protocol):
+    def add(self, document: Document) -> Document: ...
+    def get_by_id(self, document_id: uuid.UUID) -> Document | None: ...
+    def list_all(self) -> list[Document]: ...
+    def set_indexed(self, document_id: uuid.UUID, indexed_at: datetime) -> None: ...
+    def delete(self, document_id: uuid.UUID) -> None: ...
+    def list(
+        self,
+        project_id: uuid.UUID,
+        *,
+        domain_id: uuid.UUID | None = None,
+        tag: str | None = None,
+    ) -> list[Document]: ...
+
+
+class ProjectTemplateRepository(Protocol):
+    def add(self, template: ProjectTemplate) -> ProjectTemplate: ...
+    def get_by_id(self, template_id: uuid.UUID) -> ProjectTemplate | None: ...
+    def get_by_slug(self, slug: str) -> ProjectTemplate | None: ...
+    def list(self) -> list[ProjectTemplate]: ...
+    def update(self, template: ProjectTemplate) -> ProjectTemplate: ...
+    def delete(self, template_id: uuid.UUID) -> None: ...
+    def slug_exists(self, slug: str) -> bool: ...
+
+
 __all__ = [
     "ProjectRepository",
     "TechnologyRepository",
@@ -175,5 +206,7 @@ __all__ = [
     "ArtifactTypeRepository",
     "ArtifactRepository",
     "SkillRepository",
+    "DocumentRepository",
+    "ProjectTemplateRepository",
     "ArtifactStatus",
 ]

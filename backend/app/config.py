@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     qdrant_url: str = "http://localhost:6333"
     # FastEmbed model name (CPU); used from Phase 3 onward.
     embedding_model: str = "BAAI/bge-small-en-v1.5"
+    # Qdrant collection holding all knowledge vectors.
+    vector_collection: str = "knowledge"
+    # Directory where uploaded document originals are stored.
+    storage_dir: str = "./var/storage"
     # Allowed CORS origins for the frontend (comma-separated in env).
     cors_origins: Annotated[list[str], NoDecode, BeforeValidator(_split_csv)] = [
         "http://localhost:3000"

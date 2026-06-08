@@ -156,3 +156,30 @@ class Skill:
     tags: list[str] = field(default_factory=list)
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class Document:
+    id: uuid.UUID
+    project_id: uuid.UUID
+    title: str
+    filename: str
+    mime_type: str
+    storage_path: str
+    domain_id: uuid.UUID | None = None
+    extracted_text: str | None = None
+    tags: list[str] = field(default_factory=list)
+    indexed_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectTemplate:
+    id: uuid.UUID
+    name: str
+    slug: str
+    definition: dict
+    description: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None

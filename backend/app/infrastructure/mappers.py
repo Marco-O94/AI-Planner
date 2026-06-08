@@ -136,6 +136,35 @@ def artifact_phase_to_domain(o: m.ArtifactPhase) -> e.ArtifactPhase:
     )
 
 
+def document_to_domain(o: m.Document) -> e.Document:
+    return e.Document(
+        id=o.id,
+        project_id=o.project_id,
+        domain_id=o.domain_id,
+        title=o.title,
+        filename=o.filename,
+        mime_type=o.mime_type,
+        storage_path=o.storage_path,
+        extracted_text=o.extracted_text,
+        tags=list(o.tags or []),
+        indexed_at=o.indexed_at,
+        created_at=o.created_at,
+        updated_at=o.updated_at,
+    )
+
+
+def project_template_to_domain(o: m.ProjectTemplate) -> e.ProjectTemplate:
+    return e.ProjectTemplate(
+        id=o.id,
+        name=o.name,
+        slug=o.slug,
+        description=o.description,
+        definition=dict(o.definition or {}),
+        created_at=o.created_at,
+        updated_at=o.updated_at,
+    )
+
+
 def skill_to_domain(o: m.Skill) -> e.Skill:
     return e.Skill(
         id=o.id,

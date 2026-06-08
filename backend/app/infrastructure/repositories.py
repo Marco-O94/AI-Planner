@@ -8,6 +8,7 @@ the unit of work is committed at the API boundary (see app/infrastructure/db.py)
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
@@ -23,6 +24,7 @@ from app.domain.enums import (
 )
 from app.domain.errors import NotFoundError
 from app.domain.read_models import ProjectDetail, ProjectTechnologyRef
+from app.domain.search import IndexableFile
 from app.infrastructure import mappers
 from app.infrastructure import models as m
 
@@ -302,6 +304,9 @@ class SqlNoteRepository:
         if orm is not None:
             self.db.delete(orm)
             self.db.flush()
+
+    def list_all(self) -> list[e.Note]:
+        return [mappers.note_to_domain(o) for o in self.db.scalars(select(m.Note)).all()]
 
     def list(
         self,
@@ -667,6 +672,35 @@ class SqlArtifactRepository:
         stmt = select(m.Artifact).where(m.Artifact.id.in_(sub))
         return [mappers.artifact_to_domain(o) for o in self.db.scalars(stmt).all()]
 
+    def iter_indexable_files(self) -> list[IndexableFile]:
+        # Files belonging to each artifact's current version, with parent context.
+        stmt = (
+            select(
+                m.ArtifactFile.id,
+                m.Artifact.project_id,
+                m.Artifact.domain_id,
+                m.Artifact.title,
+                m.ArtifactFile.path,
+                m.ArtifactFile.content,
+            )
+            .join(
+                m.ArtifactVersion,
+                m.ArtifactVersion.id == m.ArtifactFile.artifact_version_id,
+            )
+            .join(m.Artifact, m.Artifact.current_version_id == m.ArtifactVersion.id)
+        )
+        return [
+            IndexableFile(
+                id=row.id,
+                project_id=row.project_id,
+                domain_id=row.domain_id,
+                title=row.title,
+                path=row.path,
+                content=row.content,
+            )
+            for row in self.db.execute(stmt).all()
+        ]
+
 
 class SqlSkillRepository:
     def __init__(self, db: Session) -> None:
@@ -757,3 +791,114 @@ class SqlSkillRepository:
 
     def is_attached(self, project_id: uuid.UUID, skill_id: uuid.UUID) -> bool:
         return self.db.get(m.ProjectSkill, (project_id, skill_id)) is not None
+
+
+class SqlDocumentRepository:
+    def __init__(self, db: Session) -> None:
+        self.db = db
+
+    def add(self, document: e.Document) -> e.Document:
+        orm = m.Document(
+            id=document.id,
+            project_id=document.project_id,
+            domain_id=document.domain_id,
+            title=document.title,
+            filename=document.filename,
+            mime_type=document.mime_type,
+            storage_path=document.storage_path,
+            extracted_text=document.extracted_text,
+            tags=document.tags,
+            indexed_at=document.indexed_at,
+        )
+        self.db.add(orm)
+        self.db.flush()
+        self.db.refresh(orm)
+        return mappers.document_to_domain(orm)
+
+    def get_by_id(self, document_id: uuid.UUID) -> e.Document | None:
+        orm = self.db.get(m.Document, document_id)
+        return mappers.document_to_domain(orm) if orm else None
+
+    def list_all(self) -> list[e.Document]:
+        return [mappers.document_to_domain(o) for o in self.db.scalars(select(m.Document)).all()]
+
+    def set_indexed(self, document_id: uuid.UUID, indexed_at: datetime) -> None:
+        orm = self.db.get(m.Document, document_id)
+        if orm is not None:
+            orm.indexed_at = indexed_at
+            self.db.flush()
+
+    def delete(self, document_id: uuid.UUID) -> None:
+        orm = self.db.get(m.Document, document_id)
+        if orm is not None:
+            self.db.delete(orm)
+            self.db.flush()
+
+    def list(
+        self,
+        project_id: uuid.UUID,
+        *,
+        domain_id: uuid.UUID | None = None,
+        tag: str | None = None,
+    ) -> list[e.Document]:
+        stmt = select(m.Document).where(m.Document.project_id == project_id)
+        if domain_id is not None:
+            stmt = stmt.where(m.Document.domain_id == domain_id)
+        if tag is not None:
+            stmt = stmt.where(m.Document.tags.any(tag))
+        stmt = stmt.order_by(m.Document.created_at.desc())
+        return [mappers.document_to_domain(o) for o in self.db.scalars(stmt).all()]
+
+
+class SqlProjectTemplateRepository:
+    def __init__(self, db: Session) -> None:
+        self.db = db
+
+    def add(self, template: e.ProjectTemplate) -> e.ProjectTemplate:
+        orm = m.ProjectTemplate(
+            id=template.id,
+            name=template.name,
+            slug=template.slug,
+            description=template.description,
+            definition=template.definition,
+        )
+        self.db.add(orm)
+        self.db.flush()
+        self.db.refresh(orm)
+        return mappers.project_template_to_domain(orm)
+
+    def get_by_id(self, template_id: uuid.UUID) -> e.ProjectTemplate | None:
+        orm = self.db.get(m.ProjectTemplate, template_id)
+        return mappers.project_template_to_domain(orm) if orm else None
+
+    def get_by_slug(self, slug: str) -> e.ProjectTemplate | None:
+        orm = self.db.scalar(select(m.ProjectTemplate).where(m.ProjectTemplate.slug == slug))
+        return mappers.project_template_to_domain(orm) if orm else None
+
+    def list(self) -> list[e.ProjectTemplate]:
+        stmt = select(m.ProjectTemplate).order_by(m.ProjectTemplate.name)
+        return [mappers.project_template_to_domain(o) for o in self.db.scalars(stmt).all()]
+
+    def update(self, template: e.ProjectTemplate) -> e.ProjectTemplate:
+        orm = self.db.get(m.ProjectTemplate, template.id)
+        if orm is None:
+            raise NotFoundError("template not found")
+        orm.name = template.name
+        orm.slug = template.slug
+        orm.description = template.description
+        orm.definition = template.definition
+        self.db.flush()
+        self.db.refresh(orm)
+        return mappers.project_template_to_domain(orm)
+
+    def delete(self, template_id: uuid.UUID) -> None:
+        orm = self.db.get(m.ProjectTemplate, template_id)
+        if orm is not None:
+            self.db.delete(orm)
+            self.db.flush()
+
+    def slug_exists(self, slug: str) -> bool:
+        return (
+            self.db.scalar(select(m.ProjectTemplate.id).where(m.ProjectTemplate.slug == slug))
+            is not None
+        )
