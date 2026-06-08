@@ -22,9 +22,16 @@ class Base(DeclarativeBase):
 
 
 def get_db() -> Generator[Session, None, None]:
-    """FastAPI dependency yielding a scoped session, closed after the request."""
+    """FastAPI dependency: one session per request as the unit of work.
+
+    Commits if the request handler returns normally, rolls back on any error.
+    """
     db = SessionLocal()
     try:
         yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()

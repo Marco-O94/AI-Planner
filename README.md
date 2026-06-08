@@ -1,4 +1,4 @@
-# ProjectNotes
+# AI Planner
 
 Capture typed **notes**, **tasks**, and **documents** about software projects —
 organized by project and DDD bounded context — and expose them to an AI (Claude
