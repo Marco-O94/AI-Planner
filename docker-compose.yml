@@ -1,7 +1,10 @@
 name: project-notes
 
-# Phase 1: data services only. backend / mcp / frontend are added in their
-# respective phases (culminating in Phase 6 orchestration).
+# Full decoupled stack on one network. Startup gating via healthchecks:
+#   postgres + qdrant healthy -> backend healthy -> mcp + frontend.
+# Services reference each other by compose service name (backend:8000,
+# qdrant:6333). No in-process imports across services — each image builds only
+# its own code.
 services:
   postgres:
     image: postgres:16
@@ -80,6 +83,33 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    networks:
+      - pnnet
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # NEXT_PUBLIC_* is baked into the client bundle at build time, so this
+        # must be the BROWSER-reachable backend URL (the host-published port),
+        # not the in-network http://backend:8000.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      # node:slim has no curl/wget; probe the server with a node one-liner.
+      test:
+        - CMD-SHELL
+        - node -e "require('http').get('http://127.0.0.1:3000/',r=>process.exit(r.statusCode<400?0:1)).on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
     networks:
       - pnnet
 

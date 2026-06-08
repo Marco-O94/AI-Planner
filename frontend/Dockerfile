@@ -1,10 +1,14 @@
 # Frontend image: multi-stage Next.js standalone build.
-FROM node:22-slim AS deps
+FROM node:24-slim AS deps
 WORKDIR /app
+# Playwright is a dev/test-only dep; never download its browsers in the image.
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 COPY package.json package-lock.json* ./
-RUN npm ci
+# `npm install` (not `npm ci`): the @emnapi wasm-fallback optional-dep tree
+# produces a lockfile npm ci refuses to validate (a known npm resolution bug).
+RUN npm install --no-audit --no-fund
 
-FROM node:22-slim AS builder
+FROM node:24-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -14,7 +18,7 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-FROM node:22-slim AS runner
+FROM node:24-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

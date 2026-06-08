@@ -11,10 +11,16 @@ Built as a decoupled monorepo:
 | Service | Stack | Status |
 |---------|-------|--------|
 | `backend/` | FastAPI + SQLAlchemy + Alembic + Postgres + Qdrant/FastEmbed | Phases 1–3 ✅ |
-| `mcp/` | Python MCP server (HTTP → backend) | planned |
-| `frontend/` | Next.js 15 + shadcn/ui + framer-motion | planned |
+| `mcp/` | Python MCP server (FastMCP, HTTP → backend, stdio/SSE) | Phase 4 ✅ |
+| `frontend/` | Next.js 16 + shadcn/ui + framer-motion + SWR | Phase 5 ✅ |
+| infra | docker-compose (all 5 services, healthcheck-gated) | Phase 6 ✅ |
 
 See [`IMPLEMENTATION_PLAN.md`](./IMPLEMENTATION_PLAN.md) for the full, phased plan.
+
+**Run the whole stack:** `cp .env.example .env && docker compose up --build` →
+frontend http://localhost:3000 · backend http://localhost:8000/docs · MCP SSE
+http://localhost:8050/sse · Qdrant http://localhost:6333/dashboard.
+See [Phase 6](#phase-6--full-stack-orchestration) below.
 
 ---
 
@@ -166,3 +172,90 @@ docker-compose.yml           # postgres + qdrant + backend (+ doc storage volume
 Layering rule (Hexagonal/DDD): `domain` depends on nothing; `application`
 depends on `domain` + repository interfaces; `infrastructure` implements those
 interfaces; `api` depends on `application`. No reverse dependencies.
+
+---
+
+## Phase 4 — MCP server
+
+A Python [FastMCP](https://github.com/modelcontextprotocol/python-sdk) server
+(`mcp/`) that exposes the backend to an AI agent (Claude Code) so it can discover
+projects, pull pre-assembled context, choose an artifact type, and write typed,
+versioned artifacts back. It talks to the backend **over HTTP only** — never
+imports backend code.
+
+20 tools: discovery (`list_projects`, `get_project_context`), artifact types,
+artifacts + versions, notes/tasks/documents, skills, `search_knowledge`
+(lexical/semantic/hybrid), `prepare_generation` (the unified bundle), and the
+writes `save_artifact` + `update_phase_status`.
+
+```bash
+# stdio (local Claude Code):
+cd mcp && uv sync
+BACKEND_URL=http://localhost:8088 uv run python -m project_notes_mcp
+# tests:
+uv run pytest          # 34 tests (mock-backed); uv run ruff check .
+```
+
+Register with Claude Code via [`mcp/.mcp.stdio.json`](./mcp/.mcp.stdio.json)
+(local) or [`mcp/.mcp.sse.json`](./mcp/.mcp.sse.json) (the always-on compose
+service). See [`mcp/README.md`](./mcp/README.md) for tool docs and when to use
+which transport.
+
+---
+
+## Phase 5 — Next.js frontend
+
+A capture-first UI (`frontend/`): Next.js 16 (App Router, Turbopack), shadcn/ui,
+framer-motion, SWR, Tailwind v4. Dashboard with faceted filters; project view
+with Notes / Tasks / Artifacts / Documents / Skills tabs, editable metadata,
+domains, and project search (mode toggle); a File Explorer with in-file search;
+Tasks board with dependencies + blocked badges; document drag-drop upload;
+artifact detail with files, manifest coverage, version diff, and phase checklist;
+artifact-type and template libraries; global + project skills with `.md` upload.
+
+```bash
+cd frontend
+npm install
+NEXT_PUBLIC_API_URL=http://localhost:8088 npm run dev   # http://localhost:3000
+npm run build          # production build (Turbopack)
+npm run test:e2e       # Playwright smoke (uses system Chrome)
+```
+
+The typed API client (`src/lib/api.ts`) + types (`src/lib/types.ts`) mirror the
+backend OpenAPI; `NEXT_PUBLIC_API_URL` is the browser-reachable backend URL.
+
+---
+
+## Phase 6 — Full-stack orchestration
+
+One command brings up the whole decoupled stack on a shared network, gated by
+healthchecks: **postgres + qdrant healthy → backend healthy → mcp + frontend**.
+Services reach each other by compose service name (`backend:8000`,
+`qdrant:6333`); each image builds only its own directory (no in-process imports).
+
+```bash
+cp .env.example .env            # localhost defaults; this repo's .env remaps host ports
+docker compose up --build       # postgres, qdrant, backend (migrates on start), mcp, frontend
+```
+
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| Backend API + docs | http://localhost:8000 · /docs |
+| MCP (SSE) | http://localhost:8050/sse |
+| Qdrant dashboard | http://localhost:6333/dashboard |
+
+> The local `.env` remaps host ports (backend `8088`, postgres `5544`, qdrant
+> `6343`); with it, set `NEXT_PUBLIC_API_URL=http://localhost:8088` (already in
+> `.env`) so the browser bundle targets the published backend port.
+
+Decoupling: restarting any one service (`docker compose restart mcp`) never
+requires rebuilding the others. The full loop — create a project + notes + tasks
++ a document in the UI, find the document by meaning via semantic search, then
+generate a typed artifact from Claude Code through the MCP server and watch it
+appear in the UI — runs entirely over the network between independently-built
+services.
+
+Register the MCP server with Claude Code in either transport: **stdio** (point
+`BACKEND_URL` at the backend) for local use, or **SSE** at
+`http://localhost:8050/sse` against the running `mcp` container.
