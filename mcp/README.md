@@ -125,7 +125,7 @@ and `MCP_TRANSPORT=sse`.
 ## Tests
 
 ```bash
-uv run pytest        # 43 tests — mock-backed, no live backend or network
+uv run pytest        # 45 tests — mock-backed, no live backend or network
 uv run ruff check .
 ```
 

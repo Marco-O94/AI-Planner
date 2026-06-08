@@ -18,7 +18,7 @@ export const notes = {
     tagsLabel: "Tag",
     tagsHint: "(spazio o virgola)",
     tagsPlaceholder: "auth, mvp, perf",
-    domainLabel: "Dominio",
+    domainLabel: "Contesto",
     projectLevel: "A livello di progetto",
   },
   filter: {
@@ -33,7 +33,7 @@ export const notes = {
   },
   edit: {
     title: "Modifica nota",
-    description: "Aggiorna il tipo, il contenuto, i tag o il dominio.",
+    description: "Aggiorna il tipo, il contenuto, i tag o il contesto.",
   },
   remove: {
     title: "Eliminare questa nota?",

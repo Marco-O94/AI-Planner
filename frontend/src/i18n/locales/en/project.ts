@@ -5,9 +5,20 @@ export const project = {
     moreActions: "More actions",
     saveAsTemplate: "Save as template",
     editAction: "Edit",
+    deleteAction: "Delete project",
     notFoundTitle: "Project not found",
     notFoundDescription: "This project could not be loaded.",
     backToProjectsAction: "Back to projects",
+  },
+  deleteDialog: {
+    title: "Delete project",
+    description:
+      "This permanently deletes “{name}” and everything inside it — all of its bounded contexts (domains), notes, tasks, documents and artifacts. This action cannot be undone.",
+    confirmPrompt: "To confirm, type the project name:",
+    placeholder: "Project name",
+    confirm: "Delete project",
+    toastDeleted: "Project “{name}” deleted",
+    toastError: "Could not delete the project",
   },
   tabs: {
     notes: "Notes",

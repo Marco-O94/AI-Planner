@@ -217,6 +217,22 @@ def test_create_task_invalid_enum_surfaces_backend_error(client: BackendClient):
     assert exc.value.status_code == 422
 
 
+def test_create_note_unknown_project_raises_clear_value_error(client: BackendClient):
+    # domain_slug triggers the list_domains lookup, which 404s on a bad project;
+    # _resolve_domain_slug turns that into a clear ValueError.
+    with pytest.raises(ValueError, match="project 'ghost-project' not found"):
+        tools.create_note(
+            client, "ghost-project", type="DECISION", content="x", domain_slug="billing",
+        )
+
+
+def test_create_task_unknown_project_raises_clear_value_error(client: BackendClient):
+    with pytest.raises(ValueError, match="project 'ghost-project' not found"):
+        tools.create_task(
+            client, "ghost-project", title="x", domain_slug="billing",
+        )
+
+
 def test_save_artifact_resolves_domain_slug_to_id(client: BackendClient, fake_backend: FakeBackend):
     result = tools.save_artifact(
         client, PROJECT_SLUG, "development-plan", "Acme Plan",

@@ -68,5 +68,20 @@ def test_attach_and_detach_technology(client: TestClient, make_project) -> None:
     assert all(t["name"] != name for t in remaining)
 
 
+def test_delete_project_cascades_to_domains(client: TestClient, make_project) -> None:
+    slug = make_project()["slug"]
+    domain = client.post(f"/projects/{slug}/domains", json={"name": "Billing"})
+    assert domain.status_code == 201
+    domain_id = domain.json()["id"]
+    # The domain exists while the project does.
+    assert client.get(f"/domains/{domain_id}").status_code == 200
+
+    assert client.delete(f"/projects/{slug}").status_code == 204
+
+    # Project gone, and its bounded context was cascade-deleted with it.
+    assert client.get(f"/projects/{slug}").status_code == 404
+    assert client.get(f"/domains/{domain_id}").status_code == 404
+
+
 def test_get_unknown_project_returns_404(client: TestClient) -> None:
     assert client.get("/projects/does-not-exist-xyz").status_code == 404

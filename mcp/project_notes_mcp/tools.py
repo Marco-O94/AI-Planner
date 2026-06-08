@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .client import BackendClient
+from .client import BackendClient, BackendError
 from .formatting import render_generation_bundle, render_project_context
 
 JSON = dict[str, Any]
@@ -367,9 +367,16 @@ def _resolve_domain_slug(
 ) -> str | None:
     """Map a domain slug to its backend id (``None`` when no slug is given).
 
-    Raises ``ValueError`` if the slug doesn't name a domain in the project.
-    Shared by every write tool that accepts a ``domain_slug``.
+    Raises ``ValueError`` if the slug doesn't name a domain in the project, or
+    if the project itself doesn't exist. Shared by every write tool that accepts
+    a ``domain_slug``.
     """
     if not domain_slug:
         return None
-    return _domain_id(client.list_domains(project_slug), domain_slug)
+    try:
+        domains = client.list_domains(project_slug)
+    except BackendError as exc:
+        if exc.status_code == 404:
+            raise ValueError(f"project {project_slug!r} not found") from exc
+        raise
+    return _domain_id(domains, domain_slug)

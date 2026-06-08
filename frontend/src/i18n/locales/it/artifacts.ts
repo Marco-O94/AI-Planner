@@ -7,7 +7,7 @@ export const artifacts = {
     loadErrorTitle: "Impossibile caricare gli artefatti",
     loadErrorDescription:
       "Si è verificato un errore durante il recupero degli artefatti di questo progetto.",
-    domainTitle: "Nessun artefatto in questo dominio",
+    domainTitle: "Nessun artefatto in questo contesto",
     noneTitle: "Ancora nessun artefatto",
     noneDescription:
       "Genera un artefatto tipizzato dalle tue note e attività in Claude Code; comparirà qui una volta salvato.",

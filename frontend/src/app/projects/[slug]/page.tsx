@@ -14,6 +14,7 @@ import {
   Pencil,
   Sparkles,
   StickyNote,
+  Trash2,
 } from "lucide-react";
 
 import { PageHeader, EmptyState } from "@/components/common";
@@ -26,6 +27,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { FadeIn } from "@/components/motion";
@@ -40,6 +42,7 @@ import { DomainsButton } from "@/components/project/domains-panel";
 import { ProjectSearchButton } from "@/components/project/project-search";
 import { GenerateDialog } from "@/components/project/generate-dialog";
 import { SaveAsTemplateDialog } from "@/components/project/save-as-template-dialog";
+import { DeleteProjectDialog } from "@/components/project/delete-project-dialog";
 import { NotesTab } from "@/components/project/tabs/notes-tab";
 import { TasksTab } from "@/components/project/tabs/tasks-tab";
 import { ArtifactsTab } from "@/components/project/tabs/artifacts-tab";
@@ -64,6 +67,7 @@ export default function ProjectPage() {
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [templateOpen, setTemplateOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const tabParam = searchParams.get("tab");
   const activeTab = TABS.some((tab) => tab.value === tabParam) ? tabParam! : DEFAULT_TAB;
@@ -162,6 +166,14 @@ export default function ProjectPage() {
                     <BookmarkPlus className="size-4" />
                     {t("project.page.saveAsTemplate")}
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={() => setDeleteOpen(true)}
+                  >
+                    <Trash2 className="size-4" />
+                    {t("project.page.deleteAction")}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -205,6 +217,11 @@ export default function ProjectPage() {
         project={project}
         open={templateOpen}
         onOpenChange={setTemplateOpen}
+      />
+      <DeleteProjectDialog
+        project={project}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
       />
     </div>
   );

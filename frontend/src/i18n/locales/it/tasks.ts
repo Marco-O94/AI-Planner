@@ -62,7 +62,7 @@ export const tasks = {
     priorityLabel: "Priorità",
     tagsLabel: "Tag",
     tagsPlaceholder: "separati da virgola",
-    domainLabel: "Dominio",
+    domainLabel: "Contesto",
     domainProjectLevel: "Livello di progetto",
     dependenciesLabel: "Dipendenze",
     createTask: "Crea attività",

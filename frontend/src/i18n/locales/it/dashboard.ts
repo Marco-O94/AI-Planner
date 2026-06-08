@@ -2,7 +2,7 @@ export const dashboard = {
   header: {
     title: "Progetti",
     description:
-      "Raccogli note, attività e documenti per progetto e dominio, poi genera artefatti tipizzati.",
+      "Raccogli note, attività e documenti per progetto e contesto, poi genera artefatti tipizzati.",
   },
   filters: {
     searchPlaceholder: "Cerca progetti per nome o descrizione…",

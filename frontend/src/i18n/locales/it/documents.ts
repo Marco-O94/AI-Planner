@@ -9,7 +9,7 @@ export const documents = {
     tagsHint: "(separati da virgola, opzionali)",
     tagsPlaceholder: "specifica, riferimento",
     clearTags: "Cancella tag",
-    domainLabel: "Dominio",
+    domainLabel: "Contesto",
     domainHint: "(opzionale)",
     projectLevel: "A livello di progetto",
     footnote:

@@ -285,7 +285,7 @@ npm run build                                            # production build
 
 ```bash
 cd backend && uv run pytest      # 53 tests: schema + API + search/documents/templates
-cd mcp     && uv run pytest      # 43 tests: client, formatting, tools, server (mock‑backed)
+cd mcp     && uv run pytest      # 45 tests: client, formatting, tools, server (mock‑backed)
 cd frontend && npm run test:e2e  # Playwright smoke (uses system Chrome)
 ```
 
