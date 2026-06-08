@@ -34,6 +34,7 @@ function extFromPath(path: string | null): string | null {
  * `null` entry disables fetching (used while the sheet is closed).
  */
 export function useFileContent(entry: FileEntryRead | null): FileContentResult {
+  const t = useT();
   const shouldFetch = Boolean(entry) && entry?.kind !== "artifact_file";
   const key = shouldFetch && entry ? `/files-content/${entry.kind}/${entry.id}` : null;
 
@@ -65,8 +66,7 @@ export function useFileContent(entry: FileEntryRead | null): FileContentResult {
       content: null,
       language,
       isLoading: false,
-      unavailableReason:
-        "Open this artifact to view the full file set — single artifact files are not fetched directly.",
+      unavailableReason: t("files.viewer.artifactUnavailable"),
     };
   }
 
@@ -76,7 +76,7 @@ export function useFileContent(entry: FileEntryRead | null): FileContentResult {
       language,
       isLoading: false,
       unavailableReason:
-        error instanceof ApiError ? error.message : "Could not load file contents.",
+        error instanceof ApiError ? error.message : t("files.viewer.loadFailed"),
     };
   }
 

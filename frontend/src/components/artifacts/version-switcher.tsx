@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common";
+import { useT, type TranslateFn } from "@/i18n/locale-context";
 import { formatDate } from "@/lib/format";
 import { versionFilesKey } from "./lib";
 import { FileDiff } from "./file-diff";
@@ -24,9 +25,14 @@ interface VersionSwitcherProps {
   currentVersionNumber: number;
 }
 
-function versionLabel(version: VersionRefRead): string {
+function versionLabel(version: VersionRefRead, t: TranslateFn): string {
   const date = formatDate(version.created_at);
-  return `v${version.version_number}${date !== "—" ? ` · ${date}` : ""}`;
+  return date !== "—"
+    ? t("artifacts.versions.versionLabelDated", {
+        number: version.version_number,
+        date,
+      })
+    : t("artifacts.versions.versionLabel", { number: version.version_number });
 }
 
 function useVersionFiles(artifactId: string, versionNumber: number | null) {
@@ -60,6 +66,7 @@ export function VersionSwitcher({
   versions,
   currentVersionNumber,
 }: VersionSwitcherProps) {
+  const t = useT();
   const sorted = useMemo(
     () => [...versions].sort((a, b) => b.version_number - a.version_number),
     [versions],
@@ -78,8 +85,8 @@ export function VersionSwitcher({
     return (
       <EmptyState
         icon={GitCompare}
-        title="Only one version"
-        description="Diffs appear once a second version of this artifact is generated."
+        title={t("artifacts.versions.onlyOneTitle")}
+        description={t("artifacts.versions.onlyOneDescription")}
       />
     );
   }
@@ -91,18 +98,20 @@ export function VersionSwitcher({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/70 bg-card p-3">
-        <span className="text-xs font-medium text-muted-foreground">Compare</span>
+        <span className="text-xs font-medium text-muted-foreground">
+          {t("artifacts.versions.compare")}
+        </span>
         <Select
           value={baseNumber != null ? String(baseNumber) : ""}
           onValueChange={(value) => setBaseNumber(Number(value))}
         >
           <SelectTrigger className="h-8 w-[160px]">
-            <SelectValue placeholder="Base version" />
+            <SelectValue placeholder={t("artifacts.versions.baseVersion")} />
           </SelectTrigger>
           <SelectContent>
             {sorted.map((version) => (
               <SelectItem key={version.id} value={String(version.version_number)}>
-                {versionLabel(version)}
+                {versionLabel(version, t)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -113,12 +122,12 @@ export function VersionSwitcher({
           onValueChange={(value) => setTargetNumber(Number(value))}
         >
           <SelectTrigger className="h-8 w-[160px]">
-            <SelectValue placeholder="Target version" />
+            <SelectValue placeholder={t("artifacts.versions.targetVersion")} />
           </SelectTrigger>
           <SelectContent>
             {sorted.map((version) => (
               <SelectItem key={version.id} value={String(version.version_number)}>
-                {versionLabel(version)}
+                {versionLabel(version, t)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -142,8 +151,8 @@ export function VersionSwitcher({
       ) : (
         <EmptyState
           icon={GitCompare}
-          title="No files to compare"
-          description="Neither version contains files at the selected revisions."
+          title={t("artifacts.versions.noFilesTitle")}
+          description={t("artifacts.versions.noFilesDescription")}
         />
       )}
     </div>

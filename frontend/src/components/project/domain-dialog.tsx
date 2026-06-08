@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useT } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
 import type { DomainCreate, DomainRead, DomainUpdate } from "@/lib/types";
 
@@ -43,13 +44,18 @@ export function DomainDialog({
   onOpenChange,
   onSaved,
 }: DomainDialogProps) {
+  const t = useT();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{domain ? "Edit domain" : "New domain"}</DialogTitle>
+          <DialogTitle>
+            {domain
+              ? t("project.domainDialog.editTitle")
+              : t("project.domainDialog.newTitle")}
+          </DialogTitle>
           <DialogDescription>
-            Bounded contexts scope notes, tasks and documents.
+            {t("project.domainDialog.description")}
           </DialogDescription>
         </DialogHeader>
         {/* Keyed so the form re-initializes whenever the dialog opens for a
@@ -76,6 +82,7 @@ interface DomainFormProps {
 }
 
 function DomainForm({ projectSlug, domain, onSaved, onCancel }: DomainFormProps) {
+  const t = useT();
   const [name, setName] = useState(domain?.name ?? "");
   const [description, setDescription] = useState(domain?.description ?? "");
   const [terms, setTerms] = useState<TermEntry[]>(() =>
@@ -86,7 +93,7 @@ function DomainForm({ projectSlug, domain, onSaved, onCancel }: DomainFormProps)
   async function save() {
     const trimmed = name.trim();
     if (!trimmed) {
-      toast.error("Domain name is required.");
+      toast.error(t("project.domainDialog.nameRequired"));
       return;
     }
     setSaving(true);
@@ -99,15 +106,17 @@ function DomainForm({ projectSlug, domain, onSaved, onCancel }: DomainFormProps)
     try {
       if (domain) {
         await api.updateDomain(domain.id, payload as DomainUpdate);
-        toast.success("Domain updated.");
+        toast.success(t("project.domainDialog.updated"));
       } else {
         await api.createDomain(projectSlug, payload as DomainCreate);
-        toast.success("Domain created.");
+        toast.success(t("project.domainDialog.created"));
       }
       onSaved();
       onCancel();
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Could not save the domain.");
+      toast.error(
+        error instanceof ApiError ? error.message : t("project.domainDialog.saveFailed"),
+      );
     } finally {
       setSaving(false);
     }
@@ -117,7 +126,7 @@ function DomainForm({ projectSlug, domain, onSaved, onCancel }: DomainFormProps)
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="domain-name">Name</Label>
+          <Label htmlFor="domain-name">{t("project.domainDialog.nameLabel")}</Label>
           <Input
             id="domain-name"
             value={name}
@@ -127,7 +136,9 @@ function DomainForm({ projectSlug, domain, onSaved, onCancel }: DomainFormProps)
         </div>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="domain-description">Description</Label>
+        <Label htmlFor="domain-description">
+          {t("project.domainDialog.descriptionLabel")}
+        </Label>
         <Textarea
           id="domain-description"
           value={description}
@@ -136,7 +147,7 @@ function DomainForm({ projectSlug, domain, onSaved, onCancel }: DomainFormProps)
         />
       </div>
       <div className="space-y-1.5">
-        <Label>Ubiquitous language</Label>
+        <Label>{t("project.domainDialog.ubiquitousLanguage")}</Label>
         <ScrollArea className="max-h-64">
           <div className="pr-3">
             <UbiquitousLanguageEditor entries={terms} onChange={setTerms} />

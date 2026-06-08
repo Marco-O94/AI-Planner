@@ -33,6 +33,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScopeBadge } from "@/components/status-badge";
 import { AnimatePresence, motion } from "@/components/motion";
+import { useT } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
 import type { ScopeKind, SkillCreate, SkillRead } from "@/lib/types";
 
@@ -61,6 +62,7 @@ export function SkillUpload({
   projectSlug,
   onSaved,
 }: SkillUploadProps) {
+  const t = useT();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -76,7 +78,7 @@ export function SkillUpload({
 
   async function ingest(file: File) {
     if (!/\.md$/i.test(file.name)) {
-      toast.error("Please choose a Markdown (.md) file");
+      toast.error(t("skills.toasts.chooseMd"));
       return;
     }
     try {
@@ -88,7 +90,7 @@ export function SkillUpload({
         attachToProject: parsed.scope === "GLOBAL" && Boolean(projectSlug),
       });
     } catch {
-      toast.error("Could not read that file");
+      toast.error(t("skills.toasts.readError"));
     }
   }
 
@@ -101,7 +103,7 @@ export function SkillUpload({
     const name = draft.name.trim();
     const description = draft.description.trim();
     if (!name || !description) {
-      toast.error("Name and description are required");
+      toast.error(t("skills.toasts.nameDescriptionRequired"));
       return;
     }
     setSaving(true);
@@ -119,11 +121,13 @@ export function SkillUpload({
       if (draft.scope === "GLOBAL" && draft.attachToProject && projectSlug) {
         await api.attachSkill(projectSlug, created.id);
       }
-      toast.success(`Imported “${created.name}”`);
+      toast.success(t("skills.toasts.imported", { name: created.name }));
       onSaved(created);
       close();
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Could not import skill");
+      toast.error(
+        error instanceof ApiError ? error.message : t("skills.toasts.importError"),
+      );
     } finally {
       setSaving(false);
     }
@@ -139,10 +143,11 @@ export function SkillUpload({
     >
       <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-lg">
         <DialogHeader className="border-b border-border px-6 py-4">
-          <DialogTitle>Import skill from Markdown</DialogTitle>
+          <DialogTitle>{t("skills.upload.title")}</DialogTitle>
           <DialogDescription>
-            Drop a <code className="text-xs">.md</code> file with frontmatter
-            (name, description, scope).
+            {t("skills.upload.descriptionPrefix")}
+            <code className="text-xs">.md</code>
+            {t("skills.upload.descriptionSuffix")}
           </DialogDescription>
         </DialogHeader>
 
@@ -169,14 +174,16 @@ export function SkillUpload({
               >
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
                   <FileText className="size-4 text-muted-foreground" />
-                  <span className="truncate font-medium">{draft.name || "Untitled"}</span>
+                  <span className="truncate font-medium">
+                    {draft.name || t("skills.upload.untitled")}
+                  </span>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className="ml-auto size-7"
                     onClick={reset}
-                    aria-label="Choose a different file"
+                    aria-label={t("skills.upload.changeFileAria")}
                   >
                     <X className="size-4" />
                   </Button>
@@ -184,7 +191,7 @@ export function SkillUpload({
 
                 <div className="grid gap-1.5">
                   <Label htmlFor="upload-name" className="text-xs text-muted-foreground">
-                    Name
+                    {t("skills.upload.nameLabel")}
                   </Label>
                   <Input
                     id="upload-name"
@@ -198,7 +205,7 @@ export function SkillUpload({
                     htmlFor="upload-description"
                     className="text-xs text-muted-foreground"
                   >
-                    Description
+                    {t("skills.upload.descriptionLabel")}
                   </Label>
                   <Input
                     id="upload-description"
@@ -213,7 +220,7 @@ export function SkillUpload({
                       htmlFor="upload-scope"
                       className="text-xs text-muted-foreground"
                     >
-                      Scope
+                      {t("skills.upload.scopeLabel")}
                     </Label>
                     <Select
                       value={draft.scope}
@@ -243,12 +250,12 @@ export function SkillUpload({
                       htmlFor="upload-tags"
                       className="text-xs text-muted-foreground"
                     >
-                      Tags
+                      {t("skills.upload.tagsLabel")}
                     </Label>
                     <Input
                       id="upload-tags"
                       value={draft.tagsInput}
-                      placeholder="architecture, testing"
+                      placeholder={t("skills.upload.tagsPlaceholder")}
                       onChange={(event) => patch({ tagsInput: event.target.value })}
                     />
                   </div>
@@ -262,7 +269,7 @@ export function SkillUpload({
                         patch({ attachToProject: checked === true })
                       }
                     />
-                    Attach to this project after import
+                    {t("skills.upload.attachAfterImport")}
                   </label>
                 ) : null}
               </motion.div>
@@ -272,10 +279,10 @@ export function SkillUpload({
 
         <DialogFooter className="border-t border-border px-6 py-4">
           <Button variant="ghost" onClick={close} disabled={saving}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button onClick={confirm} disabled={!draft || saving}>
-            {saving ? "Importing…" : "Import skill"}
+            {saving ? t("skills.upload.importing") : t("skills.upload.importSkill")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -221,7 +221,7 @@ export function EditProjectSheet({
               onClick={() => setTemplateOpen(true)}
             >
               <BookmarkPlus className="size-3.5" />
-              Save as template
+              {t("project.edit.saveAsTemplate")}
             </Button>
           </div>
         </ScrollArea>

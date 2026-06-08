@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { titleCase } from "@/lib/format";
+import { useT } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
 import {
   PROJECT_STATUSES,
@@ -43,6 +44,7 @@ interface OverviewEditFormProps {
  * cache after a mutation, avoiding a setState-in-effect resync.
  */
 export function OverviewEditForm({ project, cacheKey }: OverviewEditFormProps) {
+  const t = useT();
   const { mutate } = useSWRConfig();
 
   const [status, setStatus] = useState<ProjectStatus>(project.status);
@@ -67,9 +69,11 @@ export function OverviewEditForm({ project, cacheKey }: OverviewEditFormProps) {
     try {
       const updated = await api.updateProject(project.slug, body);
       await mutate(cacheKey, updated, { revalidate: false });
-      toast.success("Project updated.");
+      toast.success(t("project.overview.updated"));
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Could not save changes.");
+      toast.error(
+        error instanceof ApiError ? error.message : t("project.overview.saveFailed"),
+      );
     } finally {
       setSaving(false);
     }
@@ -79,7 +83,7 @@ export function OverviewEditForm({ project, cacheKey }: OverviewEditFormProps) {
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="project-status">Status</Label>
+          <Label htmlFor="project-status">{t("project.overview.status")}</Label>
           <Select
             value={status}
             onValueChange={(value) => setStatus(value as ProjectStatus)}
@@ -97,12 +101,12 @@ export function OverviewEditForm({ project, cacheKey }: OverviewEditFormProps) {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="project-repo">Repository URL</Label>
+          <Label htmlFor="project-repo">{t("project.overview.repositoryUrl")}</Label>
           <Input
             id="project-repo"
             value={repositoryUrl}
             onChange={(event) => setRepositoryUrl(event.target.value)}
-            placeholder="https://github.com/org/repo"
+            placeholder={t("project.overview.repositoryPlaceholder")}
             inputMode="url"
           />
         </div>
@@ -111,7 +115,7 @@ export function OverviewEditForm({ project, cacheKey }: OverviewEditFormProps) {
       <Separator />
 
       <div className="space-y-2">
-        <Label>Metadata</Label>
+        <Label>{t("project.overview.metadata")}</Label>
         <MetadataEditor entries={entries} onChange={setEntries} />
       </div>
 
@@ -122,7 +126,7 @@ export function OverviewEditForm({ project, cacheKey }: OverviewEditFormProps) {
           ) : (
             <Save className="size-4" />
           )}
-          Save changes
+          {t("common.saveChanges")}
         </Button>
       </div>
     </div>

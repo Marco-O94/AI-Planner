@@ -8,6 +8,7 @@
 import { useRef, useState } from "react";
 import { UploadCloud } from "lucide-react";
 
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 
 interface SkillDropzoneProps {
@@ -15,6 +16,7 @@ interface SkillDropzoneProps {
 }
 
 export function SkillDropzone({ onFile }: SkillDropzoneProps) {
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
@@ -56,9 +58,9 @@ export function SkillDropzone({ onFile }: SkillDropzoneProps) {
         <div className="mb-3 grid size-12 place-items-center rounded-full bg-secondary text-muted-foreground">
           <UploadCloud className="size-6" />
         </div>
-        <p className="text-sm font-medium">Drop a .md file or click to browse</p>
+        <p className="text-sm font-medium">{t("skills.dropzone.prompt")}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Frontmatter is parsed automatically
+          {t("skills.dropzone.hint")}
         </p>
       </div>
       <input

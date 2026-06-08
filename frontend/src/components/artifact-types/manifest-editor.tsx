@@ -56,16 +56,16 @@ export function ManifestEditor({ value, onChange, disabled }: ManifestEditorProp
               <Input
                 value={row.path}
                 disabled={disabled}
-                placeholder="docs/plan.md"
-                aria-label={`File path ${index + 1}`}
+                placeholder={t("artifactTypes.manifest.pathPlaceholder")}
+                aria-label={t("artifactTypes.manifest.filePathLabel", { index: index + 1 })}
                 onChange={(e) => updateRow(index, { path: e.target.value })}
                 className="font-mono text-xs"
               />
               <Input
                 value={row.note ?? ""}
                 disabled={disabled}
-                placeholder="What this file is for"
-                aria-label={`File note ${index + 1}`}
+                placeholder={t("artifactTypes.manifest.notePlaceholder")}
+                aria-label={t("artifactTypes.manifest.fileNoteLabel", { index: index + 1 })}
                 onChange={(e) => updateRow(index, { note: e.target.value })}
               />
               <Button
@@ -73,7 +73,7 @@ export function ManifestEditor({ value, onChange, disabled }: ManifestEditorProp
                 variant="ghost"
                 size="icon"
                 disabled={disabled}
-                aria-label={`Remove file ${index + 1}`}
+                aria-label={t("artifactTypes.manifest.removeFileLabel", { index: index + 1 })}
                 onClick={() => removeRow(index)}
                 className="text-muted-foreground hover:text-destructive"
               >
@@ -87,7 +87,7 @@ export function ManifestEditor({ value, onChange, disabled }: ManifestEditorProp
       {!disabled ? (
         <Button type="button" variant="outline" size="sm" onClick={addRow}>
           <Plus className="size-4" />
-          Add file
+          {t("artifactTypes.manifest.addFile")}
         </Button>
       ) : null}
     </div>

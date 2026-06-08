@@ -139,7 +139,7 @@ export function QuickNoteComposer({
         { revalidate: false },
       );
       toast.error(
-        error instanceof ApiError ? error.message : "Could not save the note",
+        error instanceof ApiError ? error.message : t("notes.toasts.saveFailed"),
       );
     } finally {
       setSubmitting(false);
@@ -169,16 +169,17 @@ export function QuickNoteComposer({
               "text-sm text-muted-foreground transition-colors hover:text-foreground",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
             )}
-            aria-label="Add a quick note"
+            aria-label={t("notes.composer.triggerLabel")}
           >
             <span className="grid size-7 place-items-center rounded-md bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
               <Plus className="size-4" />
             </span>
-            <span className="font-medium">Quick note…</span>
+            <span className="font-medium">{t("notes.composer.triggerText")}</span>
             <span className="ml-auto hidden text-xs text-muted-foreground/80 sm:inline">
               <kbd className="rounded bg-muted px-1 text-[0.7rem]">⌘/Ctrl</kbd>
               {" + "}
-              <kbd className="rounded bg-muted px-1 text-[0.7rem]">Enter</kbd> to save
+              <kbd className="rounded bg-muted px-1 text-[0.7rem]">Enter</kbd>{" "}
+              {t("notes.composer.saveHint")}
             </span>
           </CollapsibleTrigger>
         ) : (
@@ -187,12 +188,13 @@ export function QuickNoteComposer({
               <Plus className="size-4" />
             </span>
             <div className="leading-tight">
-              <p className="text-sm font-medium">Quick note</p>
+              <p className="text-sm font-medium">{t("notes.composer.title")}</p>
               <p className="text-xs text-muted-foreground">
-                Capture fast —{" "}
+                {t("notes.composer.captureFast")}{" "}
                 <kbd className="rounded bg-muted px-1 text-[0.7rem]">⌘/Ctrl</kbd>
                 {" + "}
-                <kbd className="rounded bg-muted px-1 text-[0.7rem]">Enter</kbd> to save
+                <kbd className="rounded bg-muted px-1 text-[0.7rem]">Enter</kbd>{" "}
+                {t("notes.composer.saveHint")}
               </p>
             </div>
             <Button
@@ -200,7 +202,7 @@ export function QuickNoteComposer({
               variant="ghost"
               size="icon-sm"
               onClick={collapse}
-              aria-label="Collapse quick note"
+              aria-label={t("notes.composer.collapseLabel")}
               className="ml-auto text-muted-foreground"
             >
               <X className="size-4" />
@@ -231,7 +233,7 @@ export function QuickNoteComposer({
               ) : (
                 <Plus className="size-4" />
               )}
-              <span>{submitting ? "Saving…" : "Add note"}</span>
+              <span>{submitting ? t("common.saving") : t("notes.composer.addNote")}</span>
             </Button>
           </div>
         </CollapsibleContent>

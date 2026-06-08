@@ -189,7 +189,7 @@ function TaskDialogForm({
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label>Status</Label>
+            <Label>{t("tasks.dialog.statusLabel")}</Label>
             <Select
               value={form.status}
               onValueChange={(value) =>
@@ -202,7 +202,7 @@ function TaskDialogForm({
               <SelectContent>
                 {TASK_STATUSES.map((status) => (
                   <SelectItem key={status} value={status}>
-                    {titleCase(status)}
+                    {t(`enums.taskStatus.${status}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -210,7 +210,7 @@ function TaskDialogForm({
           </div>
 
           <div className="space-y-1.5">
-            <Label>Priority</Label>
+            <Label>{t("tasks.dialog.priorityLabel")}</Label>
             <Select
               value={form.priority}
               onValueChange={(value) =>
@@ -223,7 +223,7 @@ function TaskDialogForm({
               <SelectContent>
                 {TASK_PRIORITIES.map((priority) => (
                   <SelectItem key={priority} value={priority}>
-                    {titleCase(priority)}
+                    {t(`enums.taskPriority.${priority}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -233,26 +233,28 @@ function TaskDialogForm({
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="task-tags">Tags</Label>
+            <Label htmlFor="task-tags">{t("tasks.dialog.tagsLabel")}</Label>
             <Input
               id="task-tags"
               value={form.tags}
               onChange={(event) => update("tags", event.target.value)}
-              placeholder="comma, separated"
+              placeholder={t("tasks.dialog.tagsPlaceholder")}
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label>Domain</Label>
+            <Label>{t("tasks.dialog.domainLabel")}</Label>
             <Select
               value={form.domainId}
               onValueChange={(value) => update("domainId", value)}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Project-level" />
+                <SelectValue placeholder={t("tasks.dialog.domainProjectLevel")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL_VALUE}>Project-level</SelectItem>
+                <SelectItem value={ALL_VALUE}>
+                  {t("tasks.dialog.domainProjectLevel")}
+                </SelectItem>
                 {domains.map((domain) => (
                   <SelectItem key={domain.id} value={domain.id}>
                     {domain.name}
@@ -264,7 +266,7 @@ function TaskDialogForm({
         </div>
 
         <div className="space-y-1.5">
-          <Label>Dependencies</Label>
+          <Label>{t("tasks.dialog.dependenciesLabel")}</Label>
           <TaskMultiSelect
             options={dependencyOptions}
             value={form.dependsOn}
@@ -279,10 +281,14 @@ function TaskDialogForm({
           onClick={() => onOpenChange(false)}
           disabled={saving}
         >
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button onClick={submit} disabled={saving}>
-          {saving ? "Saving…" : isEdit ? "Save changes" : "Create task"}
+          {saving
+            ? t("common.saving")
+            : isEdit
+              ? t("common.saveChanges")
+              : t("tasks.dialog.createTask")}
         </Button>
       </DialogFooter>
     </>

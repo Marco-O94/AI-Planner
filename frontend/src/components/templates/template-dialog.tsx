@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { api, ApiError } from "@/lib/api";
+import { useT } from "@/i18n/locale-context";
 import type { TemplateCreate, TemplateRead, TemplateUpdate } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +45,7 @@ export function TemplateDialog({
   template,
   onSaved,
 }: TemplateDialogProps) {
+  const t = useT();
   const [form, setForm] = useState<FormState>(() => toForm(template));
   const [saving, setSaving] = useState(false);
   const isEdit = Boolean(template);
@@ -65,7 +67,7 @@ export function TemplateDialog({
           description: form.description.trim() || null,
         };
         await api.updateTemplate(template.id, body);
-        toast.success("Template updated");
+        toast.success(t("templates.toasts.updated"));
       } else {
         const body: TemplateCreate = {
           name: form.name.trim(),
@@ -73,12 +75,12 @@ export function TemplateDialog({
           definition: {},
         };
         await api.createTemplate(body);
-        toast.success("Template created");
+        toast.success(t("templates.toasts.created"));
       }
       onSaved();
       onOpenChange(false);
     } catch (e) {
-      toast.error(e instanceof ApiError ? e.message : "Could not save template");
+      toast.error(e instanceof ApiError ? e.message : t("templates.toasts.saveError"));
     } finally {
       setSaving(false);
     }
@@ -88,32 +90,34 @@ export function TemplateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit template" : "New template"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? t("templates.dialog.editTitle") : t("templates.dialog.newTitle")}
+          </DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Update the name and description for this project template."
-              : "Create a reusable starting point for new projects. Capture its full definition by using “Save as template” on an existing project."}
+              ? t("templates.dialog.editDescription")
+              : t("templates.dialog.newDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="mt-2 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="tpl-name">Name</Label>
+            <Label htmlFor="tpl-name">{t("templates.dialog.nameLabel")}</Label>
             <Input
               id="tpl-name"
               value={form.name}
-              placeholder="SaaS starter"
+              placeholder={t("templates.dialog.namePlaceholder")}
               autoFocus
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tpl-description">Description</Label>
+            <Label htmlFor="tpl-description">{t("templates.dialog.descriptionLabel")}</Label>
             <Textarea
               id="tpl-description"
               value={form.description}
-              placeholder="What kind of project this template is for…"
+              placeholder={t("templates.dialog.descriptionPlaceholder")}
               rows={4}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />
@@ -126,10 +130,14 @@ export function TemplateDialog({
               onClick={() => onOpenChange(false)}
               disabled={saving}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={!canSave || saving}>
-              {saving ? "Saving…" : isEdit ? "Save changes" : "Create template"}
+              {saving
+                ? t("common.saving")
+                : isEdit
+                  ? t("common.saveChanges")
+                  : t("templates.dialog.createTemplate")}
             </Button>
           </DialogFooter>
         </form>

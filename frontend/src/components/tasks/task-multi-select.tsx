@@ -14,6 +14,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 import type { TaskRead } from "@/lib/types";
 
@@ -27,6 +28,7 @@ interface TaskMultiSelectProps {
 
 /** Searchable multi-select for choosing task dependencies. */
 export function TaskMultiSelect({ options, value, onChange }: TaskMultiSelectProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const selected = options.filter((task) => value.includes(task.id));
 
@@ -48,19 +50,24 @@ export function TaskMultiSelect({ options, value, onChange }: TaskMultiSelectPro
           >
             <span className="truncate text-muted-foreground">
               {options.length === 0
-                ? "No other tasks to depend on"
+                ? t("tasks.deps.noOptions")
                 : value.length > 0
-                  ? `${value.length} dependenc${value.length === 1 ? "y" : "ies"}`
-                  : "Select dependencies"}
+                  ? t(
+                      value.length === 1
+                        ? "tasks.deps.countOne"
+                        : "tasks.deps.count",
+                      { count: value.length },
+                    )
+                  : t("tasks.deps.select")}
             </span>
             <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
           <Command>
-            <CommandInput placeholder="Search tasks..." />
+            <CommandInput placeholder={t("tasks.deps.searchPlaceholder")} />
             <CommandList>
-              <CommandEmpty>No tasks found.</CommandEmpty>
+              <CommandEmpty>{t("tasks.deps.noResults")}</CommandEmpty>
               <CommandGroup>
                 {options.map((task) => {
                   const isSelected = value.includes(task.id);
@@ -93,7 +100,7 @@ export function TaskMultiSelect({ options, value, onChange }: TaskMultiSelectPro
               <span className="max-w-[12rem] truncate">{task.title}</span>
               <button
                 type="button"
-                aria-label={`Remove dependency ${task.title}`}
+                aria-label={t("tasks.deps.removeDependency", { title: task.title })}
                 onClick={() => toggle(task.id)}
                 className="rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               >

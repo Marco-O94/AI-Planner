@@ -6,6 +6,7 @@ import { Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 
 export interface MetadataEntry {
@@ -41,6 +42,7 @@ interface MetadataEditorProps {
 
 /** Editable key/value table for a project's free-form metadata. */
 export function MetadataEditor({ entries, onChange }: MetadataEditorProps) {
+  const t = useT();
   const [draftKey, setDraftKey] = useState("");
   const [draftValue, setDraftValue] = useState("");
 
@@ -69,23 +71,25 @@ export function MetadataEditor({ entries, onChange }: MetadataEditorProps) {
               <Input
                 value={entry.key}
                 onChange={(event) => updateRow(index, { key: event.target.value })}
-                placeholder="key"
+                placeholder={t("project.metadata.keyPlaceholder")}
                 className="h-8 w-40 font-mono text-xs"
-                aria-label={`Metadata key ${index + 1}`}
+                aria-label={t("project.metadata.keyAria", { index: index + 1 })}
               />
               <Input
                 value={entry.value}
                 onChange={(event) => updateRow(index, { value: event.target.value })}
-                placeholder="value"
+                placeholder={t("project.metadata.valuePlaceholder")}
                 className="h-8 flex-1 text-xs"
-                aria-label={`Metadata value ${index + 1}`}
+                aria-label={t("project.metadata.valueAria", { index: index + 1 })}
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
                 onClick={() => removeRow(index)}
-                aria-label={`Remove ${entry.key || "row"}`}
+                aria-label={t("project.metadata.removeAria", {
+                  label: entry.key || t("project.metadata.rowFallback"),
+                })}
                 className="text-muted-foreground hover:text-destructive"
               >
                 <X className="size-3.5" />
@@ -94,16 +98,16 @@ export function MetadataEditor({ entries, onChange }: MetadataEditorProps) {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">No custom metadata.</p>
+        <p className="text-sm text-muted-foreground">{t("project.metadata.empty")}</p>
       )}
 
       <div className={cn("flex items-center gap-2 pt-1")}>
         <Input
           value={draftKey}
           onChange={(event) => setDraftKey(event.target.value)}
-          placeholder="new key"
+          placeholder={t("project.metadata.newKeyPlaceholder")}
           className="h-8 w-40 font-mono text-xs"
-          aria-label="New metadata key"
+          aria-label={t("project.metadata.newKeyAria")}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
@@ -114,9 +118,9 @@ export function MetadataEditor({ entries, onChange }: MetadataEditorProps) {
         <Input
           value={draftValue}
           onChange={(event) => setDraftValue(event.target.value)}
-          placeholder="new value"
+          placeholder={t("project.metadata.newValuePlaceholder")}
           className="h-8 flex-1 text-xs"
-          aria-label="New metadata value"
+          aria-label={t("project.metadata.newValueAria")}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
@@ -130,13 +134,13 @@ export function MetadataEditor({ entries, onChange }: MetadataEditorProps) {
           size="icon-sm"
           onClick={addRow}
           disabled={!draftKey.trim()}
-          aria-label="Add metadata row"
+          aria-label={t("project.metadata.addAria")}
         >
           <Plus className="size-3.5" />
         </Button>
       </div>
 
-      <Label className="sr-only">Free-form metadata</Label>
+      <Label className="sr-only">{t("project.metadata.srLabel")}</Label>
     </div>
   );
 }

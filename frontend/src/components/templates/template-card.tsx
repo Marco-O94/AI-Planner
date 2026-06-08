@@ -5,6 +5,8 @@ import { ArrowRight, FolderGit2, MoreVertical, Pencil, Trash2 } from "lucide-rea
 
 import type { TemplateRead } from "@/lib/types";
 import { formatDate } from "@/lib/format";
+import { useT } from "@/i18n/locale-context";
+import type { TranslateFn } from "@/i18n/locale-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import {
@@ -21,14 +23,20 @@ interface TemplateCardProps {
 }
 
 /** Count the definition entries so the card hints at how much it carries. */
-function definitionSummary(definition: Record<string, unknown>): string | null {
+function definitionSummary(
+  definition: Record<string, unknown>,
+  t: TranslateFn,
+): string | null {
   const keys = Object.keys(definition ?? {});
   if (keys.length === 0) return null;
-  return `${keys.length} ${keys.length === 1 ? "section" : "sections"}`;
+  return keys.length === 1
+    ? t("templates.card.sectionCount", { count: keys.length })
+    : t("templates.card.sectionCountPlural", { count: keys.length });
 }
 
 export function TemplateCard({ template, onEdit, onDelete }: TemplateCardProps) {
-  const summary = definitionSummary(template.definition);
+  const t = useT();
+  const summary = definitionSummary(template.definition, t);
 
   return (
     <Card className="group h-full gap-4 transition-colors hover:border-primary/40">
@@ -42,7 +50,7 @@ export function TemplateCard({ template, onEdit, onDelete }: TemplateCardProps) 
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label={`Actions for ${template.name}`}
+                aria-label={t("templates.card.actionsFor", { name: template.name })}
                 className="shrink-0 text-muted-foreground opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
               >
                 <MoreVertical className="size-4" />
@@ -51,11 +59,11 @@ export function TemplateCard({ template, onEdit, onDelete }: TemplateCardProps) 
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={() => onEdit(template)}>
                 <Pencil className="size-4" />
-                Edit
+                {t("common.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onSelect={() => onDelete(template)}>
                 <Trash2 className="size-4" />
-                Delete
+                {t("common.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -66,11 +74,11 @@ export function TemplateCard({ template, onEdit, onDelete }: TemplateCardProps) 
 
       <CardContent className="space-y-3">
         <p className="line-clamp-3 text-sm text-muted-foreground">
-          {template.description?.trim() || "No description provided."}
+          {template.description?.trim() || t("templates.card.noDescription")}
         </p>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {summary ? <span>{summary}</span> : null}
-          <span>Updated {formatDate(template.updated_at)}</span>
+          <span>{t("templates.card.updated", { date: formatDate(template.updated_at) })}</span>
         </div>
       </CardContent>
 
@@ -81,7 +89,7 @@ export function TemplateCard({ template, onEdit, onDelete }: TemplateCardProps) 
         */}
         <Button asChild variant="outline" size="sm" className="w-full">
           <Link href={`/?template=${encodeURIComponent(template.slug)}`}>
-            New project from template
+            {t("templates.card.newProject")}
             <ArrowRight className="size-4" />
           </Link>
         </Button>

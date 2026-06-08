@@ -112,12 +112,14 @@ export function SkillDialog({
           project_slug: scope === "PROJECT" ? projectSlug ?? null : null,
         };
         result = await api.createSkill(body);
-        toast.success("Skill created");
+        toast.success(t("skills.toasts.skillCreated"));
       }
       onSaved(result);
       onOpenChange(false);
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Could not save skill");
+      toast.error(
+        error instanceof ApiError ? error.message : t("skills.toasts.saveError"),
+      );
     } finally {
       setSaving(false);
     }
@@ -129,17 +131,17 @@ export function SkillDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] gap-0 overflow-hidden p-0 sm:max-w-2xl">
         <DialogHeader className="border-b border-border px-6 py-4">
-          <DialogTitle>{isEdit ? "Edit skill" : "New skill"}</DialogTitle>
-          <DialogDescription>
-            Skills are reusable instructions Claude Code can pull into a project.
-          </DialogDescription>
+          <DialogTitle>
+            {isEdit ? t("skills.dialog.editTitle") : t("skills.dialog.newTitle")}
+          </DialogTitle>
+          <DialogDescription>{t("skills.dialog.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="grid max-h-[60vh] gap-4 overflow-y-auto px-6 py-5">
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
             <div className="grid gap-1.5">
               <Label htmlFor="skill-scope" className="text-xs text-muted-foreground">
-                Scope
+                {t("skills.dialog.scopeLabel")}
               </Label>
               {scopeLocked ? (
                 <div className="flex h-9 items-center">
@@ -166,12 +168,12 @@ export function SkillDialog({
 
             <div className="grid gap-1.5">
               <Label htmlFor="skill-name" className="text-xs text-muted-foreground">
-                Name
+                {t("skills.dialog.nameLabel")}
               </Label>
               <Input
                 id="skill-name"
                 value={values.name}
-                placeholder="e.g. Repository pattern"
+                placeholder={t("skills.dialog.namePlaceholder")}
                 onChange={(event) => patch({ name: event.target.value })}
               />
             </div>
@@ -179,24 +181,27 @@ export function SkillDialog({
 
           <div className="grid gap-1.5">
             <Label htmlFor="skill-description" className="text-xs text-muted-foreground">
-              Description
+              {t("skills.dialog.descriptionLabel")}
             </Label>
             <Input
               id="skill-description"
               value={values.description}
-              placeholder="One line on when to use this skill"
+              placeholder={t("skills.dialog.descriptionPlaceholder")}
               onChange={(event) => patch({ description: event.target.value })}
             />
           </div>
 
           <div className="grid gap-1.5">
             <Label htmlFor="skill-content" className="text-xs text-muted-foreground">
-              Content <span className="font-normal opacity-70">(markdown)</span>
+              {t("skills.dialog.contentLabel")}{" "}
+              <span className="font-normal opacity-70">
+                {t("skills.dialog.contentHint")}
+              </span>
             </Label>
             <Textarea
               id="skill-content"
               value={values.content}
-              placeholder={"## Guidance\n\nWrite the reusable instructions here…"}
+              placeholder={t("skills.dialog.contentPlaceholder")}
               className="min-h-48 font-mono text-[0.8125rem] leading-relaxed"
               onChange={(event) => patch({ content: event.target.value })}
             />
@@ -204,12 +209,15 @@ export function SkillDialog({
 
           <div className="grid gap-1.5">
             <Label htmlFor="skill-tags" className="text-xs text-muted-foreground">
-              Tags <span className="font-normal opacity-70">(space or comma)</span>
+              {t("skills.dialog.tagsLabel")}{" "}
+              <span className="font-normal opacity-70">
+                {t("skills.dialog.tagsHint")}
+              </span>
             </Label>
             <Input
               id="skill-tags"
               value={values.tagsInput}
-              placeholder="architecture, testing"
+              placeholder={t("skills.dialog.tagsPlaceholder")}
               onChange={(event) => patch({ tagsInput: event.target.value })}
             />
           </div>
@@ -217,10 +225,14 @@ export function SkillDialog({
 
         <DialogFooter className="border-t border-border px-6 py-4">
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={saving}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button onClick={handleSave} disabled={!canSave}>
-            {saving ? "Saving…" : isEdit ? "Save changes" : "Create skill"}
+            {saving
+              ? t("common.saving")
+              : isEdit
+                ? t("common.saveChanges")
+                : t("skills.dialog.createSkill")}
           </Button>
         </DialogFooter>
       </DialogContent>

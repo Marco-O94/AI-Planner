@@ -206,9 +206,9 @@ export function DocumentUploader({
           {!scopedDomainId && domains.length > 0 ? (
             <div className="space-y-1.5">
               <Label htmlFor="document-domain" className="text-xs">
-                Domain{" "}
+                {t("documents.uploader.domainLabel")}{" "}
                 <span className="font-normal text-muted-foreground">
-                  (optional)
+                  {t("documents.uploader.domainHint")}
                 </span>
               </Label>
               <Select value={domainId} onValueChange={setDomainId}>
@@ -217,10 +217,14 @@ export function DocumentUploader({
                   className="h-8 w-full"
                   size="sm"
                 >
-                  <SelectValue placeholder="Project-level" />
+                  <SelectValue
+                    placeholder={t("documents.uploader.projectLevel")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NO_DOMAIN}>Project-level</SelectItem>
+                  <SelectItem value={NO_DOMAIN}>
+                    {t("documents.uploader.projectLevel")}
+                  </SelectItem>
                   {domains.map((domain) => (
                     <SelectItem key={domain.id} value={domain.id}>
                       {domain.name}
@@ -234,8 +238,9 @@ export function DocumentUploader({
       ) : null}
 
       <p className="text-xs text-muted-foreground">
-        Accepted: {ACCEPTED_EXTENSIONS.join(", ")}. Documents are indexed for
-        search automatically after upload.
+        {t("documents.uploader.footnote", {
+          extensions: ACCEPTED_EXTENSIONS.join(", "),
+        })}
       </p>
     </div>
   );

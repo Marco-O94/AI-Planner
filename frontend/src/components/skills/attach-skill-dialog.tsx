@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common";
 import { TagList } from "@/components/common";
+import { useT } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { SkillRead } from "@/lib/types";
@@ -44,6 +45,7 @@ export function AttachSkillDialog({
   attachedIds,
   onMutated,
 }: AttachSkillDialogProps) {
+  const t = useT();
   const { data, isLoading, error } = useSWR<SkillRead[]>(
     open ? "/skills" : null,
     () => api.listGlobalSkills(),
@@ -69,14 +71,16 @@ export function AttachSkillDialog({
     try {
       if (attached) {
         await api.detachSkill(projectSlug, skill.id);
-        toast.success(`Detached “${skill.name}”`);
+        toast.success(t("skills.toasts.detached", { name: skill.name }));
       } else {
         await api.attachSkill(projectSlug, skill.id);
-        toast.success(`Attached “${skill.name}”`);
+        toast.success(t("skills.toasts.attached", { name: skill.name }));
       }
       onMutated();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Could not update skill");
+      toast.error(
+        err instanceof ApiError ? err.message : t("skills.toasts.updateError"),
+      );
     } finally {
       setPendingId(null);
     }
@@ -86,10 +90,8 @@ export function AttachSkillDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] gap-0 overflow-hidden p-0 sm:max-w-xl">
         <DialogHeader className="border-b border-border px-6 py-4">
-          <DialogTitle>Attach global skills</DialogTitle>
-          <DialogDescription>
-            Toggle which global skills apply to this project.
-          </DialogDescription>
+          <DialogTitle>{t("skills.attach.title")}</DialogTitle>
+          <DialogDescription>{t("skills.attach.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="border-b border-border px-6 py-3">
@@ -98,7 +100,7 @@ export function AttachSkillDialog({
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search global skills…"
+              placeholder={t("skills.attach.searchPlaceholder")}
               className="pl-9"
               autoFocus
             />
@@ -114,17 +116,19 @@ export function AttachSkillDialog({
             </div>
           ) : error ? (
             <EmptyState
-              title="Couldn’t load skills"
-              description={error instanceof ApiError ? error.message : "Try again."}
+              title={t("skills.attach.loadError")}
+              description={
+                error instanceof ApiError ? error.message : t("skills.attach.loadErrorRetry")
+              }
               className="border-0 py-10"
             />
           ) : filtered.length === 0 ? (
             <EmptyState
-              title={query ? "No matches" : "No global skills yet"}
+              title={query ? t("skills.attach.noMatchesTitle") : t("skills.attach.emptyTitle")}
               description={
                 query
-                  ? "Try a different search."
-                  : "Create a global skill in the library first."
+                  ? t("skills.attach.noMatchesDescription")
+                  : t("skills.attach.emptyDescription")
               }
               className="border-0 py-10"
             />

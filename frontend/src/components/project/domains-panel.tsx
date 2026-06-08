@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/common";
+import { useT } from "@/i18n/locale-context";
 import { AnimatedItem, AnimatedList } from "@/components/motion";
 import { api, ApiError } from "@/lib/api";
 import type { DomainRead, ProjectRead } from "@/lib/types";
@@ -57,6 +58,7 @@ interface DomainsButtonProps {
  * right-side Sheet so it stays out of the primary working flow.
  */
 export function DomainsButton({ project, domains, isLoading }: DomainsButtonProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const count = domains?.length ?? 0;
 
@@ -65,7 +67,7 @@ export function DomainsButton({ project, domains, isLoading }: DomainsButtonProp
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1.5">
           <Boxes className="size-3.5" />
-          Domains
+          {t("project.domains.triggerLabel")}
           {!isLoading ? (
             <Badge
               variant="secondary"
@@ -82,10 +84,8 @@ export function DomainsButton({ project, domains, isLoading }: DomainsButtonProp
         aria-describedby={undefined}
       >
         <SheetHeader className="gap-1">
-          <SheetTitle>Bounded contexts</SheetTitle>
-          <SheetDescription>
-            Domains scope your notes, tasks and documents.
-          </SheetDescription>
+          <SheetTitle>{t("project.domains.boundedContexts")}</SheetTitle>
+          <SheetDescription>{t("project.domains.description")}</SheetDescription>
         </SheetHeader>
         <ScrollArea className="flex-1">
           <div className="px-4 pb-6">
@@ -109,6 +109,7 @@ interface DomainsManagerProps {
 
 /** List / create / edit / delete bounded contexts with their vocabularies. */
 function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
+  const t = useT();
   const { mutate } = useSWRConfig();
   const cacheKey = `/projects/${project.slug}/domains`;
 
@@ -132,12 +133,12 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
     setDeleting(true);
     try {
       await api.deleteDomain(pendingDelete.id);
-      toast.success(`Deleted "${pendingDelete.name}".`);
+      toast.success(t("project.domains.deleted", { name: pendingDelete.name }));
       await mutate(cacheKey);
       setPendingDelete(null);
     } catch (error) {
       toast.error(
-        error instanceof ApiError ? error.message : "Could not delete the domain.",
+        error instanceof ApiError ? error.message : t("project.domains.deleteFailed"),
       );
     } finally {
       setDeleting(false);
@@ -149,7 +150,7 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
       <div className="flex justify-end">
         <Button size="sm" onClick={openCreate}>
           <Plus className="size-3.5" />
-          New domain
+          {t("project.domains.newDomain")}
         </Button>
       </div>
 
@@ -162,12 +163,12 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
       ) : !domains?.length ? (
         <EmptyState
           icon={Boxes}
-          title="No domains yet"
-          description="Add a bounded context to organize work by sub-domain."
+          title={t("project.domains.emptyTitle")}
+          description={t("project.domains.emptyDescription")}
           action={
             <Button size="sm" onClick={openCreate}>
               <Plus className="size-3.5" />
-              New domain
+              {t("project.domains.newDomain")}
             </Button>
           }
         />
@@ -184,7 +185,9 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
                         {domain.ubiquitous_language &&
                         Object.keys(domain.ubiquitous_language).length ? (
                           <span className="text-xs text-muted-foreground">
-                            {Object.keys(domain.ubiquitous_language).length} terms
+                            {t("project.domains.termsCount", {
+                              count: Object.keys(domain.ubiquitous_language).length,
+                            })}
                           </span>
                         ) : null}
                       </span>
@@ -193,7 +196,7 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
                       asChild
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Open ${domain.name}`}
+                      aria-label={t("project.domains.openAria", { name: domain.name })}
                     >
                       <Link href={`/projects/${project.slug}/domains/${domain.slug}`}>
                         <ChevronRight className="size-4" />
@@ -203,7 +206,7 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => openEdit(domain)}
-                      aria-label={`Edit ${domain.name}`}
+                      aria-label={t("project.domains.editAria", { name: domain.name })}
                     >
                       <Pencil className="size-3.5" />
                     </Button>
@@ -211,7 +214,7 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => setPendingDelete(domain)}
-                      aria-label={`Delete ${domain.name}`}
+                      aria-label={t("project.domains.deleteAria", { name: domain.name })}
                       className="text-muted-foreground hover:text-destructive"
                     >
                       <Trash2 className="size-3.5" />
@@ -248,14 +251,17 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete domain?</AlertDialogTitle>
+            <AlertDialogTitle>{t("project.domains.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              &quot;{pendingDelete?.name}&quot; will be removed. Notes and tasks scoped to
-              it are not deleted but lose their domain.
+              {t("project.domains.deleteDescription", {
+                name: pendingDelete?.name ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault();
@@ -264,7 +270,7 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
               disabled={deleting}
               className="bg-destructive/10 text-destructive hover:bg-destructive/20"
             >
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

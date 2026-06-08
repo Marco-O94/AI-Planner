@@ -4,16 +4,13 @@ import { useMemo } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
 
+import { useT } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
 import type { TaskRead, TaskUpdate } from "@/lib/types";
 
 /** SWR key for a project's task list (the backend path string). */
 export function tasksKey(slug: string): string {
   return `/projects/${slug}/tasks`;
-}
-
-function errorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : "Something went wrong";
 }
 
 export interface UseTasksResult {
@@ -44,6 +41,7 @@ function recomputeBlocked(tasks: TaskRead[]): TaskRead[] {
 
 /** Load and mutate the tasks for a project, with optimistic helpers. */
 export function useTasks(slug: string): UseTasksResult {
+  const t = useT();
   const key = tasksKey(slug);
   const { data, isLoading, error, mutate } = useSWR<TaskRead[]>(key);
 
@@ -79,7 +77,9 @@ export function useTasks(slug: string): UseTasksResult {
       );
       if (successMessage) toast.success(successMessage);
     } catch (caught) {
-      toast.error(errorMessage(caught));
+      toast.error(
+        caught instanceof ApiError ? caught.message : t("common.somethingWrong"),
+      );
     }
   }
 

@@ -2,6 +2,7 @@
 
 import { FileText, ListTodo, NotebookPen } from "lucide-react";
 
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 
 interface SourceLinksProps {
@@ -22,13 +23,14 @@ function shortId(id: string): string {
 }
 
 function SourceGroup({ icon: Icon, label, ids, hrefFor }: SourceGroupProps) {
+  const t = useT();
   if (!ids.length) return null;
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
         <Icon className="size-3.5" />
         <span>
-          {label} ({ids.length})
+          {t("artifacts.sources.countLabel", { label, count: ids.length })}
         </span>
       </div>
       <ul className="flex flex-wrap gap-1.5">
@@ -53,28 +55,29 @@ function SourceGroup({ icon: Icon, label, ids, hrefFor }: SourceGroupProps) {
 
 /** Links back to the source notes / tasks / documents that produced this version. */
 export function SourceLinks({ noteIds, taskIds, documentIds }: SourceLinksProps) {
+  const t = useT();
   const hasAny = noteIds.length || taskIds.length || documentIds.length;
   if (!hasAny) return null;
 
   return (
     <div className="space-y-3 rounded-xl border border-border/70 bg-card p-4">
-      <h4 className="text-sm font-medium">Source items</h4>
+      <h4 className="text-sm font-medium">{t("artifacts.sources.title")}</h4>
       <div className="grid gap-3 sm:grid-cols-3">
         <SourceGroup
           icon={NotebookPen}
-          label="Notes"
+          label={t("artifacts.sources.notes")}
           ids={noteIds}
           hrefFor={(id) => `/notes/${id}/artifacts`}
         />
         <SourceGroup
           icon={ListTodo}
-          label="Tasks"
+          label={t("artifacts.sources.tasks")}
           ids={taskIds}
           hrefFor={(id) => `/tasks/${id}/artifacts`}
         />
         <SourceGroup
           icon={FileText}
-          label="Documents"
+          label={t("artifacts.sources.documents")}
           ids={documentIds}
           hrefFor={(id) => `/documents/${id}`}
         />

@@ -36,6 +36,7 @@ interface PhaseRowProps {
 }
 
 function PhaseRow({ artifactId, phase, onChanged }: PhaseRowProps) {
+  const t = useT();
   const [pending, setPending] = useState(false);
 
   async function changeStatus(status: PhaseStatus) {
@@ -43,10 +44,16 @@ function PhaseRow({ artifactId, phase, onChanged }: PhaseRowProps) {
     setPending(true);
     try {
       await api.updatePhase(artifactId, phase.id, { status });
-      toast.success(`Phase marked ${titleCase(status)}`);
+      toast.success(
+        t("artifacts.phases.statusChanged", { status: titleCase(status) }),
+      );
       onChanged();
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Could not update phase");
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : t("artifacts.phases.statusError"),
+      );
     } finally {
       setPending(false);
     }
@@ -77,7 +84,10 @@ function PhaseRow({ artifactId, phase, onChanged }: PhaseRowProps) {
           onValueChange={(value) => changeStatus(value as PhaseStatus)}
           disabled={pending}
         >
-          <SelectTrigger className="h-8 w-[140px]" aria-label={`Set status for ${phase.title}`}>
+          <SelectTrigger
+            className="h-8 w-[140px]"
+            aria-label={t("artifacts.phases.statusLabel", { title: phase.title })}
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -95,12 +105,13 @@ function PhaseRow({ artifactId, phase, onChanged }: PhaseRowProps) {
 
 /** Execution checklist for plan-like artifacts: each phase status is flippable. */
 export function PhaseChecklist({ artifactId, phases, onChanged }: PhaseChecklistProps) {
+  const t = useT();
   if (!phases.length) {
     return (
       <EmptyState
         icon={ListChecks}
-        title="No execution phases"
-        description="This artifact does not declare an execution checklist."
+        title={t("artifacts.phases.noPhasesTitle")}
+        description={t("artifacts.phases.noPhasesDescription")}
       />
     );
   }
@@ -112,9 +123,11 @@ export function PhaseChecklist({ artifactId, phases, onChanged }: PhaseChecklist
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <h4 className="text-sm font-medium">Execution checklist</h4>
+        <h4 className="text-sm font-medium">
+          {t("artifacts.phases.checklistTitle")}
+        </h4>
         <span className="text-xs text-muted-foreground">
-          {done} / {ordered.length} done
+          {t("artifacts.phases.progress", { done, total: ordered.length })}
         </span>
       </div>
       <Progress value={percent} className="h-1.5" />

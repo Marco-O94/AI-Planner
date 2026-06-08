@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { FolderGit2, Plus } from "lucide-react";
 
 import type { TemplateRead } from "@/lib/types";
+import { useT } from "@/i18n/locale-context";
 import { PageHeader, EmptyState } from "@/components/common";
 import { AnimatedList, AnimatedItem } from "@/components/motion";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ function LoadingGrid() {
 }
 
 export function TemplatesView() {
+  const t = useT();
   const { data, error, isLoading, mutate } = useSWR<TemplateRead[]>("/templates");
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -50,12 +52,12 @@ export function TemplatesView() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Templates"
-        description="Reusable project blueprints. Start a new project from a template, or save an existing project as one from its overview."
+        title={t("templates.header.title")}
+        description={t("templates.header.description")}
         actions={
           <Button onClick={openCreate}>
             <Plus className="size-4" />
-            New template
+            {t("templates.header.newTemplate")}
           </Button>
         }
       />
@@ -65,23 +67,23 @@ export function TemplatesView() {
       ) : error ? (
         <EmptyState
           icon={FolderGit2}
-          title="Couldn't load templates"
-          description="The backend may be unavailable. Try again in a moment."
+          title={t("templates.errors.loadTitle")}
+          description={t("templates.errors.loadDescription")}
           action={
             <Button variant="outline" onClick={() => void mutate()}>
-              Retry
+              {t("common.retry")}
             </Button>
           }
         />
       ) : templates.length === 0 ? (
         <EmptyState
           icon={FolderGit2}
-          title="No templates yet"
-          description="Create a template here, or use “Save as template” on a project to capture its full setup."
+          title={t("templates.empty.title")}
+          description={t("templates.empty.description")}
           action={
             <Button onClick={openCreate}>
               <Plus className="size-4" />
-              New template
+              {t("templates.header.newTemplate")}
             </Button>
           }
         />
