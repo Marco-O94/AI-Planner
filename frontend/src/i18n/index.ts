@@ -44,6 +44,12 @@ export const LOCALE_LABELS: Record<Locale, string> = {
   it: "IT",
 };
 
+/** Native language names, shown in the language picker. */
+export const LOCALE_NAMES: Record<Locale, string> = {
+  en: "English",
+  it: "Italiano",
+};
+
 const en = {
   common: enCommon,
   nav: enNav,

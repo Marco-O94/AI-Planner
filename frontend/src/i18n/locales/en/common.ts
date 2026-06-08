@@ -33,4 +33,5 @@ export const common = {
   requiredField: "This field is required.",
   noResults: "No results.",
   all: "All",
+  theme: "Theme",
 } as const;

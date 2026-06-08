@@ -40,6 +40,17 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Book-tab accents (one per nav item; legible in both themes). */
+  --color-tab-projects: var(--tab-projects);
+  --color-tab-projects-foreground: var(--tab-projects-foreground);
+  --color-tab-files: var(--tab-files);
+  --color-tab-files-foreground: var(--tab-files-foreground);
+  --color-tab-artifact-types: var(--tab-artifact-types);
+  --color-tab-artifact-types-foreground: var(--tab-artifact-types-foreground);
+  --color-tab-templates: var(--tab-templates);
+  --color-tab-templates-foreground: var(--tab-templates-foreground);
+  --color-tab-skills: var(--tab-skills);
+  --color-tab-skills-foreground: var(--tab-skills-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -50,72 +61,102 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Light: clean, near-white surfaces tinted with a whisper of violet (hue 285),
+     a confident violet accent. */
+  --background: oklch(0.99 0.004 285);
+  --foreground: oklch(0.2 0.02 285);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.2 0.02 285);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.2 0.02 285);
+  --primary: oklch(0.54 0.224 277);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.97 0.012 285);
+  --secondary-foreground: oklch(0.24 0.03 285);
+  --muted: oklch(0.97 0.012 285);
+  --muted-foreground: oklch(0.52 0.03 285);
+  --accent: oklch(0.96 0.018 285);
+  --accent-foreground: oklch(0.24 0.03 285);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --border: oklch(0.92 0.008 285);
+  --input: oklch(0.92 0.008 285);
+  --ring: oklch(0.54 0.224 277);
+  --chart-1: oklch(0.58 0.2 285);
+  --chart-2: oklch(0.6 0.15 245);
+  --chart-3: oklch(0.66 0.15 150);
+  --chart-4: oklch(0.76 0.14 75);
+  --chart-5: oklch(0.64 0.2 350);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar: oklch(0.985 0.006 285);
+  --sidebar-foreground: oklch(0.2 0.02 285);
+  --sidebar-primary: oklch(0.54 0.224 277);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: oklch(0.96 0.018 285);
+  --sidebar-accent-foreground: oklch(0.24 0.03 285);
+  --sidebar-border: oklch(0.92 0.008 285);
+  --sidebar-ring: oklch(0.54 0.224 277);
+
+  /* Book-tab accents — match the notebook's colored index bookmarks. Tuned to
+     read well in light mode; near-white text sits on top. */
+  --tab-projects: oklch(0.58 0.2 285);
+  --tab-files: oklch(0.6 0.15 245);
+  --tab-artifact-types: oklch(0.66 0.15 150);
+  --tab-templates: oklch(0.76 0.14 75);
+  --tab-skills: oklch(0.64 0.2 350);
+  --tab-projects-foreground: oklch(0.99 0.004 285);
+  --tab-files-foreground: oklch(0.99 0.004 285);
+  --tab-artifact-types-foreground: oklch(0.99 0.004 285);
+  --tab-templates-foreground: oklch(0.2 0.04 75);
+  --tab-skills-foreground: oklch(0.99 0.004 285);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Dark: the banner's night-indigo scene — deep indigo-violet surfaces, bright
+     violet accent (hue 285). */
+  --background: oklch(0.17 0.03 285);
+  --foreground: oklch(0.96 0.01 285);
+  --card: oklch(0.215 0.035 285);
+  --card-foreground: oklch(0.96 0.01 285);
+  --popover: oklch(0.215 0.035 285);
+  --popover-foreground: oklch(0.96 0.01 285);
+  --primary: oklch(0.56 0.22 285);
+  --primary-foreground: oklch(0.985 0.005 285);
+  --secondary: oklch(0.28 0.04 285);
+  --secondary-foreground: oklch(0.96 0.01 285);
+  --muted: oklch(0.26 0.035 285);
+  --muted-foreground: oklch(0.7 0.03 285);
+  --accent: oklch(0.3 0.05 285);
+  --accent-foreground: oklch(0.96 0.01 285);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.68 0.2 285);
+  --chart-1: oklch(0.68 0.2 285);
+  --chart-2: oklch(0.64 0.15 245);
+  --chart-3: oklch(0.7 0.15 150);
+  --chart-4: oklch(0.8 0.14 75);
+  --chart-5: oklch(0.68 0.2 350);
+  --sidebar: oklch(0.195 0.032 285);
+  --sidebar-foreground: oklch(0.96 0.01 285);
+  --sidebar-primary: oklch(0.56 0.22 285);
+  --sidebar-primary-foreground: oklch(0.985 0.005 285);
+  --sidebar-accent: oklch(0.3 0.05 285);
+  --sidebar-accent-foreground: oklch(0.96 0.01 285);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.68 0.2 285);
+
+  /* Book-tab accents — slightly brighter so the colored bookmarks pop against
+     the night-indigo surfaces. */
+  --tab-projects: oklch(0.62 0.2 285);
+  --tab-files: oklch(0.64 0.15 245);
+  --tab-artifact-types: oklch(0.7 0.15 150);
+  --tab-templates: oklch(0.8 0.14 75);
+  --tab-skills: oklch(0.68 0.2 350);
+  --tab-projects-foreground: oklch(0.16 0.03 285);
+  --tab-files-foreground: oklch(0.16 0.03 285);
+  --tab-artifact-types-foreground: oklch(0.16 0.03 285);
+  --tab-templates-foreground: oklch(0.16 0.04 75);
+  --tab-skills-foreground: oklch(0.16 0.03 285);
 }
 
 @layer base {
@@ -131,9 +172,10 @@
 }
 
 /*
- * Design direction: clean, editorial, capture-first. Neutral surfaces with a
- * single confident violet accent for primary actions, focus rings, and active
- * nav. Defined last so it wins over the shadcn neutral defaults above.
+ * Design direction: clean light / night-indigo dark, capture-first, with a
+ * single confident violet accent (image-matched, hue 285) for primary actions,
+ * focus rings, and active nav. Defined last so it wins over the shadcn defaults
+ * above. Carries the status-accent tokens used by StatusBadge and boards.
  */
 :root {
   --primary: oklch(0.54 0.224 277);
@@ -153,9 +195,10 @@
 }
 
 .dark {
-  --primary: oklch(0.62 0.19 277);
-  --primary-foreground: oklch(0.985 0 0);
-  --ring: oklch(0.62 0.19 277);
-  --sidebar-primary: oklch(0.62 0.19 277);
-  --sidebar-ring: oklch(0.62 0.19 277);
+  /* Bright image-matched violet for the night-indigo scene. */
+  --primary: oklch(0.56 0.22 285);
+  --primary-foreground: oklch(0.985 0.005 285);
+  --ring: oklch(0.68 0.2 285);
+  --sidebar-primary: oklch(0.68 0.2 285);
+  --sidebar-ring: oklch(0.68 0.2 285);
 }
