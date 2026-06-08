@@ -4,7 +4,7 @@ import httpx
 import pytest
 
 from project_notes_mcp import tools
-from project_notes_mcp.client import BackendClient
+from project_notes_mcp.client import BackendClient, BackendError
 from tests.conftest import PROJECT_SLUG, FakeBackend
 
 
@@ -120,6 +120,101 @@ def test_prepare_generation_focused_uses_only_given_ids(client: BackendClient):
     assert "focused" in md
     assert "Use Stripe" in md  # n2
     assert "Charge monthly" not in md  # n1 not requested
+
+
+def test_create_note_posts_body_and_returns_created(
+    client: BackendClient, fake_backend: FakeBackend
+):
+    result = tools.create_note(
+        client, PROJECT_SLUG, type="DECISION", content="Use Stripe.",
+        title="Payments", tags=["mvp"], domain_slug="billing",
+    )
+
+    assert result["id"] == "new-note"
+    assert result["type"] == "DECISION"
+    path, body = fake_backend.posts[-1]
+    assert path == f"/projects/{PROJECT_SLUG}/notes"
+    assert body["domain_id"] == "d1"  # slug resolved to id
+    assert body["type"] == "DECISION"
+    assert body["content"] == "Use Stripe."
+    assert body["tags"] == ["mvp"]
+
+
+def test_create_note_drops_unset_optionals(client: BackendClient, fake_backend: FakeBackend):
+    tools.create_note(client, PROJECT_SLUG, type="QUESTION", content="Why?")
+
+    _, body = fake_backend.posts[-1]
+    # only the two required fields are sent; backend applies its own defaults
+    assert body == {"type": "QUESTION", "content": "Why?"}
+    assert "domain_id" not in body and "tags" not in body and "title" not in body
+
+
+def test_create_note_unknown_domain_raises(client: BackendClient):
+    with pytest.raises(ValueError, match="domain"):
+        tools.create_note(
+            client, PROJECT_SLUG, type="DECISION", content="x", domain_slug="ghost",
+        )
+
+
+def test_create_task_posts_body_and_returns_created(
+    client: BackendClient, fake_backend: FakeBackend
+):
+    result = tools.create_task(
+        client, PROJECT_SLUG, title="Wire up webhooks",
+        description="Stripe events.", status="IN_PROGRESS", priority="HIGH",
+        depends_on=["t-b"], tags=["billing"], domain_slug="billing",
+    )
+
+    assert result["id"] == "new-task"
+    assert result["blocked"] is False
+    path, body = fake_backend.posts[-1]
+    assert path == f"/projects/{PROJECT_SLUG}/tasks"
+    assert body["domain_id"] == "d1"  # slug resolved to id
+    assert body["title"] == "Wire up webhooks"
+    assert body["status"] == "IN_PROGRESS"
+    assert body["priority"] == "HIGH"
+    assert body["depends_on"] == ["t-b"]
+
+
+def test_create_task_minimal_drops_optionals_backend_defaults(
+    client: BackendClient, fake_backend: FakeBackend
+):
+    result = tools.create_task(client, PROJECT_SLUG, title="Just a title")
+
+    _, body = fake_backend.posts[-1]
+    assert body == {"title": "Just a title"}  # status/priority defaulted by backend
+    assert result["status"] == "TODO"
+    assert result["priority"] == "MEDIUM"
+
+
+def test_create_task_unknown_domain_raises(client: BackendClient):
+    with pytest.raises(ValueError, match="domain"):
+        tools.create_task(client, PROJECT_SLUG, title="x", domain_slug="ghost")
+
+
+def test_create_task_explicit_empty_lists_are_sent(
+    client: BackendClient, fake_backend: FakeBackend
+):
+    # Empty lists are NOT None, so they are kept and sent (backend would also default them).
+    tools.create_task(client, PROJECT_SLUG, title="x", tags=[], depends_on=[])
+
+    _, body = fake_backend.posts[-1]
+    assert body["tags"] == []
+    assert body["depends_on"] == []
+
+
+def test_create_note_invalid_enum_surfaces_backend_error(client: BackendClient):
+    with pytest.raises(BackendError) as exc:
+        tools.create_note(client, PROJECT_SLUG, type="INVALID", content="x")
+
+    assert exc.value.status_code == 422
+
+
+def test_create_task_invalid_enum_surfaces_backend_error(client: BackendClient):
+    with pytest.raises(BackendError) as exc:
+        tools.create_task(client, PROJECT_SLUG, title="x", status="PENDING")
+
+    assert exc.value.status_code == 422
 
 
 def test_save_artifact_resolves_domain_slug_to_id(client: BackendClient, fake_backend: FakeBackend):

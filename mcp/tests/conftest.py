@@ -22,6 +22,12 @@ JSON = dict[str, Any]
 
 PROJECT_SLUG = "acme"
 
+# Mirror the backend StrEnums so the fake backend can 422 on invalid values,
+# the same way the real Pydantic schemas do.
+_NOTE_TYPES = {"REQUIREMENT", "CONSTRAINT", "DECISION", "QUESTION", "SNIPPET", "REFERENCE"}
+_TASK_STATUSES = {"TODO", "IN_PROGRESS", "DONE"}
+_TASK_PRIORITIES = {"LOW", "MEDIUM", "HIGH"}
+
 _PROJECT: JSON = {
     "id": "p1",
     "name": "Acme",
@@ -171,6 +177,14 @@ class FakeBackend:
             self.posts.append((path, body))
             if re.fullmatch(r"/projects/[^/]+/artifacts", path):
                 return _ok(_ARTIFACT_DETAIL, status=201)
+            if re.fullmatch(r"/projects/[^/]+/notes", path):
+                if body.get("type") not in _NOTE_TYPES:
+                    return _ok({"detail": f"invalid note type: {body.get('type')!r}"}, status=422)
+                return _ok(_created_note(body), status=201)
+            if re.fullmatch(r"/projects/[^/]+/tasks", path):
+                if (bad := _invalid_task_enum(body)) is not None:
+                    return _ok({"detail": bad}, status=422)
+                return _ok(_created_task(body), status=201)
             return _ok({}, status=201)
 
         if method == "PATCH":
@@ -222,6 +236,45 @@ class FakeBackend:
 
 def _ok(payload: Any, *, status: int = 200) -> httpx.Response:
     return httpx.Response(status, json=payload)
+
+
+def _created_note(body: JSON) -> JSON:
+    """Echo a NoteRead as the real backend would (applying its defaults)."""
+    return {
+        "id": "new-note", "project_id": "p1",
+        "domain_id": body.get("domain_id"),
+        "type": body.get("type"), "title": body.get("title"),
+        "content": body.get("content", ""), "tags": body.get("tags", []),
+        "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
+    }
+
+
+def _invalid_task_enum(body: JSON) -> str | None:
+    """Return a 422 detail if status/priority are present but invalid, else None.
+
+    Mirrors the backend: status/priority are optional (defaulted), so only a
+    *present* wrong value is rejected.
+    """
+    status = body.get("status")
+    if status is not None and status not in _TASK_STATUSES:
+        return f"invalid task status: {status!r}"
+    priority = body.get("priority")
+    if priority is not None and priority not in _TASK_PRIORITIES:
+        return f"invalid task priority: {priority!r}"
+    return None
+
+
+def _created_task(body: JSON) -> JSON:
+    """Echo a TaskRead as the real backend would (applying its defaults)."""
+    return {
+        "id": "new-task", "project_id": "p1",
+        "domain_id": body.get("domain_id"),
+        "title": body.get("title"), "description": body.get("description"),
+        "status": body.get("status", "TODO"), "priority": body.get("priority", "MEDIUM"),
+        "depends_on": body.get("depends_on", []), "tags": body.get("tags", []),
+        "blocked": False,
+        "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
+    }
 
 
 def _list(*items: JSON) -> list[JSON]:

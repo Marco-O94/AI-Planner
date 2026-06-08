@@ -19,6 +19,9 @@ JSON = dict[str, Any]
 SERVER_INSTRUCTIONS = (
     "ProjectNotes: capture per-project notes/tasks/documents organized by DDD "
     "domain, then generate typed, versioned artifacts (e.g. a Development Plan).\n\n"
+    "Capture: use create_note and create_task to write new knowledge back into a "
+    "project (e.g. record a decision you reached, or file follow-up tasks) before "
+    "or after generating.\n\n"
     "Typical flow: list_projects -> list_artifact_types(project) -> "
     "prepare_generation(project, type) -> produce the declared files -> "
     "save_artifact(...). Use search_knowledge to pull only relevant material on "
@@ -193,6 +196,79 @@ def build_server(
         )
 
     # -- write -------------------------------------------------------------
+
+    @mcp.tool()
+    def create_note(
+        project_slug: str,
+        type: str,
+        content: str,
+        title: str | None = None,
+        tags: list[str] | None = None,
+        domain_slug: str | None = None,
+    ) -> JSON:
+        """Create a new note in a project and return it (with its new ``id``).
+
+        ``type`` (required) is exactly one of REQUIREMENT, CONSTRAINT, DECISION,
+        QUESTION, SNIPPET, REFERENCE — case-sensitive (pass "DECISION", not
+        "decision"); an unknown value is rejected with a backend 422 error.
+        ``content`` (required) is markdown. Optional ``title``, ``tags`` (list of
+        strings), and ``domain_slug`` to scope the note to one DDD bounded
+        context (omit for a project-level note). ``domain_slug`` is validated by
+        this tool: an unknown slug raises ValueError before any write. Find valid
+        slugs with list_domains(project_slug).
+
+        The note is indexed for semantic search synchronously, before this tool
+        returns — a following search_knowledge call will already find it.
+
+        Use this to write knowledge back — e.g. record a DECISION you reached
+        while planning (scoped to a domain via ``domain_slug``, or project-level
+        if omitted), or capture a new REQUIREMENT.
+        """
+        return tools.create_note(
+            client, project_slug, type, content, title, tags, domain_slug
+        )
+
+    @mcp.tool()
+    def create_task(
+        project_slug: str,
+        title: str,
+        description: str | None = None,
+        status: str | None = None,
+        priority: str | None = None,
+        depends_on: list[str] | None = None,
+        tags: list[str] | None = None,
+        domain_slug: str | None = None,
+    ) -> JSON:
+        """Create a new task in a project and return it (with its new ``id`` and
+        computed ``blocked`` flag).
+
+        ``title`` (required). Optional ``description`` (markdown). ``status``
+        (TODO [default] / IN_PROGRESS / DONE) and ``priority`` (LOW / MEDIUM
+        [default] / HIGH) are case-sensitive enums — a wrong-case or unknown
+        value is rejected with a backend 422 error. Optional ``tags`` and
+        ``domain_slug`` (validated by this tool: an unknown slug raises
+        ValueError before any write; find valid slugs with list_domains).
+
+        ``depends_on`` is a list of existing task ids (UUID strings) in the SAME
+        project — get them from list_tasks(project_slug). The backend rejects ids
+        that don't exist, ids from another project, self-dependencies, and
+        dependency cycles (e.g. A->B->A), each with a 422 error. The returned
+        ``blocked`` flag is True when any listed dependency is not yet DONE,
+        meaning the task cannot start until its prerequisites finish.
+
+        Use this to file follow-up work surfaced while planning.
+        """
+        return tools.create_task(
+            client,
+            project_slug,
+            title,
+            description,
+            status,
+            priority,
+            depends_on,
+            tags,
+            domain_slug,
+        )
 
     @mcp.tool()
     def save_artifact(

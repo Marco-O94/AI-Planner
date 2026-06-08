@@ -13,6 +13,7 @@ EXPECTED_TOOLS = {
     "list_documents", "get_document",
     "get_project_skills", "get_skill",
     "search_knowledge", "prepare_generation",
+    "create_note", "create_task",
     "save_artifact", "update_phase_status",
 }
 

@@ -244,6 +244,56 @@ def prepare_generation(
 # -- write tools -----------------------------------------------------------
 
 
+def create_note(
+    client: BackendClient,
+    project_slug: str,
+    type: str,
+    content: str,
+    title: str | None = None,
+    tags: list[str] | None = None,
+    domain_slug: str | None = None,
+) -> JSON:
+    domain_id = _resolve_domain_slug(client, project_slug, domain_slug)
+    body: JSON = {
+        "type": type,
+        "content": content,
+        "title": title,
+        "tags": tags,
+        "domain_id": domain_id,
+    }
+    # Drop unset optionals so the backend applies its own defaults (e.g. tags=[])
+    # rather than rejecting an explicit ``null`` on a non-nullable field.
+    body = {key: value for key, value in body.items() if value is not None}
+    return client.create_note(project_slug, body)
+
+
+def create_task(
+    client: BackendClient,
+    project_slug: str,
+    title: str,
+    description: str | None = None,
+    status: str | None = None,
+    priority: str | None = None,
+    depends_on: list[str] | None = None,
+    tags: list[str] | None = None,
+    domain_slug: str | None = None,
+) -> JSON:
+    domain_id = _resolve_domain_slug(client, project_slug, domain_slug)
+    body: JSON = {
+        "title": title,
+        "description": description,
+        "status": status,
+        "priority": priority,
+        "depends_on": depends_on,
+        "tags": tags,
+        "domain_id": domain_id,
+    }
+    # Drop unset optionals so the backend defaults status=TODO / priority=MEDIUM
+    # and never sees an explicit ``null`` on its non-nullable list fields.
+    body = {key: value for key, value in body.items() if value is not None}
+    return client.create_task(project_slug, body)
+
+
 def save_artifact(
     client: BackendClient,
     project_slug: str,
@@ -255,9 +305,7 @@ def save_artifact(
     source_task_ids: list[str] | None = None,
     source_document_ids: list[str] | None = None,
 ) -> JSON:
-    domain_id: str | None = None
-    if domain_slug:
-        domain_id = _domain_id(client.list_domains(project_slug), domain_slug)
+    domain_id = _resolve_domain_slug(client, project_slug, domain_slug)
 
     body: JSON = {
         "artifact_type_slug": artifact_type_slug,
@@ -312,3 +360,16 @@ def _domain_id(domains: list[JSON], domain_slug: str) -> str:
         if domain.get("slug") == domain_slug:
             return domain["id"]
     raise ValueError(f"domain {domain_slug!r} not found in project")
+
+
+def _resolve_domain_slug(
+    client: BackendClient, project_slug: str, domain_slug: str | None
+) -> str | None:
+    """Map a domain slug to its backend id (``None`` when no slug is given).
+
+    Raises ``ValueError`` if the slug doesn't name a domain in the project.
+    Shared by every write tool that accepts a ``domain_slug``.
+    """
+    if not domain_slug:
+        return None
+    return _domain_id(client.list_domains(project_slug), domain_slug)

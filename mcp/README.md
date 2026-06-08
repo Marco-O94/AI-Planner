@@ -27,7 +27,28 @@ Read: `list_projects`, `list_domains`, `get_project_context`,
 `get_note`, `list_documents`, `get_document`, `get_project_skills`, `get_skill`,
 `search_knowledge`, `prepare_generation`.
 
-Write: `save_artifact`, `update_phase_status`.
+Write: `create_note`, `create_task`, `save_artifact`, `update_phase_status`.
+
+### Capture knowledge back into a project
+
+The agent isn't read-only: it can write new notes and tasks straight into a
+project (e.g. record a decision it reached, or file follow-up work surfaced
+while planning). Domains are addressed by **slug** — the tool resolves it to the
+backend id and validates it belongs to the project.
+
+```
+create_note(project, type="DECISION", content="Use Stripe for cards.",
+            tags=["billing"], domain_slug="billing")
+#   type ∈ REQUIREMENT | CONSTRAINT | DECISION | QUESTION | SNIPPET | REFERENCE
+#   notes are indexed for semantic search on creation
+
+create_task(project, title="Wire up webhooks", priority="HIGH",
+            depends_on=["<task-id>"], domain_slug="billing")
+#   status ∈ TODO (default) | IN_PROGRESS | DONE
+#   priority ∈ LOW | MEDIUM (default) | HIGH
+#   depends_on: same-project task ids — backend rejects self-deps, cross-project
+#   deps and cycles, and marks the task `blocked` until every dep is DONE
+```
 
 ### Typical flow
 
@@ -104,7 +125,7 @@ and `MCP_TRANSPORT=sse`.
 ## Tests
 
 ```bash
-uv run pytest        # 32 tests — mock-backed, no live backend or network
+uv run pytest        # 43 tests — mock-backed, no live backend or network
 uv run ruff check .
 ```
 

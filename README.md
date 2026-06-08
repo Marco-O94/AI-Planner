@@ -53,7 +53,8 @@ Everything runs locally; your data stays in your Postgres + Qdrant.
 - **Templates** — snapshot a project as a template; create new projects from one.
 - **Skills** — attach GLOBAL skills to projects or define PROJECT skills; upload `.md` with
   frontmatter.
-- **MCP server** — 20 tools exposing all of the above to Claude Code over stdio or SSE.
+- **MCP server** — 22 tools exposing all of the above to Claude Code over stdio or SSE, including
+  `create_note` / `create_task` so the agent can capture knowledge back into a project.
 
 ---
 
@@ -229,10 +230,11 @@ If you split the API onto its own subdomain like above, run
 
 ## Use it with Claude Code (MCP)
 
-The MCP server gives Claude Code 20 tools — discovery (`list_projects`,
+The MCP server gives Claude Code 22 tools — discovery (`list_projects`,
 `get_project_context`), artifact types, artifacts + versions, notes/tasks/documents, skills,
 `search_knowledge` (lexical / semantic / hybrid), `prepare_generation` (the unified context
-bundle), and the writes `save_artifact` + `update_phase_status`.
+bundle), and the writes `create_note` + `create_task` (capture knowledge back into a project,
+domain‑scoped, with dependency/cycle validation on tasks), `save_artifact` + `update_phase_status`.
 
 **Register it** (copy into your Claude Code MCP config):
 
@@ -283,7 +285,7 @@ npm run build                                            # production build
 
 ```bash
 cd backend && uv run pytest      # 53 tests: schema + API + search/documents/templates
-cd mcp     && uv run pytest      # 34 tests: client, formatting, tools, server (mock‑backed)
+cd mcp     && uv run pytest      # 43 tests: client, formatting, tools, server (mock‑backed)
 cd frontend && npm run test:e2e  # Playwright smoke (uses system Chrome)
 ```
 

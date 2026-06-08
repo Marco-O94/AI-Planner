@@ -95,6 +95,9 @@ class BackendClient:
     def list_notes(self, project_slug: str) -> list[JSON]:
         return self._get(f"/projects/{project_slug}/notes")
 
+    def create_note(self, project_slug: str, body: JSON) -> JSON:
+        return self._post(f"/projects/{project_slug}/notes", json=body)
+
     def get_note(self, note_id: str) -> JSON:
         return self._get(f"/notes/{note_id}")
 
@@ -109,6 +112,9 @@ class BackendClient:
             f"/projects/{project_slug}/tasks",
             params={"status": status, "priority": priority},
         )
+
+    def create_task(self, project_slug: str, body: JSON) -> JSON:
+        return self._post(f"/projects/{project_slug}/tasks", json=body)
 
     def get_task(self, task_id: str) -> JSON:
         return self._get(f"/tasks/{task_id}")
