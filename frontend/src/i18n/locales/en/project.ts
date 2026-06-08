@@ -76,6 +76,7 @@ export const project = {
     emptyDescription: "Add a bounded context to organize work by sub-domain.",
     termsCount: "{count} terms",
     openAria: "Open {name}",
+    expandAria: "Toggle {name} details",
     editAria: "Edit {name}",
     deleteAria: "Delete {name}",
     deleted: 'Deleted "{name}".',

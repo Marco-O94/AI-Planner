@@ -76,6 +76,7 @@ export const project = {
     emptyDescription: "Aggiungi un contesto delimitato per organizzare il lavoro per sotto-dominio.",
     termsCount: "{count} termini",
     openAria: "Apri {name}",
+    expandAria: "Mostra/nascondi dettagli di {name}",
     editAria: "Modifica {name}",
     deleteAria: "Elimina {name}",
     deleted: 'Eliminato "{name}".',

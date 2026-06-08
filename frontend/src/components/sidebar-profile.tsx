@@ -68,42 +68,50 @@ export function SidebarProfile({
     </Avatar>
   );
 
+  // Collapsed: a tooltip wraps the dropdown trigger. Both asChild Slots must
+  // forward onto the same Button (TooltipTrigger → DropdownMenuTrigger → Button),
+  // otherwise the click handler lands on the Tooltip root (no DOM node) and the
+  // menu never opens.
   const trigger = collapsed ? (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={name}
-          className="mx-auto size-9 rounded-lg"
-        >
-          {avatar}
-        </Button>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={name}
+            className="mx-auto size-9 rounded-lg"
+          >
+            {avatar}
+          </Button>
+        </DropdownMenuTrigger>
       </TooltipTrigger>
       <TooltipContent side="right">{name}</TooltipContent>
     </Tooltip>
   ) : (
-    <Button
-      variant="ghost"
-      aria-label={name}
-      className="h-auto w-full justify-start gap-2.5 rounded-lg px-2 py-2 text-left"
-    >
-      {avatar}
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium leading-tight">
-          {name}
+    <DropdownMenuTrigger asChild>
+      <Button
+        variant="ghost"
+        aria-label={name}
+        className="h-auto w-full justify-start gap-2.5 rounded-lg px-2 py-2 text-left"
+      >
+        {avatar}
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium leading-tight">
+            {name}
+          </span>
+          <span className="block truncate text-xs leading-tight text-muted-foreground">
+            {t("nav.localAccount")}
+          </span>
         </span>
-        <span className="block truncate text-xs leading-tight text-muted-foreground">
-          {t("nav.localAccount")}
-        </span>
-      </span>
-      <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
-    </Button>
+        <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
+      </Button>
+    </DropdownMenuTrigger>
   );
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+      {trigger}
       <DropdownMenuContent
         side={menuSide}
         align="end"

@@ -4,17 +4,11 @@ import { useState } from "react";
 import { useSWRConfig } from "swr";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Boxes, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { Boxes, ChevronRight, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,9 +29,10 @@ import {
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/common";
-import { useT } from "@/i18n/locale-context";
+import { useT, type TranslateFn } from "@/i18n/locale-context";
 import { AnimatedItem, AnimatedList } from "@/components/motion";
 import { api, ApiError } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import type { DomainRead, ProjectRead } from "@/lib/types";
 
 import { DomainDialog } from "./domain-dialog";
@@ -117,6 +112,16 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
   const [editing, setEditing] = useState<DomainRead | null>(null);
   const [pendingDelete, setPendingDelete] = useState<DomainRead | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  function toggleExpanded(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   function openCreate() {
     setEditing(null);
@@ -174,66 +179,21 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
         />
       ) : (
         <AnimatedList>
-          <Accordion type="multiple" className="w-full">
+          <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
             {domains.map((domain) => (
               <AnimatedItem key={domain.id}>
-                <AccordionItem value={domain.id} className="border-border">
-                  <div className="flex items-center gap-1">
-                    <AccordionTrigger className="flex-1">
-                      <span className="flex items-center gap-2">
-                        <span className="font-medium">{domain.name}</span>
-                        {domain.ubiquitous_language &&
-                        Object.keys(domain.ubiquitous_language).length ? (
-                          <span className="text-xs text-muted-foreground">
-                            {t("project.domains.termsCount", {
-                              count: Object.keys(domain.ubiquitous_language).length,
-                            })}
-                          </span>
-                        ) : null}
-                      </span>
-                    </AccordionTrigger>
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t("project.domains.openAria", { name: domain.name })}
-                    >
-                      <Link href={`/projects/${project.slug}/domains/${domain.slug}`}>
-                        <ChevronRight className="size-4" />
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => openEdit(domain)}
-                      aria-label={t("project.domains.editAria", { name: domain.name })}
-                    >
-                      <Pencil className="size-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => setPendingDelete(domain)}
-                      aria-label={t("project.domains.deleteAria", { name: domain.name })}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
-                  </div>
-                  <AccordionContent className="space-y-3">
-                    {domain.description ? (
-                      <p className="text-sm text-muted-foreground">{domain.description}</p>
-                    ) : null}
-                    <UbiquitousLanguageEditor
-                      entries={languageToEntries(domain.ubiquitous_language)}
-                      onChange={() => undefined}
-                      readOnly
-                    />
-                  </AccordionContent>
-                </AccordionItem>
+                <DomainRow
+                  domain={domain}
+                  projectSlug={project.slug}
+                  expanded={expanded.has(domain.id)}
+                  onToggle={() => toggleExpanded(domain.id)}
+                  onEdit={() => openEdit(domain)}
+                  onDelete={() => setPendingDelete(domain)}
+                  t={t}
+                />
               </AnimatedItem>
             ))}
-          </Accordion>
+          </div>
         </AnimatedList>
       )}
 
@@ -275,6 +235,127 @@ function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+interface DomainRowProps {
+  domain: DomainRead;
+  projectSlug: string;
+  expanded: boolean;
+  onToggle: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  t: TranslateFn;
+}
+
+/**
+ * One bounded context as an expandable table row. The leading chevron only
+ * appears when the row has something to reveal (a description or vocabulary);
+ * the eye opens the dedicated domain page, pencil edits, trash deletes.
+ */
+function DomainRow({
+  domain,
+  projectSlug,
+  expanded,
+  onToggle,
+  onEdit,
+  onDelete,
+  t,
+}: DomainRowProps) {
+  const termCount = domain.ubiquitous_language
+    ? Object.keys(domain.ubiquitous_language).length
+    : 0;
+  const hasDetails = Boolean(domain.description) || termCount > 0;
+
+  return (
+    <div className="bg-card">
+      <div className="flex items-center gap-1 px-1.5 py-1.5 transition-colors hover:bg-muted/40">
+        {hasDetails ? (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={onToggle}
+            aria-expanded={expanded}
+            aria-label={t("project.domains.expandAria", { name: domain.name })}
+            className="shrink-0 text-muted-foreground"
+          >
+            <ChevronRight
+              className={cn(
+                "size-4 transition-transform duration-200",
+                expanded && "rotate-90",
+              )}
+            />
+          </Button>
+        ) : (
+          <span className="size-7 shrink-0" aria-hidden />
+        )}
+
+        <button
+          type="button"
+          onClick={hasDetails ? onToggle : undefined}
+          disabled={!hasDetails}
+          className={cn(
+            "flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-1 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            hasDetails && "cursor-pointer",
+          )}
+        >
+          <span className="truncate font-medium">{domain.name}</span>
+          {termCount > 0 ? (
+            <Badge
+              variant="secondary"
+              className="h-5 shrink-0 px-1.5 text-xs tabular-nums"
+            >
+              {t("project.domains.termsCount", { count: termCount })}
+            </Badge>
+          ) : null}
+        </button>
+
+        <Button
+          asChild
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t("project.domains.openAria", { name: domain.name })}
+          className="shrink-0"
+        >
+          <Link href={`/projects/${projectSlug}/domains/${domain.slug}`}>
+            <Eye className="size-4" />
+          </Link>
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onEdit}
+          aria-label={t("project.domains.editAria", { name: domain.name })}
+          className="shrink-0"
+        >
+          <Pencil className="size-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onDelete}
+          aria-label={t("project.domains.deleteAria", { name: domain.name })}
+          className="shrink-0 text-muted-foreground hover:text-destructive"
+        >
+          <Trash2 className="size-3.5" />
+        </Button>
+      </div>
+
+      {hasDetails && expanded ? (
+        <div className="space-y-3 border-t border-border bg-muted/20 px-3 py-3">
+          {domain.description ? (
+            <p className="text-sm text-muted-foreground">{domain.description}</p>
+          ) : null}
+          {termCount > 0 ? (
+            <UbiquitousLanguageEditor
+              entries={languageToEntries(domain.ubiquitous_language)}
+              onChange={() => undefined}
+              readOnly
+            />
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
