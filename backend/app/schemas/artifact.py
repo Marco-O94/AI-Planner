@@ -5,8 +5,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
-from app.domain.enums import ArtifactStatus, PhaseStatus
 from app.domain.entities import Artifact
+from app.domain.enums import ArtifactStatus, PhaseStatus
 from app.domain.read_models import ArtifactDetail
 
 

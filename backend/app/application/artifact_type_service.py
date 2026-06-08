@@ -1,5 +1,7 @@
 """ArtifactType service: scope<->project invariant + protected default."""
 
+from __future__ import annotations
+
 import uuid
 from dataclasses import replace
 

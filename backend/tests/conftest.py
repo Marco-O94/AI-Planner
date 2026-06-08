@@ -6,19 +6,46 @@ metadata snapshot. Migrations are idempotent, so this is a no-op when already
 at head.
 """
 
-from collections.abc import Generator
+import uuid
+from collections.abc import Callable, Generator
 
 import pytest
 from alembic.config import Config
+from fastapi.testclient import TestClient
 from sqlalchemy import Connection, Engine, create_engine
 
 from alembic import command
 from app.config import settings
+from app.main import app
 
 
 @pytest.fixture(scope="session")
 def _migrated() -> None:
     command.upgrade(Config("alembic.ini"), "head")
+
+
+@pytest.fixture
+def client(_migrated: None) -> TestClient:
+    return TestClient(app)
+
+
+@pytest.fixture
+def make_project(client: TestClient) -> Generator[Callable[..., dict], None, None]:
+    """Create uniquely-named projects via the API and cascade-delete them after."""
+    created: list[str] = []
+
+    def _make(name: str | None = None, **extra) -> dict:
+        name = name or f"Proj {uuid.uuid4().hex[:8]}"
+        response = client.post("/projects", json={"name": name, **extra})
+        assert response.status_code == 201, response.text
+        body = response.json()
+        created.append(body["slug"])
+        return body
+
+    yield _make
+
+    for slug in created:
+        client.delete(f"/projects/{slug}")
 
 
 @pytest.fixture(scope="session")

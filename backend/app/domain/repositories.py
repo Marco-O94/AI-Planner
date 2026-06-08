@@ -5,6 +5,8 @@ infrastructure layer provides concrete implementations. Methods exchange domain
 entities / read models and primitives only — never ORM objects or Pydantic DTOs.
 """
 
+from __future__ import annotations
+
 import uuid
 from typing import Protocol
 

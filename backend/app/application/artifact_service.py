@@ -6,6 +6,8 @@ version. Files are validated against the type's manifest (coverage, not a hard
 failure) and phases are parsed from a primary markdown file when present.
 """
 
+from __future__ import annotations
+
 import difflib
 import uuid
 from dataclasses import replace
@@ -49,9 +51,9 @@ class ArtifactService:
         return project
 
     def _resolve_type(self, type_slug: str, project_id: uuid.UUID):
-        artifact_type = self.type_repo.get_by_slug(type_slug, project_id) or self.type_repo.get_by_slug(
-            type_slug, None
-        )
+        artifact_type = self.type_repo.get_by_slug(
+            type_slug, project_id
+        ) or self.type_repo.get_by_slug(type_slug, None)
         if artifact_type is None:
             raise NotFoundError(f"artifact type '{type_slug}' not found")
         return artifact_type

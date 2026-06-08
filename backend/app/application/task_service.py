@@ -1,6 +1,8 @@
 """Task service: domain invariant, dependency same-project check, cycle
 rejection, and blocked-status computation."""
 
+from __future__ import annotations
+
 import uuid
 from dataclasses import replace
 

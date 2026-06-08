@@ -1,5 +1,7 @@
 """Skill service: scope<->project invariant and GLOBAL-skill attachment."""
 
+from __future__ import annotations
+
 import uuid
 from dataclasses import replace
 

@@ -1,5 +1,7 @@
 """Domain (bounded context) service."""
 
+from __future__ import annotations
+
 import uuid
 from dataclasses import replace
 

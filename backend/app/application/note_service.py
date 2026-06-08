@@ -1,5 +1,7 @@
 """Note service: enforces the note/domain-belongs-to-project invariant."""
 
+from __future__ import annotations
+
 import uuid
 from dataclasses import replace
 

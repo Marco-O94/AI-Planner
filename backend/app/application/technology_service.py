@@ -1,5 +1,7 @@
 """Technology lookup management: resolve-or-create canonical entries."""
 
+from __future__ import annotations
+
 import uuid
 
 from app.application.slugs import make_unique_slug

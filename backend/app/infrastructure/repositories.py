@@ -5,6 +5,8 @@ Repositories flush (so server-generated values are available) but do not commit;
 the unit of work is committed at the API boundary (see app/infrastructure/db.py).
 """
 
+from __future__ import annotations
+
 import uuid
 
 from sqlalchemy import func, or_, select
@@ -21,7 +23,8 @@ from app.domain.enums import (
 )
 from app.domain.errors import NotFoundError
 from app.domain.read_models import ProjectDetail, ProjectTechnologyRef
-from app.infrastructure import mappers, models as m
+from app.infrastructure import mappers
+from app.infrastructure import models as m
 
 
 class SqlProjectRepository:

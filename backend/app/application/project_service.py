@@ -1,5 +1,7 @@
 """Project aggregate service: CRUD, filtering, and technology attachment."""
 
+from __future__ import annotations
+
 import uuid
 from dataclasses import replace
 

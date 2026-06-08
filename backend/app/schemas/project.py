@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from app.domain.enums import ProjectStatus, TechnologyKind
 from app.domain.read_models import ProjectDetail, ProjectTechnologyRef
