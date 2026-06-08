@@ -4,6 +4,7 @@ import { FolderPlus, SearchX } from "lucide-react";
 
 import { AnimatedItem, AnimatedList } from "@/components/motion";
 import { EmptyState } from "@/components/common";
+import { useT } from "@/i18n/locale-context";
 import type { ProjectRead } from "@/lib/types";
 import { ProjectCard } from "./project-card";
 
@@ -24,20 +25,21 @@ export function ProjectGrid({
   createAction,
   onClearFilters,
 }: ProjectGridProps) {
+  const t = useT();
   if (!projects.length) {
     if (filtered) {
       return (
         <EmptyState
           icon={SearchX}
-          title="No matching projects"
-          description="No projects match the current filters. Try clearing them or adjusting your search."
+          title={t("dashboard.emptyFiltered.title")}
+          description={t("dashboard.emptyFiltered.description")}
           action={
             <button
               type="button"
               onClick={onClearFilters}
               className="text-sm font-medium text-primary underline-offset-4 hover:underline"
             >
-              Clear filters
+              {t("dashboard.filters.clear")}
             </button>
           }
         />
@@ -46,8 +48,8 @@ export function ProjectGrid({
     return (
       <EmptyState
         icon={FolderPlus}
-        title="No projects yet"
-        description="Create your first project to start capturing notes, tasks and documents."
+        title={t("dashboard.empty.title")}
+        description={t("dashboard.empty.description")}
         action={createAction}
       />
     );

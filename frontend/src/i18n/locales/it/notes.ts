@@ -1,2 +1,65 @@
-// Compilato dalla traduzione delle note.
-export const notes = {} as const;
+export const notes = {
+  composer: {
+    triggerLabel: "Aggiungi una nota rapida",
+    triggerText: "Nota rapida…",
+    saveHint: "per salvare",
+    title: "Nota rapida",
+    captureFast: "Annota al volo —",
+    collapseLabel: "Riduci nota rapida",
+    addNote: "Aggiungi nota",
+  },
+  fields: {
+    typeLabel: "Tipo",
+    titleLabel: "Titolo",
+    titlePlaceholder: "Breve riassunto",
+    contentLabel: "Contenuto",
+    contentMarkdown: "(markdown)",
+    contentPlaceholder: "Annota un requisito, una decisione, uno snippet…",
+    tagsLabel: "Tag",
+    tagsHint: "(spazio o virgola)",
+    tagsPlaceholder: "auth, mvp, perf",
+    domainLabel: "Dominio",
+    projectLevel: "A livello di progetto",
+  },
+  filter: {
+    placeholder: "Filtra le note per titolo, contenuto o tag…",
+    clearAria: "Cancella filtro",
+  },
+  card: {
+    untitled: "Senza titolo",
+    actionsAria: "Azioni nota",
+    showMore: "Mostra di più",
+    showLess: "Mostra di meno",
+  },
+  edit: {
+    title: "Modifica nota",
+    description: "Aggiorna il tipo, il contenuto, i tag o il dominio.",
+  },
+  remove: {
+    title: "Eliminare questa nota?",
+    descriptionNamed: "“{title}” verrà rimossa definitivamente. L’operazione non può essere annullata.",
+    description: "Questa nota verrà rimossa definitivamente. L’operazione non può essere annullata.",
+    deleteNote: "Elimina nota",
+  },
+  emptyError: {
+    title: "Impossibile caricare le note",
+    description: "Le note di questo progetto non sono state caricate. Prova ad aggiornare la pagina.",
+  },
+  empty: {
+    title: "Nessuna nota",
+    description: "Cattura il tuo primo requisito, decisione o snippet con il compositore qui sopra.",
+  },
+  emptyFiltered: {
+    title: "Nessuna nota corrispondente",
+    description: "Modifica il testo di ricerca o rimuovi il filtro per tipo.",
+  },
+  previewFallback: "Nota",
+  toasts: {
+    captured: "Nota {type} catturata",
+    saveFailed: "Impossibile salvare la nota",
+    updated: "Nota aggiornata",
+    updateFailed: "Impossibile aggiornare la nota",
+    deleted: "Nota eliminata",
+    deleteFailed: "Impossibile eliminare la nota",
+  },
+} as const;

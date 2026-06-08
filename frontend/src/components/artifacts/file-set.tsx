@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/common";
 import { Markdown } from "@/components/markdown";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 import { fileLabel, singleFileExportUrl, sortedFiles, triggerDownload } from "./lib";
 import type { ArtifactFileRead } from "@/lib/types";
@@ -33,6 +34,7 @@ function languageFence(path: string, content: string): string {
 
 /** Tabbed/accordion view of the current version's files, each with its manifest note. */
 export function FileSet({ artifactId, files }: FileSetProps) {
+  const t = useT();
   const ordered = sortedFiles(files);
   const defaultOpen = ordered[0]?.path;
 
@@ -62,7 +64,11 @@ export function FileSet({ artifactId, files }: FileSetProps) {
             ) : null}
 
             <div className="flex flex-wrap items-center gap-2">
-              <CopyButton value={file.content} label="Copy file" size="sm" />
+              <CopyButton
+                value={file.content}
+                label={t("artifacts.files.copyFile")}
+                size="sm"
+              />
               <Button
                 type="button"
                 variant="outline"
@@ -72,7 +78,7 @@ export function FileSet({ artifactId, files }: FileSetProps) {
                 }
               >
                 <Download className="size-3.5" />
-                Download
+                {t("common.download")}
               </Button>
             </div>
 

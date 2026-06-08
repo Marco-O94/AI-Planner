@@ -1,10 +1,13 @@
+"use client";
+
 import { FileCode2, FileText, StickyNote } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 import type { SearchKind } from "@/lib/types";
 
-import { kindLabel } from "./types";
+import { kindLabelKey } from "./types";
 
 const KIND_STYLES: Record<SearchKind, string> = {
   document: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
@@ -25,6 +28,7 @@ interface FileKindBadgeProps {
 
 /** A pill describing the kind of a saved file (document / artifact file / note). */
 export function FileKindBadge({ kind, className }: FileKindBadgeProps) {
+  const t = useT();
   const Icon = KIND_ICONS[kind];
   return (
     <Badge
@@ -32,7 +36,7 @@ export function FileKindBadge({ kind, className }: FileKindBadgeProps) {
       className={cn("gap-1 font-medium", KIND_STYLES[kind], className)}
     >
       <Icon className="size-3" />
-      {kindLabel(kind)}
+      {t(kindLabelKey(kind))}
     </Badge>
   );
 }

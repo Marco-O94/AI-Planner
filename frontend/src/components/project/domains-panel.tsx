@@ -4,22 +4,10 @@ import { useState } from "react";
 import { useSWRConfig } from "swr";
 import Link from "next/link";
 import { toast } from "sonner";
-import {
-  Boxes,
-  ChevronRight,
-  Pencil,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { Boxes, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Accordion,
@@ -37,6 +25,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/common";
 import { AnimatedItem, AnimatedList } from "@/components/motion";
 import { api, ApiError } from "@/lib/api";
@@ -48,14 +45,70 @@ import {
   languageToEntries,
 } from "./ubiquitous-language-editor";
 
-interface DomainsPanelProps {
+interface DomainsButtonProps {
+  project: ProjectRead;
+  domains: DomainRead[] | undefined;
+  isLoading: boolean;
+}
+
+/**
+ * Compact "Domains (N)" entry for the header strip. Opens the full bounded-
+ * context manager (list / create / edit / delete with vocabularies) in a
+ * right-side Sheet so it stays out of the primary working flow.
+ */
+export function DomainsButton({ project, domains, isLoading }: DomainsButtonProps) {
+  const [open, setOpen] = useState(false);
+  const count = domains?.length ?? 0;
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5">
+          <Boxes className="size-3.5" />
+          Domains
+          {!isLoading ? (
+            <Badge
+              variant="secondary"
+              className="ml-0.5 h-5 min-w-5 justify-center px-1 tabular-nums"
+            >
+              {count}
+            </Badge>
+          ) : null}
+        </Button>
+      </SheetTrigger>
+      <SheetContent
+        side="right"
+        className="w-full gap-0 sm:max-w-lg"
+        aria-describedby={undefined}
+      >
+        <SheetHeader className="gap-1">
+          <SheetTitle>Bounded contexts</SheetTitle>
+          <SheetDescription>
+            Domains scope your notes, tasks and documents.
+          </SheetDescription>
+        </SheetHeader>
+        <ScrollArea className="flex-1">
+          <div className="px-4 pb-6">
+            <DomainsManager
+              project={project}
+              domains={domains}
+              isLoading={isLoading}
+            />
+          </div>
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+interface DomainsManagerProps {
   project: ProjectRead;
   domains: DomainRead[] | undefined;
   isLoading: boolean;
 }
 
 /** List / create / edit / delete bounded contexts with their vocabularies. */
-export function DomainsPanel({ project, domains, isLoading }: DomainsPanelProps) {
+function DomainsManager({ project, domains, isLoading }: DomainsManagerProps) {
   const { mutate } = useSWRConfig();
   const cacheKey = `/projects/${project.slug}/domains`;
 
@@ -83,107 +136,103 @@ export function DomainsPanel({ project, domains, isLoading }: DomainsPanelProps)
       await mutate(cacheKey);
       setPendingDelete(null);
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Could not delete the domain.");
+      toast.error(
+        error instanceof ApiError ? error.message : "Could not delete the domain.",
+      );
     } finally {
       setDeleting(false);
     }
   }
 
   return (
-    <Card className="gap-0">
-      <CardHeader className="flex-row items-start justify-between gap-3 space-y-0">
-        <div className="space-y-1">
-          <CardTitle className="text-base">Bounded contexts</CardTitle>
-          <CardDescription>Domains scope your notes, tasks and documents.</CardDescription>
-        </div>
+    <div className="space-y-3">
+      <div className="flex justify-end">
         <Button size="sm" onClick={openCreate}>
           <Plus className="size-3.5" />
           New domain
         </Button>
-      </CardHeader>
+      </div>
 
-      <CardContent className="pt-4">
-        {isLoading ? (
-          <div className="space-y-2">
-            {[0, 1].map((index) => (
-              <Skeleton key={index} className="h-12 w-full" />
+      {isLoading ? (
+        <div className="space-y-2">
+          {[0, 1].map((index) => (
+            <Skeleton key={index} className="h-12 w-full" />
+          ))}
+        </div>
+      ) : !domains?.length ? (
+        <EmptyState
+          icon={Boxes}
+          title="No domains yet"
+          description="Add a bounded context to organize work by sub-domain."
+          action={
+            <Button size="sm" onClick={openCreate}>
+              <Plus className="size-3.5" />
+              New domain
+            </Button>
+          }
+        />
+      ) : (
+        <AnimatedList>
+          <Accordion type="multiple" className="w-full">
+            {domains.map((domain) => (
+              <AnimatedItem key={domain.id}>
+                <AccordionItem value={domain.id} className="border-border">
+                  <div className="flex items-center gap-1">
+                    <AccordionTrigger className="flex-1">
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium">{domain.name}</span>
+                        {domain.ubiquitous_language &&
+                        Object.keys(domain.ubiquitous_language).length ? (
+                          <span className="text-xs text-muted-foreground">
+                            {Object.keys(domain.ubiquitous_language).length} terms
+                          </span>
+                        ) : null}
+                      </span>
+                    </AccordionTrigger>
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={`Open ${domain.name}`}
+                    >
+                      <Link href={`/projects/${project.slug}/domains/${domain.slug}`}>
+                        <ChevronRight className="size-4" />
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => openEdit(domain)}
+                      aria-label={`Edit ${domain.name}`}
+                    >
+                      <Pencil className="size-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => setPendingDelete(domain)}
+                      aria-label={`Delete ${domain.name}`}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
+                  <AccordionContent className="space-y-3">
+                    {domain.description ? (
+                      <p className="text-sm text-muted-foreground">{domain.description}</p>
+                    ) : null}
+                    <UbiquitousLanguageEditor
+                      entries={languageToEntries(domain.ubiquitous_language)}
+                      onChange={() => undefined}
+                      readOnly
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </AnimatedItem>
             ))}
-          </div>
-        ) : !domains?.length ? (
-          <EmptyState
-            icon={Boxes}
-            title="No domains yet"
-            description="Add a bounded context to organize work by sub-domain."
-            action={
-              <Button size="sm" onClick={openCreate}>
-                <Plus className="size-3.5" />
-                New domain
-              </Button>
-            }
-          />
-        ) : (
-          <AnimatedList>
-            <Accordion type="multiple" className="w-full">
-              {domains.map((domain) => (
-                <AnimatedItem key={domain.id}>
-                  <AccordionItem value={domain.id} className="border-border">
-                    <div className="flex items-center gap-1">
-                      <AccordionTrigger className="flex-1">
-                        <span className="flex items-center gap-2">
-                          <span className="font-medium">{domain.name}</span>
-                          {domain.ubiquitous_language &&
-                          Object.keys(domain.ubiquitous_language).length ? (
-                            <span className="text-xs text-muted-foreground">
-                              {Object.keys(domain.ubiquitous_language).length} terms
-                            </span>
-                          ) : null}
-                        </span>
-                      </AccordionTrigger>
-                      <Button
-                        asChild
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Open ${domain.name}`}
-                      >
-                        <Link href={`/projects/${project.slug}/domains/${domain.slug}`}>
-                          <ChevronRight className="size-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => openEdit(domain)}
-                        aria-label={`Edit ${domain.name}`}
-                      >
-                        <Pencil className="size-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setPendingDelete(domain)}
-                        aria-label={`Delete ${domain.name}`}
-                        className="text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
-                    <AccordionContent className="space-y-3">
-                      {domain.description ? (
-                        <p className="text-sm text-muted-foreground">{domain.description}</p>
-                      ) : null}
-                      <UbiquitousLanguageEditor
-                        entries={languageToEntries(domain.ubiquitous_language)}
-                        onChange={() => undefined}
-                        readOnly
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                </AnimatedItem>
-              ))}
-            </Accordion>
-          </AnimatedList>
-        )}
-      </CardContent>
+          </Accordion>
+        </AnimatedList>
+      )}
 
       <DomainDialog
         projectSlug={project.slug}
@@ -220,6 +269,6 @@ export function DomainsPanel({ project, domains, isLoading }: DomainsPanelProps)
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Card>
+    </div>
   );
 }

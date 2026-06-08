@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FileCode2, Lock, MoreVertical, Pencil, Trash2 } from "lucide-react";
 
 import type { ArtifactTypeRead } from "@/lib/types";
+import { useT } from "@/i18n/locale-context";
 import { ScopeBadge } from "@/components/status-badge";
 import { Markdown } from "@/components/markdown";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ interface ArtifactTypeCardProps {
 }
 
 export function ArtifactTypeCard({ type, onEdit, onDelete }: ArtifactTypeCardProps) {
+  const t = useT();
   const [showInstructions, setShowInstructions] = useState(false);
   const readOnly = type.is_default;
   const fileCount = type.output_files.length;
@@ -40,11 +42,11 @@ export function ArtifactTypeCard({ type, onEdit, onDelete }: ArtifactTypeCardPro
 
           {readOnly ? (
             <span
-              title="Built-in default — read only"
+              title={t("artifactTypes.card.defaultTitle")}
               className="flex shrink-0 items-center gap-1 rounded-md bg-secondary px-2 py-1 text-xs font-medium text-muted-foreground"
             >
               <Lock className="size-3" />
-              Default
+              {t("artifactTypes.card.defaultBadge")}
             </span>
           ) : (
             <DropdownMenu>
@@ -52,7 +54,7 @@ export function ArtifactTypeCard({ type, onEdit, onDelete }: ArtifactTypeCardPro
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label={`Actions for ${type.name}`}
+                  aria-label={t("artifactTypes.card.actionsFor", { name: type.name })}
                   className="shrink-0 text-muted-foreground opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
                 >
                   <MoreVertical className="size-4" />
@@ -61,14 +63,14 @@ export function ArtifactTypeCard({ type, onEdit, onDelete }: ArtifactTypeCardPro
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onSelect={() => onEdit(type)}>
                   <Pencil className="size-4" />
-                  Edit
+                  {t("common.edit")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
                   onSelect={() => onDelete(type)}
                 >
                   <Trash2 className="size-4" />
-                  Delete
+                  {t("common.delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -78,7 +80,9 @@ export function ArtifactTypeCard({ type, onEdit, onDelete }: ArtifactTypeCardPro
         <div className="flex flex-wrap items-center gap-1.5">
           <ScopeBadge scope={type.scope} />
           <Badge variant="secondary" className="font-normal">
-            {fileCount} {fileCount === 1 ? "file" : "files"}
+            {fileCount === 1
+              ? t("artifactTypes.card.fileCount", { count: fileCount })
+              : t("artifactTypes.card.fileCountPlural", { count: fileCount })}
           </Badge>
         </div>
 
@@ -102,12 +106,12 @@ export function ArtifactTypeCard({ type, onEdit, onDelete }: ArtifactTypeCardPro
             ))}
             {fileCount > 4 ? (
               <li className="text-xs text-muted-foreground">
-                +{fileCount - 4} more
+                {t("artifactTypes.card.moreFiles", { count: fileCount - 4 })}
               </li>
             ) : null}
           </ul>
         ) : (
-          <p className="text-xs text-muted-foreground">No declared files.</p>
+          <p className="text-xs text-muted-foreground">{t("artifactTypes.card.noFiles")}</p>
         )}
 
         {type.instructions ? (
@@ -119,7 +123,9 @@ export function ArtifactTypeCard({ type, onEdit, onDelete }: ArtifactTypeCardPro
               className="-ml-2 h-7 text-xs text-muted-foreground"
               onClick={() => setShowInstructions((v) => !v)}
             >
-              {showInstructions ? "Hide" : "Show"} instructions
+              {showInstructions
+                ? t("artifactTypes.card.hideInstructions")
+                : t("artifactTypes.card.showInstructions")}
             </Button>
             {showInstructions ? (
               <div className="max-h-64 overflow-y-auto rounded-lg border border-border/70 bg-muted/40 p-3 text-sm">

@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/common";
 import { ArtifactStatusBadge } from "@/components/status-badge";
 import { FadeIn } from "@/components/motion";
+import { useT } from "@/i18n/locale-context";
 import { formatDateTime } from "@/lib/format";
 import { isPlanLikeType, artifactDetailKey, versionFilesKey } from "./lib";
 import { FileSet } from "./file-set";
@@ -38,6 +39,7 @@ function DetailSkeleton() {
 
 /** Full artifact detail: file set, coverage, versions+diff, phases, status, export, sources. */
 export function ArtifactDetail({ artifactId, onBack, onMutated }: ArtifactDetailProps) {
+  const t = useT();
   const detailKey = artifactDetailKey(artifactId);
   const { data, error, isLoading, mutate } = useSWR<ArtifactDetailRead>(detailKey);
 
@@ -56,11 +58,11 @@ export function ArtifactDetail({ artifactId, onBack, onMutated }: ArtifactDetail
   if (error || !data) {
     return (
       <EmptyState
-        title="Could not load artifact"
-        description="The artifact may have been removed. Go back and try again."
+        title={t("artifacts.detail.loadErrorTitle")}
+        description={t("artifacts.detail.loadErrorDescription")}
         action={
           <Button type="button" variant="outline" size="sm" onClick={onBack}>
-            <ChevronLeft className="size-4" /> Back to list
+            <ChevronLeft className="size-4" /> {t("artifacts.detail.backToList")}
           </Button>
         }
       />
@@ -77,7 +79,7 @@ export function ArtifactDetail({ artifactId, onBack, onMutated }: ArtifactDetail
           onClick={onBack}
           className="-ml-2 text-muted-foreground"
         >
-          <ChevronLeft className="size-4" /> All artifacts
+          <ChevronLeft className="size-4" /> {t("artifacts.detail.allArtifacts")}
         </Button>
 
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -87,8 +89,11 @@ export function ArtifactDetail({ artifactId, onBack, onMutated }: ArtifactDetail
               <ArtifactStatusBadge status={data.artifact.status} />
             </div>
             <p className="text-xs text-muted-foreground">
-              {data.artifact_type_slug} · v{data.current_version_number} · updated{" "}
-              {formatDateTime(data.artifact.updated_at)}
+              {t("artifacts.detail.meta", {
+                type: data.artifact_type_slug,
+                version: data.current_version_number,
+                updated: formatDateTime(data.artifact.updated_at),
+              })}
             </p>
           </div>
           <ArtifactToolbar artifact={data.artifact} onStatusChanged={refresh} />
@@ -99,10 +104,18 @@ export function ArtifactDetail({ artifactId, onBack, onMutated }: ArtifactDetail
 
       <Tabs defaultValue="files" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="files">Files</TabsTrigger>
-          <TabsTrigger value="versions">Versions &amp; diff</TabsTrigger>
-          {planLike ? <TabsTrigger value="phases">Checklist</TabsTrigger> : null}
-          <TabsTrigger value="sources">Sources</TabsTrigger>
+          <TabsTrigger value="files">{t("artifacts.detail.tabs.files")}</TabsTrigger>
+          <TabsTrigger value="versions">
+            {t("artifacts.detail.tabs.versions")}
+          </TabsTrigger>
+          {planLike ? (
+            <TabsTrigger value="phases">
+              {t("artifacts.detail.tabs.checklist")}
+            </TabsTrigger>
+          ) : null}
+          <TabsTrigger value="sources">
+            {t("artifacts.detail.tabs.sources")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="files">
@@ -110,8 +123,8 @@ export function ArtifactDetail({ artifactId, onBack, onMutated }: ArtifactDetail
             <FileSet artifactId={artifactId} files={data.files} />
           ) : (
             <EmptyState
-              title="No files in this version"
-              description="This version of the artifact has no generated files yet."
+              title={t("artifacts.detail.noFilesTitle")}
+              description={t("artifacts.detail.noFilesDescription")}
             />
           )}
         </TabsContent>
@@ -143,8 +156,8 @@ export function ArtifactDetail({ artifactId, onBack, onMutated }: ArtifactDetail
             />
           ) : (
             <EmptyState
-              title="No linked sources"
-              description="This version was not generated from tracked notes, tasks, or documents."
+              title={t("artifacts.detail.noSourcesTitle")}
+              description={t("artifacts.detail.noSourcesDescription")}
             />
           )}
         </TabsContent>

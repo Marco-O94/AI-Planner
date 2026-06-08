@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Boxes } from "lucide-react";
 
 import { PageHeader, EmptyState } from "@/components/common";
+import { useT, type TranslateFn } from "@/i18n/locale-context";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,6 +28,7 @@ import {
 } from "@/components/project/ubiquitous-language-editor";
 
 export default function DomainPage() {
+  const t = useT();
   const { slug, domainSlug } = useParams<{ slug: string; domainSlug: string }>();
 
   const {
@@ -50,6 +52,7 @@ export default function DomainPage() {
       <DomainError
         slug={slug}
         message={error instanceof ApiError ? error.message : undefined}
+        t={t}
       />
     );
   }
@@ -59,7 +62,9 @@ export default function DomainPage() {
   }
 
   if (!domain) {
-    return <DomainError slug={slug} message="This domain could not be found." />;
+    return (
+      <DomainError slug={slug} message={t("project.domainPage.domainMissing")} t={t} />
+    );
   }
 
   const terms = languageToEntries(domain.ubiquitous_language);
@@ -88,7 +93,9 @@ export default function DomainPage() {
         <FadeIn>
           <Card className="gap-0">
             <CardHeader>
-              <CardTitle className="text-base">Ubiquitous language</CardTitle>
+              <CardTitle className="text-base">
+                {t("project.domainPage.ubiquitousLanguage")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="pt-2">
               <UbiquitousLanguageEditor
@@ -104,8 +111,8 @@ export default function DomainPage() {
       <FadeIn>
         <Tabs defaultValue="notes" className="gap-4">
           <TabsList className="w-fit">
-            <TabsTrigger value="notes">Notes</TabsTrigger>
-            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="notes">{t("project.tabs.notes")}</TabsTrigger>
+            <TabsTrigger value="tasks">{t("project.tabs.tasks")}</TabsTrigger>
           </TabsList>
           <TabsContent value="notes" className="mt-0">
             <NotesTab project={project} domains={domains ?? []} domainId={domain.id} />
@@ -119,17 +126,25 @@ export default function DomainPage() {
   );
 }
 
-function DomainError({ slug, message }: { slug: string; message?: string }) {
+function DomainError({
+  slug,
+  message,
+  t,
+}: {
+  slug: string;
+  message?: string;
+  t: TranslateFn;
+}) {
   return (
     <EmptyState
       icon={Boxes}
-      title="Domain not found"
-      description={message ?? "This bounded context could not be loaded."}
+      title={t("project.domainPage.notFoundTitle")}
+      description={message ?? t("project.domainPage.notFoundDescription")}
       action={
         <Button asChild variant="outline">
           <Link href={`/projects/${slug}`}>
             <ArrowLeft className="size-4" />
-            Back to project
+            {t("project.domainPage.backToProject")}
           </Link>
         </Button>
       }

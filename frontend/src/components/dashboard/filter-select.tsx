@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useT } from "@/i18n/locale-context";
 import { ALL } from "./filters";
 
 export interface FilterOption {
@@ -34,6 +35,8 @@ export function FilterSelect({
   onChange,
   disabled,
 }: FilterSelectProps) {
+  const t = useT();
+  const anyLabel = t("dashboard.filters.any", { label: label.toLowerCase() });
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
       <SelectTrigger
@@ -41,10 +44,10 @@ export function FilterSelect({
         aria-label={label}
         className="h-9 w-full min-w-0 sm:w-auto"
       >
-        <SelectValue placeholder={`Any ${label.toLowerCase()}`} />
+        <SelectValue placeholder={anyLabel} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={ALL}>Any {label.toLowerCase()}</SelectItem>
+        <SelectItem value={ALL}>{anyLabel}</SelectItem>
         {options.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}

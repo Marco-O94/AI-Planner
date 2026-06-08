@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useT } from "@/i18n/locale-context";
 import { ApiError } from "@/lib/api";
 import { formatBytes } from "@/lib/format";
 import type { DocumentRead, DomainRead } from "@/lib/types";
@@ -25,7 +26,7 @@ import {
   ACCEPTED_EXTENSIONS,
   ACCEPTED_FILE_TYPES,
   MAX_FILE_SIZE,
-  describeRejection,
+  rejectionMessageKey,
   uploadDocumentWithProgress,
 } from "./lib";
 
@@ -49,6 +50,7 @@ export function DocumentUploader({
   scopedDomainId,
   onUploaded,
 }: DocumentUploaderProps) {
+  const t = useT();
   const [progress, setProgress] = useState<number | null>(null);
   const [uploadingName, setUploadingName] = useState<string | null>(null);
   const [tags, setTags] = useState("");
@@ -74,31 +76,35 @@ export function DocumentUploader({
           },
           setProgress,
         );
-        toast.success(`Uploaded “${created.title}”`);
+        toast.success(
+          t("documents.uploader.toasts.uploaded", { title: created.title }),
+        );
         setTags("");
         onUploaded(created);
       } catch (error) {
         toast.error(
-          error instanceof ApiError ? error.message : "Upload failed",
+          error instanceof ApiError
+            ? error.message
+            : t("documents.uploader.toasts.failed"),
         );
       } finally {
         setProgress(null);
         setUploadingName(null);
       }
     },
-    [projectSlug, tags, effectiveDomainId, onUploaded],
+    [projectSlug, tags, effectiveDomainId, onUploaded, t],
   );
 
   const onDrop = useCallback(
     (accepted: File[], rejections: FileRejection[]) => {
       if (rejections.length > 0) {
         const code = rejections[0]?.errors[0]?.code ?? "";
-        toast.error(describeRejection(code));
+        toast.error(t(rejectionMessageKey(code)));
       }
       const file = accepted[0];
       if (file) void handleUpload(file);
     },
-    [handleUpload],
+    [handleUpload, t],
   );
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
@@ -129,7 +135,11 @@ export function DocumentUploader({
           <div className="w-full max-w-sm space-y-3">
             <div className="flex items-center justify-center gap-2 text-sm font-medium">
               <Loader2 className="size-4 animate-spin text-primary" />
-              <span className="truncate">Uploading {uploadingName}…</span>
+              <span className="truncate">
+                {t("documents.uploader.uploading", {
+                  name: uploadingName ?? "",
+                })}
+              </span>
             </div>
             <Progress value={progress ?? 0} className="h-1.5" />
             <p className="text-xs text-muted-foreground">{progress ?? 0}%</p>
@@ -147,16 +157,17 @@ export function DocumentUploader({
             <div className="space-y-1">
               <p className="text-sm font-medium">
                 {isDragActive
-                  ? "Drop to upload"
-                  : "Drag & drop a document here"}
+                  ? t("documents.uploader.dropToUpload")
+                  : t("documents.uploader.dragAndDrop")}
               </p>
               <p className="text-xs text-muted-foreground">
-                PDF, DOCX, Markdown, or text · up to{" "}
-                {formatBytes(MAX_FILE_SIZE)}
+                {t("documents.uploader.acceptedHint", {
+                  size: formatBytes(MAX_FILE_SIZE),
+                })}
               </p>
             </div>
             <Button type="button" variant="outline" size="sm" onClick={open}>
-              Choose file
+              {t("documents.uploader.chooseFile")}
             </Button>
           </>
         )}

@@ -20,36 +20,39 @@ export const ALL_KINDS = "__all__";
 
 export interface SearchModeOption {
   value: SearchMode;
-  label: string;
-  hint: string;
+  /** i18n key under `files.search.modes.<value>.label`. */
+  labelKey: string;
+  /** i18n key under `files.search.modes.<value>.hint`. */
+  hintKey: string;
 }
 
 export const SEARCH_MODE_OPTIONS: SearchModeOption[] = [
-  { value: "lexical", label: "Exact", hint: "Match the words inside file contents" },
-  { value: "semantic", label: "By meaning", hint: "Find conceptually related content" },
-  { value: "hybrid", label: "Hybrid", hint: "Fuse exact + semantic ranking" },
+  { value: "lexical", labelKey: "files.search.modes.lexical.label", hintKey: "files.search.modes.lexical.hint" },
+  { value: "semantic", labelKey: "files.search.modes.semantic.label", hintKey: "files.search.modes.semantic.hint" },
+  { value: "hybrid", labelKey: "files.search.modes.hybrid.label", hintKey: "files.search.modes.hybrid.hint" },
 ];
 
 export interface FileKindOption {
   value: SearchKind;
-  label: string;
+  /** i18n key under `files.kinds.<*>` for the plural filter label. */
+  labelKey: string;
 }
 
 export const FILE_KIND_OPTIONS: FileKindOption[] = [
-  { value: "document", label: "Documents" },
-  { value: "artifact_file", label: "Artifact files" },
-  { value: "note", label: "Notes" },
+  { value: "document", labelKey: "files.kinds.documents" },
+  { value: "artifact_file", labelKey: "files.kinds.artifactFiles" },
+  { value: "note", labelKey: "files.kinds.notes" },
 ];
 
-/** Human label for a kind value. */
-export function kindLabel(kind: SearchKind): string {
+/** i18n key for the singular human label of a kind value. */
+export function kindLabelKey(kind: SearchKind): string {
   switch (kind) {
     case "document":
-      return "Document";
+      return "files.kinds.document";
     case "artifact_file":
-      return "Artifact file";
+      return "files.kinds.artifactFile";
     case "note":
-      return "Note";
+      return "files.kinds.note";
     default:
       return kind;
   }

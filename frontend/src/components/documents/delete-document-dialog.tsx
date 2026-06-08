@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useT } from "@/i18n/locale-context";
 
 interface DeleteDocumentDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ export function DeleteDocumentDialog({
   documentTitle,
   onConfirm,
 }: DeleteDocumentDialogProps) {
+  const t = useT();
   const [isDeleting, setIsDeleting] = useState(false);
 
   async function handleConfirm(event: React.MouseEvent) {
@@ -44,20 +46,21 @@ export function DeleteDocumentDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete document?</AlertDialogTitle>
+          <AlertDialogTitle>{t("documents.delete.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            &ldquo;{documentTitle}&rdquo; and its extracted text will be removed
-            from this project and search. This cannot be undone.
+            {t("documents.delete.description", { title: documentTitle })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting}>
+            {t("common.cancel")}
+          </AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={isDeleting}
             onClick={handleConfirm}
           >
-            {isDeleting ? "Deleting…" : "Delete"}
+            {isDeleting ? t("common.deleting") : t("common.delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

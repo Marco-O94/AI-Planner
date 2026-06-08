@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { api, ApiError } from "@/lib/api";
+import { useT } from "@/i18n/locale-context";
 import type {
   ArtifactTypeCreate,
   ArtifactTypeRead,
@@ -69,6 +70,7 @@ export function ArtifactTypeDialog({
   type,
   onSaved,
 }: ArtifactTypeDialogProps) {
+  const t = useT();
   const [form, setForm] = useState<FormState>(() => toForm(type));
   const [saving, setSaving] = useState(false);
   const isEdit = Boolean(type);
@@ -94,7 +96,7 @@ export function ArtifactTypeDialog({
           output_files: files,
         };
         await api.updateArtifactType(type.id, body);
-        toast.success("Artifact type updated");
+        toast.success(t("artifactTypes.toasts.updated"));
       } else {
         const body: ArtifactTypeCreate = {
           scope: "GLOBAL",
@@ -104,12 +106,12 @@ export function ArtifactTypeDialog({
           output_files: files,
         };
         await api.createArtifactType(body);
-        toast.success("Artifact type created");
+        toast.success(t("artifactTypes.toasts.created"));
       }
       onSaved();
       onOpenChange(false);
     } catch (e) {
-      toast.error(e instanceof ApiError ? e.message : "Could not save artifact type");
+      toast.error(e instanceof ApiError ? e.message : t("artifactTypes.toasts.saveError"));
     } finally {
       setSaving(false);
     }
@@ -119,40 +121,40 @@ export function ArtifactTypeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit artifact type" : "New artifact type"}</DialogTitle>
-          <DialogDescription>
-            Define how the agent generates this artifact and which files it should produce.
-          </DialogDescription>
+          <DialogTitle>
+            {isEdit ? t("artifactTypes.dialog.editTitle") : t("artifactTypes.dialog.newTitle")}
+          </DialogTitle>
+          <DialogDescription>{t("artifactTypes.dialog.description")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="at-name">Name</Label>
+            <Label htmlFor="at-name">{t("artifactTypes.dialog.nameLabel")}</Label>
             <Input
               id="at-name"
               value={form.name}
-              placeholder="API Specification"
+              placeholder={t("artifactTypes.dialog.namePlaceholder")}
               autoFocus
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="at-description">Description</Label>
+            <Label htmlFor="at-description">{t("artifactTypes.dialog.descriptionLabel")}</Label>
             <Input
               id="at-description"
               value={form.description}
-              placeholder="A short summary of this artifact type"
+              placeholder={t("artifactTypes.dialog.descriptionPlaceholder")}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="at-instructions">Generation instructions (markdown)</Label>
+            <Label htmlFor="at-instructions">{t("artifactTypes.dialog.instructionsLabel")}</Label>
             <Textarea
               id="at-instructions"
               value={form.instructions}
-              placeholder={"Describe how the agent should build this artifact…\n\n- Use…\n- Include…"}
+              placeholder={t("artifactTypes.dialog.instructionsPlaceholder")}
               rows={8}
               className="font-mono text-sm"
               onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))}
@@ -171,10 +173,14 @@ export function ArtifactTypeDialog({
               onClick={() => onOpenChange(false)}
               disabled={saving}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={!canSave || saving}>
-              {saving ? "Saving…" : isEdit ? "Save changes" : "Create type"}
+              {saving
+                ? t("common.saving")
+                : isEdit
+                  ? t("common.saveChanges")
+                  : t("artifactTypes.dialog.createType")}
             </Button>
           </DialogFooter>
         </form>

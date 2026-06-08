@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ApiError, api } from "@/lib/api";
 import type { DomainRead, NoteRead, NoteUpdate } from "@/lib/types";
+import { useT } from "@/i18n/locale-context";
 import {
   NO_DOMAIN,
   NoteFormFields,
@@ -51,6 +52,7 @@ export function NoteEditDialog({
   notesKey,
   onClose,
 }: NoteEditDialogProps) {
+  const t = useT();
   const { mutate } = useSWRConfig();
   const [values, setValues] = useState<NoteFormValues>(() =>
     note ? toFormValues(note) : { type: "REQUIREMENT", title: "", content: "", tagsInput: "", domainId: NO_DOMAIN },
@@ -105,7 +107,7 @@ export function NoteEditDialog({
         { revalidate: false },
       );
       mutate(notesKey);
-      toast.success("Note updated");
+      toast.success(t("notes.toasts.updated"));
       onClose();
     } catch (error) {
       mutate(
@@ -114,7 +116,7 @@ export function NoteEditDialog({
           (current ?? []).map((item) => (item.id === note.id ? note : item)),
         { revalidate: false },
       );
-      toast.error(error instanceof ApiError ? error.message : "Could not update the note");
+      toast.error(error instanceof ApiError ? error.message : t("notes.toasts.updateFailed"));
     } finally {
       setSaving(false);
     }
@@ -124,8 +126,8 @@ export function NoteEditDialog({
     <Dialog open={Boolean(note)} onOpenChange={(open) => (open ? null : onClose())}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit note</DialogTitle>
-          <DialogDescription>Update the type, content, tags, or domain.</DialogDescription>
+          <DialogTitle>{t("notes.edit.title")}</DialogTitle>
+          <DialogDescription>{t("notes.edit.description")}</DialogDescription>
         </DialogHeader>
 
         <NoteFormFields
@@ -137,11 +139,11 @@ export function NoteEditDialog({
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="button" onClick={() => void save()} disabled={!canSave}>
             {saving ? <Loader2 className="size-4 animate-spin" /> : null}
-            <span>{saving ? "Saving…" : "Save changes"}</span>
+            <span>{saving ? t("common.saving") : t("common.saveChanges")}</span>
           </Button>
         </DialogFooter>
       </DialogContent>

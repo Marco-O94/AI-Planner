@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { Layers, Plus } from "lucide-react";
 
 import type { ArtifactTypeRead } from "@/lib/types";
+import { useT } from "@/i18n/locale-context";
 import { PageHeader, EmptyState } from "@/components/common";
 import { AnimatedList, AnimatedItem } from "@/components/motion";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ function LoadingGrid() {
 }
 
 export function ArtifactTypesView() {
+  const t = useT();
   const { data, error, isLoading, mutate } = useSWR<ArtifactTypeRead[]>("/artifact-types");
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -54,12 +56,12 @@ export function ArtifactTypesView() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Artifact types"
-        description="Define reusable artifact blueprints — generation instructions and a declared file manifest. The built-in default is read-only."
+        title={t("artifactTypes.header.title")}
+        description={t("artifactTypes.header.description")}
         actions={
           <Button onClick={openCreate}>
             <Plus className="size-4" />
-            New type
+            {t("artifactTypes.header.newType")}
           </Button>
         }
       />
@@ -69,23 +71,23 @@ export function ArtifactTypesView() {
       ) : error ? (
         <EmptyState
           icon={Layers}
-          title="Couldn't load artifact types"
-          description="The backend may be unavailable. Try again in a moment."
+          title={t("artifactTypes.errors.loadTitle")}
+          description={t("artifactTypes.errors.loadDescription")}
           action={
             <Button variant="outline" onClick={() => void mutate()}>
-              Retry
+              {t("common.retry")}
             </Button>
           }
         />
       ) : types.length === 0 ? (
         <EmptyState
           icon={Layers}
-          title="No artifact types yet"
-          description="Create your first artifact type to tell the agent how to generate it and which files to produce."
+          title={t("artifactTypes.empty.title")}
+          description={t("artifactTypes.empty.description")}
           action={
             <Button onClick={openCreate}>
               <Plus className="size-4" />
-              New type
+              {t("artifactTypes.header.newType")}
             </Button>
           }
         />

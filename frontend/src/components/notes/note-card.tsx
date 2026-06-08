@@ -23,6 +23,7 @@ import { Markdown } from "@/components/markdown";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { DomainRead, NoteRead } from "@/lib/types";
+import { useT } from "@/i18n/locale-context";
 
 /** Content longer than this (chars) gets a collapse/expand affordance. */
 const PREVIEW_THRESHOLD = 280;
@@ -36,6 +37,7 @@ interface NoteCardProps {
 }
 
 export function NoteCard({ note, domain, onOpen, onEdit, onDelete }: NoteCardProps) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   const isLong = note.content.length > PREVIEW_THRESHOLD;
   const isOptimistic = note.id.startsWith("optimistic-");
@@ -60,7 +62,7 @@ export function NoteCard({ note, domain, onOpen, onEdit, onDelete }: NoteCardPro
               {note.title}
             </span>
           ) : (
-            <span className="text-xs text-muted-foreground">Untitled</span>
+            <span className="text-xs text-muted-foreground">{t("notes.card.untitled")}</span>
           )}
         </button>
 
@@ -77,7 +79,7 @@ export function NoteCard({ note, domain, onOpen, onEdit, onDelete }: NoteCardPro
                 size="icon-sm"
                 disabled={isOptimistic}
                 className="opacity-0 transition-opacity group-hover/note:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
-                aria-label="Note actions"
+                aria-label={t("notes.card.actionsAria")}
               >
                 <MoreHorizontal className="size-4" />
               </Button>
@@ -85,11 +87,11 @@ export function NoteCard({ note, domain, onOpen, onEdit, onDelete }: NoteCardPro
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={onEdit}>
                 <Pencil className="size-4" />
-                Edit
+                {t("common.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onSelect={onDelete}>
                 <Trash2 className="size-4" />
-                Delete
+                {t("common.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -117,7 +119,7 @@ export function NoteCard({ note, domain, onOpen, onEdit, onDelete }: NoteCardPro
               onClick={() => setExpanded((value) => !value)}
               className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              {expanded ? "Show less" : "Show more"}
+              {expanded ? t("notes.card.showLess") : t("notes.card.showMore")}
               <ChevronDown
                 className={cn("size-3.5 transition-transform", expanded && "rotate-180")}
               />

@@ -1,2 +1,84 @@
-// Compilato dalla traduzione delle attività.
-export const tasks = {} as const;
+export const tasks = {
+  newTask: "Nuova attività",
+  createFirst: "Crea la prima attività",
+  board: {
+    columns: {
+      TODO: "Da fare",
+      IN_PROGRESS: "In corso",
+      DONE: "Completate",
+    },
+    columnEmpty: "Niente qui per ora",
+  },
+  empty: {
+    title: "Nessuna attività",
+    description:
+      "Suddividi il lavoro in attività. Aggiungi dipendenze per tenere traccia di ciò che è bloccato.",
+  },
+  noMatches: {
+    title: "Nessuna attività corrispondente",
+    description: "Nessuna attività corrisponde ai filtri attuali.",
+    clearFilters: "Azzera filtri",
+  },
+  loadError: {
+    title: "Impossibile caricare le attività",
+    description:
+      "Si è verificato un errore durante il recupero delle attività. Riprova.",
+  },
+  filters: {
+    statusPlaceholder: "Stato",
+    priorityPlaceholder: "Priorità",
+    tagPlaceholder: "Tag",
+    allStatuses: "Tutti gli stati",
+    allPriorities: "Tutte le priorità",
+    allTags: "Tutti i tag",
+    filterByStatus: "Filtra per stato",
+    filterByPriority: "Filtra per priorità",
+    filterByTag: "Filtra per tag",
+    tagInputPlaceholder: "Filtra per tag…",
+  },
+  card: {
+    actions: "Azioni attività",
+    changeStatus: "Cambia stato",
+    changePriority: "Cambia priorità",
+    blocked: "Bloccata",
+    blockedWaitingOn: "In attesa di: {titles}",
+    blockedWaitingGeneric: "In attesa di una dipendenza non completata",
+  },
+  dialog: {
+    editTitle: "Modifica attività",
+    newTitle: "Nuova attività",
+    editDescription:
+      "Aggiorna i dettagli, lo stato e le dipendenze di questa attività.",
+    newDescription:
+      "Crea un'attività con stato, priorità, tag e dipendenze.",
+    titleLabel: "Titolo",
+    titlePlaceholder: "Cosa c'è da fare?",
+    descriptionLabel: "Descrizione",
+    descriptionPlaceholder: "Markdown supportato…",
+    statusLabel: "Stato",
+    priorityLabel: "Priorità",
+    tagsLabel: "Tag",
+    tagsPlaceholder: "separati da virgola",
+    domainLabel: "Dominio",
+    domainProjectLevel: "Livello di progetto",
+    dependenciesLabel: "Dipendenze",
+    createTask: "Crea attività",
+  },
+  deps: {
+    noOptions: "Nessun'altra attività da cui dipendere",
+    select: "Seleziona dipendenze",
+    count: "{count} dipendenze",
+    countOne: "{count} dipendenza",
+    searchPlaceholder: "Cerca attività...",
+    noResults: "Nessuna attività trovata.",
+    removeDependency: "Rimuovi dipendenza {title}",
+  },
+  toasts: {
+    statusChanged: "Spostata in {status}",
+    priorityChanged: "Priorità impostata su {priority}",
+    deleted: "Attività eliminata",
+    created: "Attività creata",
+    updated: "Attività aggiornata",
+    titleRequired: "Il titolo è obbligatorio",
+  },
+} as const;

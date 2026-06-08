@@ -22,8 +22,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useT } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
-import { titleCase } from "@/lib/format";
 import type { DomainRead, TaskCreate, TaskRead, TaskUpdate } from "@/lib/types";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/types";
 
@@ -83,6 +83,7 @@ function TaskDialogForm({
   defaultDomainId,
   onSaved,
 }: TaskDialogFormProps) {
+  const t = useT();
   const isEdit = Boolean(task);
   const [form, setForm] = useState<TaskFormState>(() =>
     task ? taskFormFromTask(task) : emptyTaskForm(defaultDomainId),
@@ -104,7 +105,7 @@ function TaskDialogForm({
   async function submit() {
     const title = form.title.trim();
     if (!title) {
-      toast.error("Title is required");
+      toast.error(t("tasks.toasts.titleRequired"));
       return;
     }
 
@@ -125,7 +126,7 @@ function TaskDialogForm({
           depends_on: form.dependsOn,
         };
         await api.updateTask(task.id, body);
-        toast.success("Task updated");
+        toast.success(t("tasks.toasts.updated"));
       } else {
         const body: TaskCreate = {
           title,
@@ -137,13 +138,13 @@ function TaskDialogForm({
           depends_on: form.dependsOn,
         };
         await api.createTask(projectSlug, body);
-        toast.success("Task created");
+        toast.success(t("tasks.toasts.created"));
       }
       onSaved();
       onOpenChange(false);
     } catch (error) {
       toast.error(
-        error instanceof ApiError ? error.message : "Something went wrong",
+        error instanceof ApiError ? error.message : t("common.somethingWrong"),
       );
     } finally {
       setSaving(false);

@@ -3,6 +3,7 @@
 import { CheckCircle2, FileWarning, MinusCircle, PlusCircle } from "lucide-react";
 
 import { Progress } from "@/components/ui/progress";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 import { fileLabel } from "./lib";
 import type { ManifestCoverageRead } from "@/lib/types";
@@ -19,13 +20,14 @@ interface CoverageRowProps {
 }
 
 function CoverageRow({ icon: Icon, tone, label, paths }: CoverageRowProps) {
+  const t = useT();
   if (!paths.length) return null;
   return (
     <div className="space-y-1.5">
       <div className={cn("flex items-center gap-1.5 text-xs font-medium", tone)}>
         <Icon className="size-3.5" />
         <span>
-          {label} ({paths.length})
+          {t("artifacts.coverage.countLabel", { label, count: paths.length })}
         </span>
       </div>
       <ul className="flex flex-wrap gap-1.5">
@@ -45,6 +47,7 @@ function CoverageRow({ icon: Icon, tone, label, paths }: CoverageRowProps) {
 
 /** Manifest-coverage indicator: present / missing / extra against the declared file set. */
 export function ManifestCoverage({ coverage }: ManifestCoverageProps) {
+  const t = useT();
   const declared = coverage.present.length + coverage.missing.length;
   const percent = declared ? Math.round((coverage.present.length / declared) * 100) : 100;
 
@@ -52,11 +55,14 @@ export function ManifestCoverage({ coverage }: ManifestCoverageProps) {
     <div className="space-y-4 rounded-xl border border-border/70 bg-card p-4">
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-0.5">
-          <h4 className="text-sm font-medium">Manifest coverage</h4>
+          <h4 className="text-sm font-medium">{t("artifacts.coverage.title")}</h4>
           <p className="text-xs text-muted-foreground">
             {coverage.is_complete
-              ? "All declared files are present."
-              : `${coverage.present.length} of ${declared} declared files present.`}
+              ? t("artifacts.coverage.complete")
+              : t("artifacts.coverage.partial", {
+                  present: coverage.present.length,
+                  declared,
+                })}
           </p>
         </div>
         <span
@@ -72,7 +78,9 @@ export function ManifestCoverage({ coverage }: ManifestCoverageProps) {
           ) : (
             <FileWarning className="size-3.5" />
           )}
-          {coverage.is_complete ? "Complete" : "Incomplete"}
+          {coverage.is_complete
+            ? t("artifacts.coverage.completeBadge")
+            : t("artifacts.coverage.incompleteBadge")}
         </span>
       </div>
 

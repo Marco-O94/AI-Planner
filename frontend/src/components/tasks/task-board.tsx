@@ -4,6 +4,7 @@ import { useMemo } from "react";
 
 import { AnimatedItem, AnimatePresence, motion } from "@/components/motion";
 import { Badge } from "@/components/ui/badge";
+import { useT } from "@/i18n/locale-context";
 import type { TaskRead } from "@/lib/types";
 
 import { BOARD_COLUMNS } from "./constants";
@@ -28,6 +29,7 @@ export function TaskBoard({
   patchTask,
   onMutated,
 }: TaskBoardProps) {
+  const t = useT();
   const titleById = useMemo(
     () => new Map(allTasks.map((task) => [task.id, task.title])),
     [allTasks],
@@ -45,14 +47,15 @@ export function TaskBoard({
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
       {BOARD_COLUMNS.map((column) => {
         const columnTasks = tasks.filter((task) => task.status === column.status);
+        const columnLabel = t(`tasks.board.columns.${column.status}`);
         return (
           <section
             key={column.status}
             className="flex flex-col gap-3 rounded-xl border border-border/70 bg-muted/30 p-3"
-            aria-label={column.label}
+            aria-label={columnLabel}
           >
             <header className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-semibold tracking-tight">{column.label}</h3>
+              <h3 className="text-sm font-semibold tracking-tight">{columnLabel}</h3>
               <Badge variant="secondary" className="tabular-nums">
                 {columnTasks.length}
               </Badge>
@@ -75,7 +78,7 @@ export function TaskBoard({
 
               {columnTasks.length === 0 ? (
                 <p className="px-1 py-6 text-center text-xs text-muted-foreground/70">
-                  Nothing here yet
+                  {t("tasks.board.columnEmpty")}
                 </p>
               ) : null}
             </motion.div>

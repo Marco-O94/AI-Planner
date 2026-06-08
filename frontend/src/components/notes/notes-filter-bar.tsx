@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { NoteTypeBadge } from "@/components/status-badge";
 import { NOTE_TYPES, type NoteType } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/locale-context";
 
 interface NotesFilterBarProps {
   query: string;
@@ -27,13 +28,14 @@ export function NotesFilterBar({
   counts,
   total,
 }: NotesFilterBarProps) {
+  const t = useT();
   return (
     <div className="flex flex-col gap-3">
       <div className="relative">
         <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={query}
-          placeholder="Filter notes by title, content, or tag…"
+          placeholder={t("notes.filter.placeholder")}
           onChange={(event) => onQueryChange(event.target.value)}
           className="h-9 pl-8"
         />
@@ -43,7 +45,7 @@ export function NotesFilterBar({
             variant="ghost"
             size="icon-sm"
             onClick={() => onQueryChange("")}
-            aria-label="Clear filter"
+            aria-label={t("notes.filter.clearAria")}
             className="absolute top-1/2 right-1 -translate-y-1/2"
           >
             <X className="size-4" />

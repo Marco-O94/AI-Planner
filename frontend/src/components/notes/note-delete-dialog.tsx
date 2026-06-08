@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ApiError, api } from "@/lib/api";
 import type { NoteRead } from "@/lib/types";
+import { useT } from "@/i18n/locale-context";
 
 interface NoteDeleteDialogProps {
   note: NoteRead | null;
@@ -30,6 +31,7 @@ interface NoteDeleteDialogProps {
 }
 
 export function NoteDeleteDialog({ note, notesKey, onClose }: NoteDeleteDialogProps) {
+  const t = useT();
   const { mutate } = useSWRConfig();
   const [deleting, setDeleting] = useState(false);
 
@@ -47,7 +49,7 @@ export function NoteDeleteDialog({ note, notesKey, onClose }: NoteDeleteDialogPr
     try {
       await api.deleteNote(note.id);
       mutate(notesKey);
-      toast.success("Note deleted");
+      toast.success(t("notes.toasts.deleted"));
       onClose();
     } catch (error) {
       // Restore the removed note on failure.
@@ -57,7 +59,7 @@ export function NoteDeleteDialog({ note, notesKey, onClose }: NoteDeleteDialogPr
         { revalidate: false },
       );
       mutate(notesKey);
-      toast.error(error instanceof ApiError ? error.message : "Could not delete the note");
+      toast.error(error instanceof ApiError ? error.message : t("notes.toasts.deleteFailed"));
     } finally {
       setDeleting(false);
     }
@@ -67,19 +69,15 @@ export function NoteDeleteDialog({ note, notesKey, onClose }: NoteDeleteDialogPr
     <AlertDialog open={Boolean(note)} onOpenChange={(open) => (open ? null : onClose())}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this note?</AlertDialogTitle>
+          <AlertDialogTitle>{t("notes.remove.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            {note?.title ? (
-              <>
-                “{note.title}” will be permanently removed. This cannot be undone.
-              </>
-            ) : (
-              "This note will be permanently removed. This cannot be undone."
-            )}
+            {note?.title
+              ? t("notes.remove.descriptionNamed", { title: note.title })
+              : t("notes.remove.description")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleting}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={deleting}
@@ -89,7 +87,7 @@ export function NoteDeleteDialog({ note, notesKey, onClose }: NoteDeleteDialogPr
             }}
           >
             {deleting ? <Loader2 className="size-4 animate-spin" /> : null}
-            <span>{deleting ? "Deleting…" : "Delete note"}</span>
+            <span>{deleting ? t("common.deleting") : t("notes.remove.deleteNote")}</span>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

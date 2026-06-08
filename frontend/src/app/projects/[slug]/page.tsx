@@ -6,27 +6,40 @@ import useSWR from "swr";
 import Link from "next/link";
 import {
   ArrowLeft,
-  ExternalLink,
+  BookmarkPlus,
   FileText,
   Layers,
   ListChecks,
+  MoreHorizontal,
+  Pencil,
   Sparkles,
   StickyNote,
 } from "lucide-react";
 
 import { PageHeader, EmptyState } from "@/components/common";
+import { useT } from "@/i18n/locale-context";
 import { ProjectStatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { FadeIn } from "@/components/motion";
 import { ApiError } from "@/lib/api";
 import type { DomainRead, ProjectRead } from "@/lib/types";
 
-import { OverviewPanel } from "@/components/project/overview-panel";
-import { DomainsPanel } from "@/components/project/domains-panel";
-import { ProjectSearch } from "@/components/project/project-search";
+import {
+  ProjectMetaRail,
+  EditProjectSheet,
+} from "@/components/project/overview-panel";
+import { DomainsButton } from "@/components/project/domains-panel";
+import { ProjectSearchButton } from "@/components/project/project-search";
 import { GenerateDialog } from "@/components/project/generate-dialog";
+import { SaveAsTemplateDialog } from "@/components/project/save-as-template-dialog";
 import { NotesTab } from "@/components/project/tabs/notes-tab";
 import { TasksTab } from "@/components/project/tabs/tasks-tab";
 import { ArtifactsTab } from "@/components/project/tabs/artifacts-tab";
@@ -34,20 +47,23 @@ import { DocumentsTab } from "@/components/project/tabs/documents-tab";
 import { SkillsTab } from "@/components/project/tabs/skills-tab";
 
 const TABS = [
-  { value: "notes", label: "Notes", icon: StickyNote, Component: NotesTab },
-  { value: "tasks", label: "Tasks", icon: ListChecks, Component: TasksTab },
-  { value: "artifacts", label: "Artifacts", icon: Layers, Component: ArtifactsTab },
-  { value: "documents", label: "Documents", icon: FileText, Component: DocumentsTab },
-  { value: "skills", label: "Skills", icon: Sparkles, Component: SkillsTab },
+  { value: "notes", icon: StickyNote, Component: NotesTab },
+  { value: "tasks", icon: ListChecks, Component: TasksTab },
+  { value: "artifacts", icon: Layers, Component: ArtifactsTab },
+  { value: "documents", icon: FileText, Component: DocumentsTab },
+  { value: "skills", icon: Sparkles, Component: SkillsTab },
 ] as const;
 
 const DEFAULT_TAB = "notes";
 
 export default function ProjectPage() {
+  const t = useT();
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [generateOpen, setGenerateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [templateOpen, setTemplateOpen] = useState(false);
 
   const tabParam = searchParams.get("tab");
   const activeTab = TABS.some((tab) => tab.value === tabParam) ? tabParam! : DEFAULT_TAB;
@@ -75,15 +91,17 @@ export default function ProjectPage() {
     return (
       <EmptyState
         icon={Layers}
-        title="Project not found"
+        title={t("project.page.notFoundTitle")}
         description={
-          error instanceof ApiError ? error.message : "This project could not be loaded."
+          error instanceof ApiError
+            ? error.message
+            : t("project.page.notFoundDescription")
         }
         action={
           <Button asChild variant="outline">
             <Link href="/">
               <ArrowLeft className="size-4" />
-              Back to projects
+              {t("project.page.backToProjectsAction")}
             </Link>
           </Button>
         }
@@ -96,14 +114,15 @@ export default function ProjectPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
+    <div className="space-y-6">
+      <div className="space-y-4 border-b border-border/70 pb-6">
         <Button asChild variant="ghost" size="sm" className="-ml-2 text-muted-foreground">
           <Link href="/">
             <ArrowLeft className="size-4" />
-            Projects
+            {t("project.page.backToProjects")}
           </Link>
         </Button>
+
         <PageHeader
           title={
             <span className="flex flex-wrap items-center gap-3">
@@ -114,33 +133,43 @@ export default function ProjectPage() {
           description={project.description ?? undefined}
           actions={
             <div className="flex items-center gap-2">
-              {project.repository_url ? (
-                <Button asChild variant="outline" size="sm">
-                  <a
-                    href={project.repository_url}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                  >
-                    <ExternalLink className="size-4" />
-                    Repository
-                  </a>
-                </Button>
-              ) : null}
+              <DomainsButton
+                project={project}
+                domains={domains}
+                isLoading={domainsLoading}
+              />
+              <ProjectSearchButton projectSlug={project.slug} />
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="size-3.5" />
+                <span className="hidden sm:inline">{t("project.page.editAction")}</span>
+              </Button>
               <Button size="sm" onClick={() => setGenerateOpen(true)}>
                 <Sparkles className="size-4" />
-                Generate
+                {t("common.generate")}
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("project.page.moreActions")}
+                  >
+                    <MoreHorizontal className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => setTemplateOpen(true)}>
+                    <BookmarkPlus className="size-4" />
+                    {t("project.page.saveAsTemplate")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           }
         />
-      </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <OverviewPanel project={project} />
-        <DomainsPanel project={project} domains={domains} isLoading={domainsLoading} />
+        <ProjectMetaRail project={project} />
       </div>
-
-      <ProjectSearch projectSlug={project.slug} />
 
       <FadeIn>
         <Tabs value={activeTab} onValueChange={onTabChange} className="gap-4">
@@ -150,7 +179,7 @@ export default function ProjectPage() {
               return (
                 <TabsTrigger key={tab.value} value={tab.value} className="flex-none gap-1.5">
                   <Icon className="size-4" />
-                  <span>{tab.label}</span>
+                  <span>{t(`project.tabs.${tab.value}`)}</span>
                 </TabsTrigger>
               );
             })}
@@ -171,23 +200,29 @@ export default function ProjectPage() {
         open={generateOpen}
         onOpenChange={setGenerateOpen}
       />
+      <EditProjectSheet project={project} open={editOpen} onOpenChange={setEditOpen} />
+      <SaveAsTemplateDialog
+        project={project}
+        open={templateOpen}
+        onOpenChange={setTemplateOpen}
+      />
     </div>
   );
 }
 
 function ProjectPageSkeleton() {
   return (
-    <div className="space-y-8">
-      <div className="space-y-3">
+    <div className="space-y-6">
+      <div className="space-y-4 border-b border-border/70 pb-6">
         <Skeleton className="h-6 w-24" />
-        <Skeleton className="h-9 w-72" />
+        <div className="flex items-center justify-between gap-4">
+          <Skeleton className="h-9 w-72" />
+          <Skeleton className="h-8 w-48" />
+        </div>
         <Skeleton className="h-4 w-96" />
+        <Skeleton className="h-5 w-80" />
       </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Skeleton className="h-72 w-full" />
-        <Skeleton className="h-72 w-full" />
-      </div>
-      <Skeleton className="h-24 w-full" />
+      <Skeleton className="h-9 w-80" />
       <Skeleton className="h-64 w-full" />
     </div>
   );

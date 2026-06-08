@@ -4,6 +4,7 @@ import { ChevronRight } from "lucide-react";
 
 import { HighlightedSnippet } from "@/components/markdown";
 import { TagList } from "@/components/common";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 import type { FileEntryRead } from "@/lib/types";
 
@@ -18,6 +19,7 @@ interface FileRowProps {
 
 /** A single saved-file result: title/path, kind badge, snippet, tags. */
 export function FileRow({ entry, projectName, onOpen }: FileRowProps) {
+  const t = useT();
   return (
     <button
       type="button"
@@ -39,7 +41,7 @@ export function FileRow({ entry, projectName, onOpen }: FileRowProps) {
           <FileKindBadge kind={entry.kind} />
           {projectName ? (
             <span className="truncate text-xs text-muted-foreground">
-              in {projectName}
+              {t("files.row.inProject", { project: projectName })}
             </span>
           ) : null}
         </span>

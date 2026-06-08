@@ -28,6 +28,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/common";
 import { AnimatedList, AnimatedItem, AnimatePresence } from "@/components/motion";
+import { useT, type TranslateFn } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
 import type { SkillRead } from "@/lib/types";
 
@@ -46,6 +47,7 @@ export function ProjectSkillsManager({
   projectSlug,
   compact = false,
 }: ProjectSkillsManagerProps) {
+  const t = useT();
   const key = `/projects/${projectSlug}/skills`;
   const { data, isLoading, error, mutate } = useSWR<SkillRead[]>(key, () =>
     api.listProjectSkills(projectSlug),
@@ -67,10 +69,12 @@ export function ProjectSkillsManager({
   async function handleDetach(skill: SkillRead) {
     try {
       await api.detachSkill(projectSlug, skill.id);
-      toast.success(`Detached “${skill.name}”`);
+      toast.success(t("skills.toasts.detached", { name: skill.name }));
       void mutate();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Could not detach skill");
+      toast.error(
+        err instanceof ApiError ? err.message : t("skills.toasts.detachError"),
+      );
     }
   }
 
@@ -79,11 +83,13 @@ export function ProjectSkillsManager({
     setDeleting(true);
     try {
       await api.deleteSkill(pendingDelete.id);
-      toast.success(`Deleted “${pendingDelete.name}”`);
+      toast.success(t("skills.toasts.deleted", { name: pendingDelete.name }));
       setPendingDelete(null);
       void mutate();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Could not delete skill");
+      toast.error(
+        err instanceof ApiError ? err.message : t("skills.toasts.deleteError"),
+      );
     } finally {
       setDeleting(false);
     }
@@ -93,15 +99,15 @@ export function ProjectSkillsManager({
     <div className="flex flex-wrap items-center gap-2">
       <Button variant="outline" size="sm" onClick={() => setAttachOpen(true)}>
         <Link2 className="size-4" />
-        Attach global
+        {t("skills.manager.attachGlobal")}
       </Button>
       <Button variant="outline" size="sm" onClick={() => setUploadOpen(true)}>
         <Upload className="size-4" />
-        Import .md
+        {t("skills.manager.importMd")}
       </Button>
       <Button size="sm" onClick={() => setCreateOpen(true)}>
         <Plus className="size-4" />
-        New skill
+        {t("skills.manager.newSkill")}
       </Button>
     </div>
   );
@@ -115,10 +121,10 @@ export function ProjectSkillsManager({
               compact ? "text-base font-semibold" : "text-lg font-semibold tracking-tight"
             }
           >
-            Applicable skills
+            {t("skills.manager.heading")}
           </h2>
           <p className="text-sm text-muted-foreground">
-            Project skills plus any attached global skills.
+            {t("skills.manager.subtitle")}
           </p>
         </div>
         {actions}
@@ -133,24 +139,28 @@ export function ProjectSkillsManager({
       ) : error ? (
         <EmptyState
           icon={Sparkles}
-          title="Couldn’t load skills"
-          description={error instanceof ApiError ? error.message : "Please try again."}
-          action={<Button onClick={() => void mutate()}>Retry</Button>}
+          title={t("skills.manager.loadError")}
+          description={
+            error instanceof ApiError ? error.message : t("skills.manager.loadErrorRetry")
+          }
+          action={
+            <Button onClick={() => void mutate()}>{t("common.retry")}</Button>
+          }
         />
       ) : skills.length === 0 ? (
         <EmptyState
           icon={Sparkles}
-          title="No skills yet"
-          description="Create a project skill or attach a global one to guide generation."
+          title={t("skills.manager.emptyTitle")}
+          description={t("skills.manager.emptyDescription")}
           action={
             <div className="flex flex-wrap justify-center gap-2">
               <Button variant="outline" onClick={() => setAttachOpen(true)}>
                 <Link2 className="size-4" />
-                Attach global
+                {t("skills.manager.attachGlobal")}
               </Button>
               <Button onClick={() => setCreateOpen(true)}>
                 <Plus className="size-4" />
-                New skill
+                {t("skills.manager.newSkill")}
               </Button>
             </div>
           }
@@ -165,13 +175,14 @@ export function ProjectSkillsManager({
                   marker={
                     skill.scope === "GLOBAL" ? (
                       <Badge variant="outline" className="font-normal">
-                        Attached
+                        {t("skills.manager.attachedMarker")}
                       </Badge>
                     ) : null
                   }
                   actions={
                     <SkillRowActions
                       skill={skill}
+                      t={t}
                       onEdit={() => setEditing(skill)}
                       onDetach={() => void handleDetach(skill)}
                       onDelete={() => setPendingDelete(skill)}
@@ -218,13 +229,17 @@ export function ProjectSkillsManager({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this skill?</AlertDialogTitle>
+            <AlertDialogTitle>{t("skills.manager.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              “{pendingDelete?.name}” will be permanently removed. This cannot be undone.
+              {t("skills.manager.deleteConfirm", {
+                name: pendingDelete?.name ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault();
@@ -232,7 +247,7 @@ export function ProjectSkillsManager({
               }}
               disabled={deleting}
             >
-              {deleting ? "Deleting…" : "Delete"}
+              {deleting ? t("common.deleting") : t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -247,11 +262,13 @@ export function ProjectSkillsManager({
  */
 function SkillRowActions({
   skill,
+  t,
   onEdit,
   onDetach,
   onDelete,
 }: {
   skill: SkillRead;
+  t: TranslateFn;
   onEdit: () => void;
   onDetach: () => void;
   onDelete: () => void;
@@ -263,7 +280,7 @@ function SkillRowActions({
         size="icon"
         className="size-8 text-muted-foreground hover:text-foreground"
         onClick={onEdit}
-        aria-label="Edit skill"
+        aria-label={t("skills.manager.editAria")}
       >
         <Pencil className="size-4" />
       </Button>
@@ -273,7 +290,7 @@ function SkillRowActions({
           size="icon"
           className="size-8 text-muted-foreground hover:text-destructive"
           onClick={onDetach}
-          aria-label="Detach skill"
+          aria-label={t("skills.manager.detachAria")}
         >
           <Link2 className="size-4" />
         </Button>
@@ -283,7 +300,7 @@ function SkillRowActions({
           size="icon"
           className="size-8 text-muted-foreground hover:text-destructive"
           onClick={onDelete}
-          aria-label="Delete skill"
+          aria-label={t("skills.manager.deleteAria")}
         >
           <Trash2 className="size-4" />
         </Button>

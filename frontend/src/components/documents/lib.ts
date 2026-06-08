@@ -131,16 +131,19 @@ function parseXhrError(xhr: XMLHttpRequest): ApiError {
   return new ApiError(xhr.status, message, detail);
 }
 
-/** Friendly message for a rejected (wrong type/too large) drop. */
-export function describeRejection(errorCode: string): string {
+/**
+ * Translation key (under the `documents.uploader.rejection` namespace) for a
+ * rejected (wrong type/too large) drop. The component resolves it via `useT()`.
+ */
+export function rejectionMessageKey(errorCode: string): string {
   switch (errorCode) {
     case "file-too-large":
-      return "File is too large (max 25 MB).";
+      return "documents.uploader.rejection.tooLarge";
     case "file-invalid-type":
-      return "Unsupported file type. Use PDF, DOCX, Markdown, or text.";
+      return "documents.uploader.rejection.invalidType";
     case "too-many-files":
-      return "Too many files dropped at once.";
+      return "documents.uploader.rejection.tooMany";
     default:
-      return "File could not be accepted.";
+      return "documents.uploader.rejection.generic";
   }
 }

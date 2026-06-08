@@ -5,8 +5,16 @@ import useSWR from "swr";
 import { FileText, Layers, Search, StickyNote } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/common";
 import { HighlightedSnippet } from "@/components/markdown";
 import { AnimatedItem, AnimatedList } from "@/components/motion";
@@ -29,7 +37,46 @@ const KIND_META: Record<
   artifact_file: { label: "Artifact file", icon: Layers },
 };
 
-interface ProjectSearchProps {
+interface ProjectSearchButtonProps {
+  projectSlug: string;
+}
+
+/**
+ * Slim search trigger for the project header. Opens project-scoped full-text
+ * search (lexical / semantic / hybrid) in a Sheet so the results never crowd
+ * the working surface.
+ */
+export function ProjectSearchButton({ projectSlug }: ProjectSearchButtonProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          aria-label="Search this project"
+          className="gap-1.5"
+        >
+          <Search className="size-3.5" />
+          <span className="hidden sm:inline">Search</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent
+        side="right"
+        className="w-full gap-0 sm:max-w-lg"
+        aria-describedby={undefined}
+      >
+        <SheetHeader className="gap-1">
+          <SheetTitle>Search project</SheetTitle>
+        </SheetHeader>
+        {open ? <ProjectSearchPanel projectSlug={projectSlug} /> : null}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+interface ProjectSearchPanelProps {
   projectSlug: string;
 }
 
@@ -38,7 +85,7 @@ interface ProjectSearchProps {
  * toggle. Renders matching notes, documents and artifact files with highlighted
  * snippets. Debounced; only queries once at least two characters are entered.
  */
-export function ProjectSearch({ projectSlug }: ProjectSearchProps) {
+function ProjectSearchPanel({ projectSlug }: ProjectSearchPanelProps) {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<SearchMode>("hybrid");
   const debounced = useDebounce(query.trim(), 300);
@@ -50,9 +97,9 @@ export function ProjectSearch({ projectSlug }: ProjectSearchProps) {
   const { data, isLoading } = useSWR<SearchHitRead[]>(key);
 
   return (
-    <Card className="gap-4 p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 pb-4">
+      <div className="space-y-3">
+        <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
@@ -60,12 +107,13 @@ export function ProjectSearch({ projectSlug }: ProjectSearchProps) {
             placeholder="Search notes, documents and artifact files…"
             className="h-9 pl-9"
             aria-label="Search this project"
+            autoFocus
           />
         </div>
         <div
           role="tablist"
           aria-label="Search mode"
-          className="inline-flex shrink-0 rounded-lg border border-border bg-muted/50 p-0.5"
+          className="inline-flex w-full rounded-lg border border-border bg-muted/50 p-0.5"
         >
           {MODES.map((option) => (
             <button
@@ -75,7 +123,7 @@ export function ProjectSearch({ projectSlug }: ProjectSearchProps) {
               aria-selected={mode === option.value}
               onClick={() => setMode(option.value)}
               className={cn(
-                "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                "flex-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
                 mode === option.value
                   ? "bg-background text-foreground shadow-sm"
@@ -89,17 +137,15 @@ export function ProjectSearch({ projectSlug }: ProjectSearchProps) {
       </div>
 
       {active ? (
-        <SearchResults
-          projectSlug={projectSlug}
-          hits={data}
-          isLoading={isLoading}
-        />
+        <ScrollArea className="-mx-1 flex-1 px-1">
+          <SearchResults projectSlug={projectSlug} hits={data} isLoading={isLoading} />
+        </ScrollArea>
       ) : (
         <p className="text-sm text-muted-foreground">
           Type at least two characters to search this project.
         </p>
       )}
-    </Card>
+    </div>
   );
 }
 

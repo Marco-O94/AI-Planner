@@ -4,6 +4,7 @@ import { CheckCircle2, Clock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 
 import { documentKindLabel } from "./lib";
@@ -37,6 +38,8 @@ interface IndexedBadgeProps {
  * "Pending" badge so users know it is not yet searchable.
  */
 export function IndexedBadge({ indexedAt, className }: IndexedBadgeProps) {
+  const t = useT();
+
   if (indexedAt) {
     return (
       <Tooltip>
@@ -49,10 +52,10 @@ export function IndexedBadge({ indexedAt, className }: IndexedBadgeProps) {
             )}
           >
             <CheckCircle2 />
-            Indexed
+            {t("documents.badge.indexed")}
           </Badge>
         </TooltipTrigger>
-        <TooltipContent>Vectorized and searchable</TooltipContent>
+        <TooltipContent>{t("documents.badge.indexedTooltip")}</TooltipContent>
       </Tooltip>
     );
   }
@@ -65,10 +68,10 @@ export function IndexedBadge({ indexedAt, className }: IndexedBadgeProps) {
           className={cn("gap-1 text-muted-foreground", className)}
         >
           <Clock />
-          Pending
+          {t("documents.badge.pending")}
         </Badge>
       </TooltipTrigger>
-      <TooltipContent>Awaiting indexing — not yet searchable</TooltipContent>
+      <TooltipContent>{t("documents.badge.pendingTooltip")}</TooltipContent>
     </Tooltip>
   );
 }

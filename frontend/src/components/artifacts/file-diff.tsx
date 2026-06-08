@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { diffLines, type Change } from "diff";
 
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 
 interface FileDiffProps {
@@ -49,6 +50,7 @@ const LINE_PREFIX: Record<DiffLine["kind"], string> = {
 
 /** Per-file line diff between two artifact versions (added / removed / context). */
 export function FileDiff({ oldContent, newContent }: FileDiffProps) {
+  const t = useT();
   const lines = useMemo(
     () => toLines(diffLines(oldContent, newContent)),
     [oldContent, newContent],
@@ -58,7 +60,7 @@ export function FileDiff({ oldContent, newContent }: FileDiffProps) {
   if (!hasChanges) {
     return (
       <p className="rounded-lg border border-dashed border-border/70 px-3 py-6 text-center text-xs text-muted-foreground">
-        No differences between these versions.
+        {t("artifacts.diff.noDifferences")}
       </p>
     );
   }

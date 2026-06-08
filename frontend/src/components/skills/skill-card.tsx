@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
 import { ScopeBadge } from "@/components/status-badge";
 import { TagList } from "@/components/common";
+import { useT } from "@/i18n/locale-context";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { SkillRead } from "@/lib/types";
@@ -28,6 +29,7 @@ interface SkillCardProps {
 }
 
 export function SkillCard({ skill, actions, marker, className }: SkillCardProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const hasBody = skill.content.trim().length > 0;
 
@@ -57,7 +59,7 @@ export function SkillCard({ skill, actions, marker, className }: SkillCardProps)
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <TagList tags={skill.tags} />
           <span className="text-xs text-muted-foreground/80">
-            Updated {formatDate(skill.updated_at)}
+            {t("skills.card.updated", { date: formatDate(skill.updated_at) })}
           </span>
         </div>
       </CardHeader>
@@ -78,7 +80,7 @@ export function SkillCard({ skill, actions, marker, className }: SkillCardProps)
                 open && "rotate-180",
               )}
             />
-            {open ? "Hide content" : "View content"}
+            {open ? t("skills.card.hideContent") : t("skills.card.viewContent")}
           </Button>
           {open ? (
             <div className="mt-3 rounded-lg border border-border bg-muted/30 p-4">

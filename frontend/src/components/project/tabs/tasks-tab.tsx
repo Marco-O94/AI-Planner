@@ -6,6 +6,7 @@ import { ListTodo, Plus } from "lucide-react";
 import { EmptyState } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useT } from "@/i18n/locale-context";
 import { ALL_VALUE } from "@/components/tasks/constants";
 import { TaskBoard } from "@/components/tasks/task-board";
 import { TaskDialog } from "@/components/tasks/task-dialog";
@@ -28,6 +29,7 @@ function matchesFilters(task: TaskRead, filters: TaskFilterState): boolean {
 
 /** Tasks tab: a status board with deps, blocked badges, and inline editing. */
 export function TasksTab({ project, domains, domainId }: TabProps) {
+  const t = useT();
   const { tasks, isLoading, error, refresh, patchTask } = useTasks(project.slug);
   const [filters, setFilters] = useState<TaskFilterState>(EMPTY_FILTERS);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -81,11 +83,11 @@ export function TasksTab({ project, domains, domainId }: TabProps) {
     return (
       <EmptyState
         icon={ListTodo}
-        title="Couldn't load tasks"
-        description="Something went wrong while fetching tasks. Try again."
+        title={t("tasks.loadError.title")}
+        description={t("tasks.loadError.description")}
         action={
           <Button variant="outline" onClick={() => void refresh()}>
-            Retry
+            {t("common.retry")}
           </Button>
         }
       />
@@ -98,30 +100,30 @@ export function TasksTab({ project, domains, domainId }: TabProps) {
         <TaskFilters filters={filters} onChange={setFilters} tagOptions={tagOptions} />
         <Button onClick={openCreate}>
           <Plus />
-          New task
+          {t("tasks.newTask")}
         </Button>
       </div>
 
       {scopedTasks.length === 0 ? (
         <EmptyState
           icon={ListTodo}
-          title="No tasks yet"
-          description="Break the work down into tasks. Add dependencies to track what's blocked."
+          title={t("tasks.empty.title")}
+          description={t("tasks.empty.description")}
           action={
             <Button onClick={openCreate}>
               <Plus />
-              Create the first task
+              {t("tasks.createFirst")}
             </Button>
           }
         />
       ) : visibleTasks.length === 0 ? (
         <EmptyState
           icon={ListTodo}
-          title="No matching tasks"
-          description="No tasks match the current filters."
+          title={t("tasks.noMatches.title")}
+          description={t("tasks.noMatches.description")}
           action={
             <Button variant="outline" onClick={() => setFilters(EMPTY_FILTERS)}>
-              Clear filters
+              {t("tasks.noMatches.clearFilters")}
             </Button>
           }
         />

@@ -18,6 +18,7 @@ import { AnimatedList, AnimatedItem, AnimatePresence } from "@/components/motion
 import { ItemArtifactPreview } from "@/components/project/item-artifact-preview";
 import type { TabProps } from "@/components/project/types";
 import { NOTE_TYPES, type NoteRead, type NoteType } from "@/lib/types";
+import { useT } from "@/i18n/locale-context";
 
 import { QuickNoteComposer } from "@/components/notes/quick-note-composer";
 import { NoteCard } from "@/components/notes/note-card";
@@ -47,6 +48,7 @@ function matchesQuery(note: NoteRead, query: string): boolean {
 }
 
 export function NotesTab({ project, domains, domainId }: TabProps) {
+  const t = useT();
   // SWR key is the backend path string; the global fetcher resolves it.
   const notesKey = `/projects/${project.slug}/notes`;
   const { data, isLoading, error } = useSWR<NoteRead[]>(notesKey);
@@ -107,16 +109,16 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
       {error ? (
         <EmptyState
           icon={StickyNote}
-          title="Couldn’t load notes"
-          description="The notes for this project failed to load. Try refreshing the page."
+          title={t("notes.emptyError.title")}
+          description={t("notes.emptyError.description")}
         />
       ) : isLoading && !data ? (
         <NotesSkeleton />
       ) : scoped.length === 0 ? (
         <EmptyState
           icon={NotebookPen}
-          title="No notes yet"
-          description="Capture your first requirement, decision, or snippet with the composer above."
+          title={t("notes.empty.title")}
+          description={t("notes.empty.description")}
         />
       ) : (
         <div className="space-y-5">
@@ -132,8 +134,8 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
           {filtered.length === 0 ? (
             <EmptyState
               icon={StickyNote}
-              title="No matching notes"
-              description="Adjust the search text or clear the type filter."
+              title={t("notes.emptyFiltered.title")}
+              description={t("notes.emptyFiltered.description")}
             />
           ) : (
             <div className="space-y-6">
@@ -175,7 +177,7 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
       <ItemArtifactPreview
         kind="note"
         itemId={previewId}
-        title={previewNote?.title || "Note"}
+        title={previewNote?.title || t("notes.previewFallback")}
         projectSlug={project.slug}
         onClose={() => setPreviewId(null)}
       />

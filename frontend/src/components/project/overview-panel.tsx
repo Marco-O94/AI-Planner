@@ -8,22 +8,12 @@ import {
   ExternalLink,
   FileText,
   Layers,
-  Loader2,
-  Save,
   StickyNote,
 } from "lucide-react";
 
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -32,25 +22,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useT } from "@/i18n/locale-context";
 import { ProjectStatusBadge, TechKindBadge } from "@/components/status-badge";
-import { titleCase } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { api, ApiError } from "@/lib/api";
-import {
-  PROJECT_STATUSES,
-  type ProjectRead,
-  type ProjectStatus,
-  type ProjectUpdate,
-  type TechnologyInput,
-} from "@/lib/types";
+import type { ProjectRead, TechnologyInput } from "@/lib/types";
 
 import { TechPicker } from "./tech-picker";
-import {
-  MetadataEditor,
-  entriesToMetadata,
-  metadataToEntries,
-  type MetadataEntry,
-} from "./metadata-editor";
+import { OverviewEditForm } from "./overview-edit-form";
 import { SaveAsTemplateDialog } from "./save-as-template-dialog";
 
 interface ProjectMetaRailProps {
@@ -66,6 +45,7 @@ const MAX_RAIL_TECHS = 5;
  * always-on edit forms. Editing happens on demand via {@link EditProjectSheet}.
  */
 export function ProjectMetaRail({ project, className }: ProjectMetaRailProps) {
+  const t = useT();
   const techs = project.technologies;
   const shown = techs.slice(0, MAX_RAIL_TECHS);
   const overflow = techs.length - shown.length;
@@ -85,7 +65,9 @@ export function ProjectMetaRail({ project, className }: ProjectMetaRailProps) {
             </TechKindBadge>
           ))}
           {overflow > 0 ? (
-            <span className="text-xs text-muted-foreground">+{overflow} more</span>
+            <span className="text-xs text-muted-foreground">
+              {t("project.meta.more", { count: overflow })}
+            </span>
           ) : null}
         </div>
       ) : null}
@@ -100,7 +82,7 @@ export function ProjectMetaRail({ project, className }: ProjectMetaRailProps) {
             className="inline-flex items-center gap-1.5 font-medium text-foreground transition-colors hover:text-primary"
           >
             <ExternalLink className="size-3.5" />
-            Repository
+            {t("project.meta.repository")}
           </a>
         </>
       ) : null}
@@ -108,15 +90,18 @@ export function ProjectMetaRail({ project, className }: ProjectMetaRailProps) {
       <RailDivider />
       <span className="inline-flex items-center gap-1.5">
         <StickyNote className="size-3.5" />
-        <span className="tabular-nums">{project.note_count}</span> notes
+        <span className="tabular-nums">{project.note_count}</span>{" "}
+        {t("project.meta.notes")}
       </span>
       <span className="inline-flex items-center gap-1.5">
         <Layers className="size-3.5" />
-        <span className="tabular-nums">{project.artifact_count}</span> artifacts
+        <span className="tabular-nums">{project.artifact_count}</span>{" "}
+        {t("project.meta.artifacts")}
       </span>
       <span className="inline-flex items-center gap-1.5">
         <FileText className="size-3.5" />
-        <span className="tabular-nums">{project.task_count}</span> tasks
+        <span className="tabular-nums">{project.task_count}</span>{" "}
+        {t("project.meta.tasks")}
       </span>
     </div>
   );
@@ -145,6 +130,7 @@ export function EditProjectSheet({
   open,
   onOpenChange,
 }: EditProjectSheetProps) {
+  const t = useT();
   const { mutate } = useSWRConfig();
   const cacheKey = `/projects/${project.slug}`;
 
@@ -210,7 +196,7 @@ export function EditProjectSheet({
 
         <ScrollArea className="flex-1">
           <div className="space-y-5 px-4 pb-6">
-            <OverviewForm
+            <OverviewEditForm
               key={project.updated_at}
               project={project}
               cacheKey={cacheKey}
@@ -249,98 +235,5 @@ export function EditProjectSheet({
         onOpenChange={setTemplateOpen}
       />
     </Sheet>
-  );
-}
-
-interface OverviewFormProps {
-  project: ProjectRead;
-  cacheKey: string;
-}
-
-/** The editable status / repository / metadata fields, remounted per project version. */
-function OverviewForm({ project, cacheKey }: OverviewFormProps) {
-  const { mutate } = useSWRConfig();
-
-  const [status, setStatus] = useState<ProjectStatus>(project.status);
-  const [repositoryUrl, setRepositoryUrl] = useState(project.repository_url ?? "");
-  const [entries, setEntries] = useState<MetadataEntry[]>(() =>
-    metadataToEntries(project.metadata),
-  );
-  const [saving, setSaving] = useState(false);
-
-  const dirty =
-    status !== project.status ||
-    repositoryUrl !== (project.repository_url ?? "") ||
-    JSON.stringify(entriesToMetadata(entries)) !== JSON.stringify(project.metadata);
-
-  async function save() {
-    setSaving(true);
-    const body: ProjectUpdate = {
-      status,
-      repository_url: repositoryUrl.trim() || null,
-      metadata: entriesToMetadata(entries),
-    };
-    try {
-      const updated = await api.updateProject(project.slug, body);
-      await mutate(cacheKey, updated, { revalidate: false });
-      toast.success("Project updated.");
-    } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Could not save changes.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="project-status">Status</Label>
-          <Select
-            value={status}
-            onValueChange={(value) => setStatus(value as ProjectStatus)}
-          >
-            <SelectTrigger id="project-status" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PROJECT_STATUSES.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {titleCase(option)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="project-repo">Repository URL</Label>
-          <Input
-            id="project-repo"
-            value={repositoryUrl}
-            onChange={(event) => setRepositoryUrl(event.target.value)}
-            placeholder="https://github.com/org/repo"
-            inputMode="url"
-          />
-        </div>
-      </div>
-
-      <Separator />
-
-      <div className="space-y-2">
-        <Label>Metadata</Label>
-        <MetadataEditor entries={entries} onChange={setEntries} />
-      </div>
-
-      <div className="flex justify-end">
-        <Button onClick={save} disabled={!dirty || saving}>
-          {saving ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Save className="size-4" />
-          )}
-          Save changes
-        </Button>
-      </div>
-    </div>
   );
 }

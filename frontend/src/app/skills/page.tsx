@@ -8,13 +8,15 @@
 import { PageHeader } from "@/components/common";
 import { FadeIn } from "@/components/motion";
 import { GlobalSkillsLibrary } from "@/components/skills/global-skills-library";
+import { useT } from "@/i18n/locale-context";
 
 export default function SkillsPage() {
+  const t = useT();
   return (
     <FadeIn className="space-y-8">
       <PageHeader
-        title="Skill library"
-        description="Reusable global skills you can attach to any project to guide artifact generation."
+        title={t("skills.page.libraryTitle")}
+        description={t("skills.page.libraryDescription")}
       />
       <GlobalSkillsLibrary />
     </FadeIn>

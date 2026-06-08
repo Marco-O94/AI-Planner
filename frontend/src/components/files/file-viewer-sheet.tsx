@@ -14,6 +14,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { useT } from "@/i18n/locale-context";
 import type { FileEntryRead } from "@/lib/types";
 
 import { FileKindBadge } from "./file-kind-badge";
@@ -33,6 +34,7 @@ export function FileViewerSheet({
   open,
   onOpenChange,
 }: FileViewerSheetProps) {
+  const t = useT();
   const { content, isLoading, unavailableReason } = useFileContent(open ? entry : null);
 
   return (
@@ -48,7 +50,9 @@ export function FileViewerSheet({
               <div className="flex flex-wrap items-center gap-2">
                 <FileKindBadge kind={entry.kind} />
                 {projectName ? (
-                  <span className="text-xs text-muted-foreground">in {projectName}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("files.viewer.inProject", { project: projectName })}
+                  </span>
                 ) : null}
               </div>
               <SheetTitle className="text-balance">{entry.title}</SheetTitle>

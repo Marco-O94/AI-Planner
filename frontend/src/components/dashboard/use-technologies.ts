@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 
-import type { TechnologyKind, TechnologyRead } from "@/lib/types";
+import type { TechnologyRead } from "@/lib/types";
 
 /** Technologies grouped by their kind, ready to power the filter selects + tech picker. */
 export interface GroupedTechnologies {
@@ -45,10 +45,3 @@ export function useTechnologies(): UseTechnologiesResult {
     error,
   };
 }
-
-export const TECH_KIND_LABEL: Record<TechnologyKind, string> = {
-  LANGUAGE: "Language",
-  FRAMEWORK: "Framework",
-  DATABASE: "Database",
-  TOOL: "Tool",
-};

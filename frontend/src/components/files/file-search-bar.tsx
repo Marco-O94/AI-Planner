@@ -13,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 import type { SearchMode } from "@/lib/types";
 
@@ -37,6 +38,7 @@ export function FileSearchBar({
   onModeChange,
   isSearching,
 }: FileSearchBarProps) {
+  const t = useT();
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
       <InputGroup className="h-10 flex-1 rounded-xl text-base shadow-sm">
@@ -50,8 +52,8 @@ export function FileSearchBar({
         <InputGroupInput
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Search inside file contents…"
-          aria-label="Search inside file contents"
+          placeholder={t("files.search.placeholder")}
+          aria-label={t("files.search.ariaLabel")}
           autoComplete="off"
           spellCheck={false}
         />
@@ -62,7 +64,7 @@ export function FileSearchBar({
               variant="ghost"
               size="icon-sm"
               onClick={() => onQueryChange("")}
-              aria-label="Clear search"
+              aria-label={t("files.search.clearAriaLabel")}
             >
               <X className="size-4" />
             </Button>
@@ -72,7 +74,7 @@ export function FileSearchBar({
 
       <div
         role="radiogroup"
-        aria-label="Search mode"
+        aria-label={t("files.search.modeGroupAriaLabel")}
         className="inline-flex shrink-0 rounded-xl border border-border bg-card p-1 shadow-sm"
       >
         {SEARCH_MODE_OPTIONS.map((option) => {
@@ -92,10 +94,10 @@ export function FileSearchBar({
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
-                  {option.label}
+                  {t(option.labelKey)}
                 </button>
               </TooltipTrigger>
-              <TooltipContent>{option.hint}</TooltipContent>
+              <TooltipContent>{t(option.hintKey)}</TooltipContent>
             </Tooltip>
           );
         })}

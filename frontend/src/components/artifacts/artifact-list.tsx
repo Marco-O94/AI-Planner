@@ -4,9 +4,10 @@ import { ChevronRight, FileStack } from "lucide-react";
 
 import { ArtifactStatusBadge } from "@/components/status-badge";
 import { AnimatedItem, AnimatedList } from "@/components/motion";
+import { useT } from "@/i18n/locale-context";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { groupArtifactsByType } from "./lib";
+import { groupArtifactsByType, UNTITLED_TYPE_SENTINEL } from "./lib";
 import type { ArtifactRead, ArtifactTypeRead } from "@/lib/types";
 
 interface ArtifactListProps {
@@ -23,6 +24,7 @@ export function ArtifactList({
   selectedId,
   onSelect,
 }: ArtifactListProps) {
+  const t = useT();
   const groups = groupArtifactsByType(artifacts, types);
 
   return (
@@ -32,7 +34,9 @@ export function ArtifactList({
           <div className="flex items-center gap-2 px-1">
             <FileStack className="size-3.5 text-muted-foreground" />
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              {group.typeName}
+              {group.typeName === UNTITLED_TYPE_SENTINEL
+                ? t("artifacts.list.untitledType")
+                : group.typeName}
             </h3>
             <span className="text-xs text-muted-foreground/70">
               {group.artifacts.length}
@@ -61,6 +65,7 @@ interface ArtifactRowProps {
 }
 
 function ArtifactRow({ artifact, selected, onSelect }: ArtifactRowProps) {
+  const t = useT();
   return (
     <button
       type="button"
@@ -76,7 +81,7 @@ function ArtifactRow({ artifact, selected, onSelect }: ArtifactRowProps) {
       <div className="min-w-0 space-y-0.5">
         <p className="truncate text-sm font-medium">{artifact.title}</p>
         <p className="text-xs text-muted-foreground">
-          Updated {formatDate(artifact.updated_at)}
+          {t("artifacts.list.updated", { date: formatDate(artifact.updated_at) })}
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-2">

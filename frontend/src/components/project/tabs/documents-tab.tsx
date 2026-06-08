@@ -27,11 +27,13 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useT } from "@/i18n/locale-context";
 import { ApiError, api } from "@/lib/api";
 import type { DocumentRead } from "@/lib/types";
 
 /** Documents tab: upload, list (with indexed state), preview, and delete. */
 export function DocumentsTab({ project, domains, domainId }: TabProps) {
+  const t = useT();
   const swrKey = `/projects/${project.slug}/documents`;
   const { data, isLoading, error, mutate } = useSWR<DocumentRead[]>(swrKey, () =>
     api.listDocuments(project.slug),
@@ -70,9 +72,11 @@ export function DocumentsTab({ project, domains, domainId }: TabProps) {
         (current) => (current ?? []).filter((d) => d.id !== document.id),
         { revalidate: false },
       );
-      toast.success(`Deleted “${document.title}”`);
+      toast.success(t("documents.toasts.deleted", { title: document.title }));
     } catch (e) {
-      toast.error(e instanceof ApiError ? e.message : "Could not delete document");
+      toast.error(
+        e instanceof ApiError ? e.message : t("documents.toasts.deleteFailed"),
+      );
       throw e;
     }
   }
@@ -154,6 +158,8 @@ function DocumentsList({
   onRequestDelete,
   onRetry,
 }: DocumentsListProps) {
+  const t = useT();
+
   if (isLoading) {
     return (
       <div className="space-y-2.5">
@@ -168,15 +174,19 @@ function DocumentsList({
     return (
       <EmptyState
         icon={FileText}
-        title="Couldn’t load documents"
-        description={error instanceof ApiError ? error.message : "Please try again."}
+        title={t("documents.list.loadError.title")}
+        description={
+          error instanceof ApiError
+            ? error.message
+            : t("documents.list.loadError.description")
+        }
         action={
           <button
             type="button"
             onClick={onRetry}
             className="text-sm font-medium text-primary underline-offset-4 hover:underline"
           >
-            Retry
+            {t("common.retry")}
           </button>
         }
       />
@@ -187,8 +197,8 @@ function DocumentsList({
     return (
       <EmptyState
         icon={FolderUp}
-        title="No documents yet"
-        description="Drop a PDF, DOCX, Markdown, or text file above. It will be indexed for search automatically."
+        title={t("documents.list.empty.title")}
+        description={t("documents.list.empty.description")}
       />
     );
   }
@@ -201,9 +211,9 @@ function DocumentsList({
           <Input
             value={rawQuery}
             onChange={(event) => onQueryChange(event.target.value)}
-            placeholder="Search documents by name or tag…"
+            placeholder={t("documents.list.searchPlaceholder")}
             className="h-8 pl-8"
-            aria-label="Search documents"
+            aria-label={t("documents.list.searchAria")}
           />
         </div>
         <Select
@@ -216,7 +226,7 @@ function DocumentsList({
           <SelectContent>
             {DOCUMENT_KIND_FILTERS.map((option) => (
               <SelectItem key={option} value={option}>
-                {option === "ALL" ? "All types" : option}
+                {option === "ALL" ? t("documents.list.allTypes") : option}
               </SelectItem>
             ))}
           </SelectContent>
@@ -226,8 +236,8 @@ function DocumentsList({
       {visible.length === 0 ? (
         <EmptyState
           icon={Search}
-          title="No matches"
-          description="No documents match the current search or type filter."
+          title={t("documents.list.noMatches.title")}
+          description={t("documents.list.noMatches.description")}
         />
       ) : (
         <AnimatedList className="space-y-2.5">

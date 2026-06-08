@@ -5,6 +5,7 @@ import { ArrowUpRight, FileText, ListChecks, Package } from "lucide-react";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ProjectStatusBadge, TechKindBadge } from "@/components/status-badge";
+import { useT } from "@/i18n/locale-context";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { ProjectRead, ProjectTechnologyRead, TechnologyKind } from "@/lib/types";
@@ -41,6 +42,7 @@ function CountStat({ icon: Icon, value, label }: CountStatProps) {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const t = useT();
   const techs = visibleTechnologies(project.technologies);
   const shown = techs.slice(0, MAX_TECH_BADGES);
   const overflow = techs.length - shown.length;
@@ -64,7 +66,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 {project.name}
               </h3>
               <p className="text-xs text-muted-foreground">
-                Updated {formatDate(project.updated_at)}
+                {t("dashboard.card.updated", {
+                  date: formatDate(project.updated_at),
+                })}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
@@ -76,7 +80,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
         <CardContent className="flex flex-1 flex-col gap-4">
           <p className="line-clamp-2 min-h-[2.5rem] text-sm text-muted-foreground">
-            {project.description?.trim() || "No description yet."}
+            {project.description?.trim() || t("dashboard.card.noDescription")}
           </p>
 
           {shown.length ? (
@@ -91,16 +95,28 @@ export function ProjectCard({ project }: ProjectCardProps) {
               ))}
               {overflow > 0 ? (
                 <span className="self-center text-xs text-muted-foreground">
-                  +{overflow} more
+                  {t("dashboard.card.more", { count: overflow })}
                 </span>
               ) : null}
             </div>
           ) : null}
 
           <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border/60 pt-3 text-xs">
-            <CountStat icon={FileText} value={project.note_count} label="notes" />
-            <CountStat icon={ListChecks} value={project.task_count} label="tasks" />
-            <CountStat icon={Package} value={project.artifact_count} label="artifacts" />
+            <CountStat
+              icon={FileText}
+              value={project.note_count}
+              label={t("dashboard.card.notes")}
+            />
+            <CountStat
+              icon={ListChecks}
+              value={project.task_count}
+              label={t("dashboard.card.tasks")}
+            />
+            <CountStat
+              icon={Package}
+              value={project.artifact_count}
+              label={t("dashboard.card.artifacts")}
+            />
           </div>
         </CardContent>
       </Card>

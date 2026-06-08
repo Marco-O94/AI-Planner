@@ -16,6 +16,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useT } from "@/i18n/locale-context";
 import { api } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import type { DocumentRead } from "@/lib/types";
@@ -38,6 +39,7 @@ export function DocumentPreviewSheet({
   document,
   onOpenChange,
 }: DocumentPreviewSheetProps) {
+  const t = useT();
   const open = document !== null;
   const { data, isLoading } = useSWR<DocumentRead>(
     document ? `/documents/${document.id}` : null,
@@ -82,11 +84,15 @@ export function DocumentPreviewSheet({
                   download={record.filename}
                 >
                   <Download className="size-4" />
-                  Download
+                  {t("common.download")}
                 </a>
               </Button>
               {text ? (
-                <CopyButton value={text} label="Copy text" size="sm" />
+                <CopyButton
+                  value={text}
+                  label={t("documents.preview.copyText")}
+                  size="sm"
+                />
               ) : null}
               <span className="ml-auto text-xs text-muted-foreground">
                 {formatDateTime(record.created_at)}
@@ -115,8 +121,8 @@ export function DocumentPreviewSheet({
                 ) : (
                   <EmptyState
                     icon={FileText}
-                    title="No extracted text"
-                    description="This document has no readable text yet — download the original to view it."
+                    title={t("documents.preview.noText.title")}
+                    description={t("documents.preview.noText.description")}
                   />
                 )}
               </div>

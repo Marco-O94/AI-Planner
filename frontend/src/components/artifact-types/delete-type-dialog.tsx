@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { api, ApiError } from "@/lib/api";
+import { useT } from "@/i18n/locale-context";
 import type { ArtifactTypeRead } from "@/lib/types";
 import {
   AlertDialog,
@@ -23,6 +24,7 @@ interface DeleteTypeDialogProps {
 }
 
 export function DeleteTypeDialog({ type, onOpenChange, onDeleted }: DeleteTypeDialogProps) {
+  const t = useT();
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete(): Promise<void> {
@@ -30,11 +32,11 @@ export function DeleteTypeDialog({ type, onOpenChange, onDeleted }: DeleteTypeDi
     setDeleting(true);
     try {
       await api.deleteArtifactType(type.id);
-      toast.success("Artifact type deleted");
+      toast.success(t("artifactTypes.toasts.deleted"));
       onDeleted();
       onOpenChange(false);
     } catch (e) {
-      toast.error(e instanceof ApiError ? e.message : "Could not delete artifact type");
+      toast.error(e instanceof ApiError ? e.message : t("artifactTypes.toasts.deleteError"));
     } finally {
       setDeleting(false);
     }
@@ -44,14 +46,15 @@ export function DeleteTypeDialog({ type, onOpenChange, onDeleted }: DeleteTypeDi
     <AlertDialog open={Boolean(type)} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete &ldquo;{type?.name}&rdquo;?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {t("artifactTypes.deleteDialog.title", { name: type?.name ?? "" })}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently removes the artifact type. Existing artifacts already generated
-            from it are not affected. This action cannot be undone.
+            {t("artifactTypes.deleteDialog.description")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleting}>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
@@ -60,7 +63,7 @@ export function DeleteTypeDialog({ type, onOpenChange, onDeleted }: DeleteTypeDi
             disabled={deleting}
             className="bg-destructive text-white hover:bg-destructive/90"
           >
-            {deleting ? "Deleting…" : "Delete"}
+            {deleting ? t("common.deleting") : t("common.delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

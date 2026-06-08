@@ -20,6 +20,7 @@ import { NoteTypeBadge } from "@/components/status-badge";
 import { NOTE_TYPES, type DomainRead, type NoteType } from "@/lib/types";
 import { titleCase } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useT } from "@/i18n/locale-context";
 
 /** Sentinel value for "project-level" (no domain) — Radix Select forbids "". */
 export const NO_DOMAIN = "__project__";
@@ -70,12 +71,13 @@ export function NoteFormFields({
   textareaRef,
   className,
 }: NoteFormFieldsProps) {
+  const t = useT();
   return (
     <div className={cn("grid gap-3", className)}>
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         <div className="grid gap-1.5">
           <Label htmlFor={`${idPrefix}-type`} className="text-xs text-muted-foreground">
-            Type
+            {t("notes.fields.typeLabel")}
           </Label>
           <Select
             value={values.type}
@@ -98,12 +100,13 @@ export function NoteFormFields({
 
         <div className="grid gap-1.5">
           <Label htmlFor={`${idPrefix}-title`} className="text-xs text-muted-foreground">
-            Title <span className="font-normal opacity-70">(optional)</span>
+            {t("notes.fields.titleLabel")}{" "}
+            <span className="font-normal opacity-70">({t("common.optional")})</span>
           </Label>
           <Input
             id={`${idPrefix}-title`}
             value={values.title}
-            placeholder="Short summary"
+            placeholder={t("notes.fields.titlePlaceholder")}
             onChange={(event) => onChange({ title: event.target.value })}
           />
         </div>
@@ -111,13 +114,14 @@ export function NoteFormFields({
 
       <div className="grid gap-1.5">
         <Label htmlFor={`${idPrefix}-content`} className="text-xs text-muted-foreground">
-          Content <span className="font-normal opacity-70">(markdown)</span>
+          {t("notes.fields.contentLabel")}{" "}
+          <span className="font-normal opacity-70">{t("notes.fields.contentMarkdown")}</span>
         </Label>
         <Textarea
           id={`${idPrefix}-content`}
           ref={textareaRef}
           value={values.content}
-          placeholder="Capture a requirement, decision, snippet…"
+          placeholder={t("notes.fields.contentPlaceholder")}
           className="min-h-28 font-mono text-[0.8125rem] leading-relaxed"
           onChange={(event) => onChange({ content: event.target.value })}
         />
@@ -131,12 +135,13 @@ export function NoteFormFields({
       >
         <div className="grid gap-1.5">
           <Label htmlFor={`${idPrefix}-tags`} className="text-xs text-muted-foreground">
-            Tags <span className="font-normal opacity-70">(space or comma)</span>
+            {t("notes.fields.tagsLabel")}{" "}
+            <span className="font-normal opacity-70">{t("notes.fields.tagsHint")}</span>
           </Label>
           <Input
             id={`${idPrefix}-tags`}
             value={values.tagsInput}
-            placeholder="auth, mvp, perf"
+            placeholder={t("notes.fields.tagsPlaceholder")}
             onChange={(event) => onChange({ tagsInput: event.target.value })}
           />
         </div>
@@ -147,7 +152,7 @@ export function NoteFormFields({
               htmlFor={`${idPrefix}-domain`}
               className="text-xs text-muted-foreground"
             >
-              Domain
+              {t("notes.fields.domainLabel")}
             </Label>
             <Select
               value={values.domainId}
@@ -157,7 +162,7 @@ export function NoteFormFields({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NO_DOMAIN}>Project-level</SelectItem>
+                <SelectItem value={NO_DOMAIN}>{t("notes.fields.projectLevel")}</SelectItem>
                 {domains.map((domain) => (
                   <SelectItem key={domain.id} value={domain.id}>
                     {domain.name}

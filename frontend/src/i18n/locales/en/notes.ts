@@ -1,2 +1,65 @@
-// Filled by the notes translation pass.
-export const notes = {} as const;
+export const notes = {
+  composer: {
+    triggerLabel: "Add a quick note",
+    triggerText: "Quick note…",
+    saveHint: "to save",
+    title: "Quick note",
+    captureFast: "Capture fast —",
+    collapseLabel: "Collapse quick note",
+    addNote: "Add note",
+  },
+  fields: {
+    typeLabel: "Type",
+    titleLabel: "Title",
+    titlePlaceholder: "Short summary",
+    contentLabel: "Content",
+    contentMarkdown: "(markdown)",
+    contentPlaceholder: "Capture a requirement, decision, snippet…",
+    tagsLabel: "Tags",
+    tagsHint: "(space or comma)",
+    tagsPlaceholder: "auth, mvp, perf",
+    domainLabel: "Domain",
+    projectLevel: "Project-level",
+  },
+  filter: {
+    placeholder: "Filter notes by title, content, or tag…",
+    clearAria: "Clear filter",
+  },
+  card: {
+    untitled: "Untitled",
+    actionsAria: "Note actions",
+    showMore: "Show more",
+    showLess: "Show less",
+  },
+  edit: {
+    title: "Edit note",
+    description: "Update the type, content, tags, or domain.",
+  },
+  remove: {
+    title: "Delete this note?",
+    descriptionNamed: "“{title}” will be permanently removed. This cannot be undone.",
+    description: "This note will be permanently removed. This cannot be undone.",
+    deleteNote: "Delete note",
+  },
+  emptyError: {
+    title: "Couldn’t load notes",
+    description: "The notes for this project failed to load. Try refreshing the page.",
+  },
+  empty: {
+    title: "No notes yet",
+    description: "Capture your first requirement, decision, or snippet with the composer above.",
+  },
+  emptyFiltered: {
+    title: "No matching notes",
+    description: "Adjust the search text or clear the type filter.",
+  },
+  previewFallback: "Note",
+  toasts: {
+    captured: "{type} note captured",
+    saveFailed: "Could not save the note",
+    updated: "Note updated",
+    updateFailed: "Could not update the note",
+    deleted: "Note deleted",
+    deleteFailed: "Could not delete the note",
+  },
+} as const;

@@ -16,10 +16,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/common";
 import { FadeIn } from "@/components/motion";
 import { ProjectSkillsManager } from "@/components/skills/project-skills-manager";
+import { useT } from "@/i18n/locale-context";
 import { api } from "@/lib/api";
 import type { ProjectRead } from "@/lib/types";
 
 export default function ProjectSkillsPage() {
+  const t = useT();
   const { slug } = useParams<{ slug: string }>();
   const { data: project, isLoading } = useSWR<ProjectRead>(
     slug ? `/projects/${slug}` : null,
@@ -37,18 +39,18 @@ export default function ProjectSkillsPage() {
         >
           <Link href={`/projects/${slug}`}>
             <ArrowLeft className="size-4" />
-            Back to project
+            {t("skills.page.backToProject")}
           </Link>
         </Button>
         {isLoading && !project ? (
           <Skeleton className="h-9 w-64" />
         ) : (
           <PageHeader
-            title="Skills"
+            title={t("skills.page.projectTitle")}
             description={
               project
-                ? `Reusable skills for ${project.name}.`
-                : "Reusable skills for this project."
+                ? t("skills.page.projectDescriptionNamed", { name: project.name })
+                : t("skills.page.projectDescription")
             }
           />
         )}

@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/common";
 import { AnimatedItem, AnimatedList, FadeIn } from "@/components/motion";
 import { Accordion } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useT } from "@/i18n/locale-context";
 import { useDebounce } from "@/hooks/use-debounce";
 import type {
   FileEntryRead,
@@ -43,6 +44,7 @@ function countFiles(groups: FileGroupRead[] | undefined): number {
 }
 
 export function FilesExplorer() {
+  const t = useT();
   const [rawQuery, setRawQuery] = useState("");
   const [mode, setMode] = useState<SearchMode>("hybrid");
   const [projectSlug, setProjectSlug] = useState<string>(ALL_PROJECTS);
@@ -104,9 +106,13 @@ export function FilesExplorer() {
         />
         {!isLoading && groups ? (
           <p className="text-xs text-muted-foreground">
-            {total} {total === 1 ? "file" : "files"}
-            {hasQuery ? " matching your search" : null}
-            {groups.length > 1 ? ` across ${groups.length} projects` : null}
+            {total === 1
+              ? t("files.count.file", { count: total })
+              : t("files.count.files", { count: total })}
+            {hasQuery ? t("files.count.matching") : null}
+            {groups.length > 1
+              ? t("files.count.acrossProjects", { count: groups.length })
+              : null}
           </p>
         ) : null}
       </div>
@@ -159,6 +165,7 @@ function FilesBody({
   onOpen,
   projectNameBySlug,
 }: FilesBodyProps) {
+  const t = useT();
   if (isLoading && !groups) {
     return (
       <div className="space-y-3">
@@ -173,8 +180,8 @@ function FilesBody({
     return (
       <EmptyState
         icon={SearchX}
-        title="Couldn't load files"
-        description="Something went wrong while fetching saved files. Try again in a moment."
+        title={t("files.empty.errorTitle")}
+        description={t("files.empty.errorDescription")}
       />
     );
   }
@@ -183,14 +190,14 @@ function FilesBody({
     return hasQuery ? (
       <EmptyState
         icon={SearchX}
-        title="No matches"
-        description="No file contents match your search. Try a different query or switch the search mode."
+        title={t("files.empty.noMatchesTitle")}
+        description={t("files.empty.noMatchesDescription")}
       />
     ) : (
       <EmptyState
         icon={FileText}
-        title="No saved files yet"
-        description="Upload documents or generate artifacts in a project and they'll show up here, grouped by project."
+        title={t("files.empty.noFilesTitle")}
+        description={t("files.empty.noFilesDescription")}
       />
     );
   }

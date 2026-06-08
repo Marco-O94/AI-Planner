@@ -6,6 +6,7 @@ import { AlertCircle } from "lucide-react";
 
 import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/i18n/locale-context";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { ProjectRead } from "@/lib/types";
 import { CreateProjectDialog } from "./create-project-dialog";
@@ -24,6 +25,7 @@ import { useTechnologies } from "./use-technologies";
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function Dashboard() {
+  const t = useT();
   const [filters, setFilters] = useState<DashboardFilters>(EMPTY_FILTERS);
   const debouncedQuery = useDebounce(filters.q, SEARCH_DEBOUNCE_MS);
 
@@ -59,8 +61,8 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Projects"
-        description="Capture notes, tasks and documents per project and domain, then generate typed artifacts."
+        title={t("dashboard.header.title")}
+        description={t("dashboard.header.description")}
         actions={<CreateProjectDialog onCreated={() => mutate()} />}
       />
 
@@ -78,13 +80,15 @@ export function Dashboard() {
         <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-destructive/40 bg-destructive/5 px-6 py-16 text-center">
           <AlertCircle className="size-8 text-destructive" />
           <div className="space-y-1">
-            <p className="text-sm font-medium">Could not load projects</p>
+            <p className="text-sm font-medium">
+              {t("dashboard.errorState.title")}
+            </p>
             <p className="text-sm text-muted-foreground">
-              Check that the backend is reachable, then try again.
+              {t("dashboard.errorState.description")}
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={() => mutate()}>
-            Retry
+            {t("common.retry")}
           </Button>
         </div>
       ) : (

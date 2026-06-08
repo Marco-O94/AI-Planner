@@ -6,6 +6,7 @@ import { FileStack } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common";
+import { useT } from "@/i18n/locale-context";
 import { ArtifactList } from "@/components/artifacts/artifact-list";
 import { ArtifactDetail } from "@/components/artifacts/artifact-detail";
 import { artifactsKey } from "@/components/artifacts/lib";
@@ -25,6 +26,7 @@ function ListSkeleton() {
 /** Artifacts surface: grouped list plus an artifact detail with files, coverage,
  * versions/diff, phases, status, export, and source links. */
 export function ArtifactsTab({ project, domainId }: TabProps) {
+  const t = useT();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const listKey = artifactsKey(project.slug);
@@ -59,8 +61,8 @@ export function ArtifactsTab({ project, domainId }: TabProps) {
     return (
       <EmptyState
         icon={FileStack}
-        title="Could not load artifacts"
-        description="Something went wrong fetching this project's artifacts."
+        title={t("artifacts.empty.loadErrorTitle")}
+        description={t("artifacts.empty.loadErrorDescription")}
       />
     );
   }
@@ -69,8 +71,12 @@ export function ArtifactsTab({ project, domainId }: TabProps) {
     return (
       <EmptyState
         icon={FileStack}
-        title={domainId ? "No artifacts in this domain" : "No artifacts yet"}
-        description="Generate a typed artifact from your notes and tasks in Claude Code; it will appear here once saved."
+        title={
+          domainId
+            ? t("artifacts.empty.domainTitle")
+            : t("artifacts.empty.noneTitle")
+        }
+        description={t("artifacts.empty.noneDescription")}
       />
     );
   }

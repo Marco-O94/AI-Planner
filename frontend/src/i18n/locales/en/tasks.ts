@@ -1,2 +1,83 @@
-// Filled by the tasks translation pass.
-export const tasks = {} as const;
+export const tasks = {
+  newTask: "New task",
+  createFirst: "Create the first task",
+  board: {
+    columns: {
+      TODO: "Todo",
+      IN_PROGRESS: "In Progress",
+      DONE: "Done",
+    },
+    columnEmpty: "Nothing here yet",
+  },
+  empty: {
+    title: "No tasks yet",
+    description:
+      "Break the work down into tasks. Add dependencies to track what's blocked.",
+  },
+  noMatches: {
+    title: "No matching tasks",
+    description: "No tasks match the current filters.",
+    clearFilters: "Clear filters",
+  },
+  loadError: {
+    title: "Couldn't load tasks",
+    description: "Something went wrong while fetching tasks. Try again.",
+  },
+  filters: {
+    statusPlaceholder: "Status",
+    priorityPlaceholder: "Priority",
+    tagPlaceholder: "Tag",
+    allStatuses: "All statuses",
+    allPriorities: "All priorities",
+    allTags: "All tags",
+    filterByStatus: "Filter by status",
+    filterByPriority: "Filter by priority",
+    filterByTag: "Filter by tag",
+    tagInputPlaceholder: "Filter by tag…",
+  },
+  card: {
+    actions: "Task actions",
+    changeStatus: "Change status",
+    changePriority: "Change priority",
+    blocked: "Blocked",
+    blockedWaitingOn: "Waiting on: {titles}",
+    blockedWaitingGeneric: "Waiting on an unfinished dependency",
+  },
+  dialog: {
+    editTitle: "Edit task",
+    newTitle: "New task",
+    editDescription:
+      "Update the details, status, and dependencies for this task.",
+    newDescription:
+      "Capture a task with status, priority, tags, and dependencies.",
+    titleLabel: "Title",
+    titlePlaceholder: "What needs to be done?",
+    descriptionLabel: "Description",
+    descriptionPlaceholder: "Markdown supported…",
+    statusLabel: "Status",
+    priorityLabel: "Priority",
+    tagsLabel: "Tags",
+    tagsPlaceholder: "comma, separated",
+    domainLabel: "Domain",
+    domainProjectLevel: "Project-level",
+    dependenciesLabel: "Dependencies",
+    createTask: "Create task",
+  },
+  deps: {
+    noOptions: "No other tasks to depend on",
+    select: "Select dependencies",
+    count: "{count} dependencies",
+    countOne: "{count} dependency",
+    searchPlaceholder: "Search tasks...",
+    noResults: "No tasks found.",
+    removeDependency: "Remove dependency {title}",
+  },
+  toasts: {
+    statusChanged: "Moved to {status}",
+    priorityChanged: "Priority set to {priority}",
+    deleted: "Task deleted",
+    created: "Task created",
+    updated: "Task updated",
+    titleRequired: "Title is required",
+  },
+} as const;

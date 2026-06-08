@@ -1,5 +1,5 @@
-import { PageHeader } from "@/components/common";
 import { FilesExplorer } from "@/components/files/files-explorer";
+import { FilesPageHeader } from "@/components/files/files-page-header";
 
 export const metadata = {
   title: "Files",
@@ -14,10 +14,7 @@ export const metadata = {
 export default function FilesPage() {
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="File Explorer"
-        description="Browse every saved file grouped by project, and search full-text inside file contents."
-      />
+      <FilesPageHeader />
       <FilesExplorer />
     </div>
   );

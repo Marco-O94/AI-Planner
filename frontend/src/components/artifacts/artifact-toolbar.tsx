@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api, ApiError } from "@/lib/api";
+import { useT } from "@/i18n/locale-context";
 import { titleCase } from "@/lib/format";
 import { ARTIFACT_STATUSES } from "@/lib/types";
 import { triggerDownload } from "./lib";
@@ -25,6 +26,7 @@ interface ArtifactToolbarProps {
 
 /** Status toggle (DRAFT/APPROVED/ARCHIVED) plus single/zip export controls. */
 export function ArtifactToolbar({ artifact, onStatusChanged }: ArtifactToolbarProps) {
+  const t = useT();
   const [pending, setPending] = useState(false);
 
   async function changeStatus(status: ArtifactStatus) {
@@ -32,10 +34,16 @@ export function ArtifactToolbar({ artifact, onStatusChanged }: ArtifactToolbarPr
     setPending(true);
     try {
       await api.updateArtifact(artifact.id, { status });
-      toast.success(`Artifact marked ${titleCase(status)}`);
+      toast.success(
+        t("artifacts.toolbar.statusChanged", { status: titleCase(status) }),
+      );
       onStatusChanged();
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Could not update status");
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : t("artifacts.toolbar.statusError"),
+      );
     } finally {
       setPending(false);
     }
@@ -48,7 +56,10 @@ export function ArtifactToolbar({ artifact, onStatusChanged }: ArtifactToolbarPr
         onValueChange={(value) => changeStatus(value as ArtifactStatus)}
         disabled={pending}
       >
-        <SelectTrigger className="h-8 w-[150px]" aria-label="Artifact status">
+        <SelectTrigger
+          className="h-8 w-[150px]"
+          aria-label={t("artifacts.toolbar.statusLabel")}
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -69,7 +80,7 @@ export function ArtifactToolbar({ artifact, onStatusChanged }: ArtifactToolbarPr
         }
       >
         <FileArchive className="size-3.5" />
-        Export zip
+        {t("artifacts.toolbar.exportZip")}
       </Button>
       <Button
         type="button"
@@ -79,7 +90,7 @@ export function ArtifactToolbar({ artifact, onStatusChanged }: ArtifactToolbarPr
       >
         <a href={api.artifactExportUrl(artifact.id)} target="_blank" rel="noopener noreferrer">
           <Download className="size-3.5" />
-          Open export
+          {t("artifacts.toolbar.openExport")}
         </a>
       </Button>
     </div>

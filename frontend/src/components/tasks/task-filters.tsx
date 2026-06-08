@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { titleCase } from "@/lib/format";
+import { useT } from "@/i18n/locale-context";
 import type { TaskPriority, TaskStatus } from "@/lib/types";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/types";
 
@@ -38,6 +38,7 @@ interface TaskFiltersProps {
 
 /** Filter bar: status, priority, and tag. */
 export function TaskFilters({ filters, onChange, tagOptions }: TaskFiltersProps) {
+  const t = useT();
   const hasActive =
     filters.status !== ALL_VALUE ||
     filters.priority !== ALL_VALUE ||
@@ -55,14 +56,14 @@ export function TaskFilters({ filters, onChange, tagOptions }: TaskFiltersProps)
           patch({ status: value as TaskFilterState["status"] })
         }
       >
-        <SelectTrigger size="sm" className="min-w-32" aria-label="Filter by status">
-          <SelectValue placeholder="Status" />
+        <SelectTrigger size="sm" className="min-w-32" aria-label={t("tasks.filters.filterByStatus")}>
+          <SelectValue placeholder={t("tasks.filters.statusPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL_VALUE}>All statuses</SelectItem>
+          <SelectItem value={ALL_VALUE}>{t("tasks.filters.allStatuses")}</SelectItem>
           {TASK_STATUSES.map((status) => (
             <SelectItem key={status} value={status}>
-              {titleCase(status)}
+              {t(`enums.taskStatus.${status}`)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -74,14 +75,14 @@ export function TaskFilters({ filters, onChange, tagOptions }: TaskFiltersProps)
           patch({ priority: value as TaskFilterState["priority"] })
         }
       >
-        <SelectTrigger size="sm" className="min-w-32" aria-label="Filter by priority">
-          <SelectValue placeholder="Priority" />
+        <SelectTrigger size="sm" className="min-w-32" aria-label={t("tasks.filters.filterByPriority")}>
+          <SelectValue placeholder={t("tasks.filters.priorityPlaceholder")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL_VALUE}>All priorities</SelectItem>
+          <SelectItem value={ALL_VALUE}>{t("tasks.filters.allPriorities")}</SelectItem>
           {TASK_PRIORITIES.map((priority) => (
             <SelectItem key={priority} value={priority}>
-              {titleCase(priority)}
+              {t(`enums.taskPriority.${priority}`)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -92,11 +93,11 @@ export function TaskFilters({ filters, onChange, tagOptions }: TaskFiltersProps)
           value={filters.tag || ALL_VALUE}
           onValueChange={(value) => patch({ tag: value === ALL_VALUE ? "" : value })}
         >
-          <SelectTrigger size="sm" className="min-w-32" aria-label="Filter by tag">
-            <SelectValue placeholder="Tag" />
+          <SelectTrigger size="sm" className="min-w-32" aria-label={t("tasks.filters.filterByTag")}>
+            <SelectValue placeholder={t("tasks.filters.tagPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_VALUE}>All tags</SelectItem>
+            <SelectItem value={ALL_VALUE}>{t("tasks.filters.allTags")}</SelectItem>
             {tagOptions.map((tag) => (
               <SelectItem key={tag} value={tag}>
                 #{tag}
@@ -108,9 +109,9 @@ export function TaskFilters({ filters, onChange, tagOptions }: TaskFiltersProps)
         <Input
           value={filters.tag}
           onChange={(event) => patch({ tag: event.target.value })}
-          placeholder="Filter by tag…"
+          placeholder={t("tasks.filters.tagInputPlaceholder")}
           className="h-7 w-40"
-          aria-label="Filter by tag"
+          aria-label={t("tasks.filters.filterByTag")}
         />
       )}
 
@@ -122,7 +123,7 @@ export function TaskFilters({ filters, onChange, tagOptions }: TaskFiltersProps)
           className="text-muted-foreground"
         >
           <X />
-          Clear
+          {t("common.clear")}
         </Button>
       ) : null}
     </div>

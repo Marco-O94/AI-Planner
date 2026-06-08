@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 import type { ProjectRead, SearchKind } from "@/lib/types";
 
@@ -55,14 +56,15 @@ export function FileFilters({
   onTagChange,
   availableTags,
 }: FileFiltersProps) {
+  const t = useT();
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Select value={projectSlug} onValueChange={onProjectChange}>
-        <SelectTrigger className="w-[180px]" aria-label="Scope to project">
-          <SelectValue placeholder="All projects" />
+        <SelectTrigger className="w-[180px]" aria-label={t("files.filters.projectAriaLabel")}>
+          <SelectValue placeholder={t("files.filters.allProjects")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL_PROJECTS}>All projects</SelectItem>
+          <SelectItem value={ALL_PROJECTS}>{t("files.filters.allProjects")}</SelectItem>
           {projects.map((project) => (
             <SelectItem key={project.slug} value={project.slug}>
               {project.name}
@@ -75,14 +77,14 @@ export function FileFilters({
         value={kind}
         onValueChange={(value) => onKindChange(value as SearchKind | typeof ALL_KINDS)}
       >
-        <SelectTrigger className="w-[150px]" aria-label="Filter by kind">
-          <SelectValue placeholder="Any kind" />
+        <SelectTrigger className="w-[150px]" aria-label={t("files.filters.kindAriaLabel")}>
+          <SelectValue placeholder={t("files.filters.anyKind")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL_KINDS}>Any kind</SelectItem>
+          <SelectItem value={ALL_KINDS}>{t("files.filters.anyKind")}</SelectItem>
           {FILE_KIND_OPTIONS.map((option) => (
             <SelectItem key={option.value} value={option.value}>
-              {option.label}
+              {t(option.labelKey)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -104,6 +106,7 @@ interface TagFilterProps {
 }
 
 function TagFilter({ tag, onTagChange, availableTags }: TagFilterProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
 
   return (
@@ -117,7 +120,7 @@ function TagFilter({ tag, onTagChange, availableTags }: TagFilterProps) {
         >
           <span className="flex min-w-0 items-center gap-1.5">
             <Tag className="size-3.5 shrink-0 text-muted-foreground" />
-            <span className="truncate">{tag ? `#${tag}` : "Any tag"}</span>
+            <span className="truncate">{tag ? `#${tag}` : t("files.filters.anyTag")}</span>
           </span>
           {tag ? (
             <X
@@ -134,9 +137,9 @@ function TagFilter({ tag, onTagChange, availableTags }: TagFilterProps) {
       </PopoverTrigger>
       <PopoverContent className="w-[220px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Filter tag…" />
+          <CommandInput placeholder={t("files.filters.filterTagPlaceholder")} />
           <CommandList>
-            <CommandEmpty>No tags found.</CommandEmpty>
+            <CommandEmpty>{t("files.filters.noTagsFound")}</CommandEmpty>
             <CommandGroup>
               {availableTags.map((option) => (
                 <CommandItem

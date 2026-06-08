@@ -25,8 +25,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { TagList } from "@/components/common";
 import { Markdown } from "@/components/markdown";
 import { TaskPriorityBadge } from "@/components/status-badge";
+import { useT } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
-import { titleCase } from "@/lib/format";
 import type { TaskPriority, TaskRead, TaskStatus } from "@/lib/types";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/types";
 
@@ -49,26 +49,39 @@ export function TaskCard({
   patchTask,
   onDeleted,
 }: TaskCardProps) {
+  const t = useT();
   const [deleting, setDeleting] = useState(false);
 
   async function changeStatus(status: TaskStatus) {
     if (status === task.status) return;
-    await patchTask(task, { status }, `Moved to ${titleCase(status)}`);
+    await patchTask(
+      task,
+      { status },
+      t("tasks.toasts.statusChanged", { status: t(`enums.taskStatus.${status}`) }),
+    );
   }
 
   async function changePriority(priority: TaskPriority) {
     if (priority === task.priority) return;
-    await patchTask(task, { priority }, `Priority set to ${titleCase(priority)}`);
+    await patchTask(
+      task,
+      { priority },
+      t("tasks.toasts.priorityChanged", {
+        priority: t(`enums.taskPriority.${priority}`),
+      }),
+    );
   }
 
   async function remove() {
     setDeleting(true);
     try {
       await api.deleteTask(task.id);
-      toast.success("Task deleted");
+      toast.success(t("tasks.toasts.deleted"));
       onDeleted();
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Something went wrong");
+      toast.error(
+        error instanceof ApiError ? error.message : t("common.somethingWrong"),
+      );
       setDeleting(false);
     }
   }
@@ -86,7 +99,7 @@ export function TaskCard({
               variant="ghost"
               size="icon-xs"
               className="-mt-0.5 -mr-1 shrink-0 text-muted-foreground"
-              aria-label="Task actions"
+              aria-label={t("tasks.card.actions")}
             >
               <MoreVertical />
             </Button>
@@ -94,7 +107,7 @@ export function TaskCard({
           <DropdownMenuContent align="end" className="w-36">
             <DropdownMenuItem onSelect={() => onEdit(task)}>
               <Pencil />
-              Edit
+              {t("common.edit")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -106,7 +119,7 @@ export function TaskCard({
               }}
             >
               <Trash2 />
-              Delete
+              {t("common.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -126,13 +139,15 @@ export function TaskCard({
               className="w-fit gap-1 border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
             >
               <Ban className="size-3" />
-              Blocked
+              {t("tasks.card.blocked")}
             </Badge>
           </TooltipTrigger>
           <TooltipContent>
             {blockingTitles.length > 0
-              ? `Waiting on: ${blockingTitles.join(", ")}`
-              : "Waiting on an unfinished dependency"}
+              ? t("tasks.card.blockedWaitingOn", {
+                  titles: blockingTitles.join(", "),
+                })
+              : t("tasks.card.blockedWaitingGeneric")}
           </TooltipContent>
         </Tooltip>
       ) : null}
@@ -141,13 +156,13 @@ export function TaskCard({
 
       <div className="flex flex-wrap items-center gap-2 pt-1">
         <Select value={task.status} onValueChange={(value) => changeStatus(value as TaskStatus)}>
-          <SelectTrigger size="sm" className="h-7" aria-label="Change status">
+          <SelectTrigger size="sm" className="h-7" aria-label={t("tasks.card.changeStatus")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {TASK_STATUSES.map((status) => (
               <SelectItem key={status} value={status}>
-                {titleCase(status)}
+                {t(`enums.taskStatus.${status}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -155,7 +170,7 @@ export function TaskCard({
 
         <DropdownMenu>
           <DropdownMenuTrigger
-            aria-label="Change priority"
+            aria-label={t("tasks.card.changePriority")}
             className="rounded-4xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           >
             <TaskPriorityBadge priority={task.priority} />
@@ -166,7 +181,7 @@ export function TaskCard({
                 key={priority}
                 onSelect={() => void changePriority(priority)}
               >
-                {titleCase(priority)}
+                {t(`enums.taskPriority.${priority}`)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

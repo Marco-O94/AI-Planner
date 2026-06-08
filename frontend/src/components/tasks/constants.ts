@@ -1,10 +1,10 @@
 import type { TaskStatus } from "@/lib/types";
 
-/** Ordered board columns (left → right). */
-export const BOARD_COLUMNS: { status: TaskStatus; label: string }[] = [
-  { status: "TODO", label: "Todo" },
-  { status: "IN_PROGRESS", label: "In Progress" },
-  { status: "DONE", label: "Done" },
+/** Ordered board columns (left → right). Labels resolve via `tasks.board.columns.<status>`. */
+export const BOARD_COLUMNS: { status: TaskStatus }[] = [
+  { status: "TODO" },
+  { status: "IN_PROGRESS" },
+  { status: "DONE" },
 ];
 
 /** Sentinel used by Select filters to mean "no filter applied". */

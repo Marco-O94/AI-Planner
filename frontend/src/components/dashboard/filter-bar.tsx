@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/i18n/locale-context";
 import { titleCase } from "@/lib/format";
 import { PROJECT_STATUSES } from "@/lib/types";
 import { FilterSelect, type FilterOption } from "./filter-select";
@@ -39,6 +40,7 @@ export function FilterBar({
   grouped,
   techLoading,
 }: FilterBarProps) {
+  const t = useT();
   const active = hasActiveFilters(filters);
 
   return (
@@ -50,14 +52,14 @@ export function FilterBar({
             type="search"
             value={filters.q}
             onChange={(event) => onChange({ q: event.target.value })}
-            placeholder="Search projects by name or description…"
-            aria-label="Search projects"
+            placeholder={t("dashboard.filters.searchPlaceholder")}
+            aria-label={t("dashboard.filters.searchAria")}
             className="h-9 pl-9"
           />
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:flex lg:flex-1 lg:flex-wrap lg:justify-end">
           <FilterSelect
-            label="Status"
+            label={t("dashboard.filters.status")}
             value={filters.status}
             options={STATUS_OPTIONS}
             onChange={(value) =>
@@ -65,21 +67,21 @@ export function FilterBar({
             }
           />
           <FilterSelect
-            label="Language"
+            label={t("dashboard.filters.language")}
             value={filters.language}
             options={toOptions(grouped.LANGUAGE)}
             onChange={(value) => onChange({ language: value })}
             disabled={techLoading}
           />
           <FilterSelect
-            label="Framework"
+            label={t("dashboard.filters.framework")}
             value={filters.framework}
             options={toOptions(grouped.FRAMEWORK)}
             onChange={(value) => onChange({ framework: value })}
             disabled={techLoading}
           />
           <FilterSelect
-            label="Database"
+            label={t("dashboard.filters.database")}
             value={filters.database}
             options={toOptions(grouped.DATABASE)}
             onChange={(value) => onChange({ database: value })}
@@ -97,7 +99,7 @@ export function FilterBar({
             className="text-muted-foreground hover:text-foreground"
           >
             <X className="size-3.5" />
-            Clear filters
+            {t("dashboard.filters.clear")}
           </Button>
         </div>
       ) : null}

@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useT } from "@/i18n/locale-context";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import type { DocumentRead, DomainRead } from "@/lib/types";
@@ -35,6 +36,7 @@ export function DocumentRow({
   onPreview,
   onDelete,
 }: DocumentRowProps) {
+  const t = useT();
   const domain = document.domain_id
     ? domains.find((item) => item.id === document.domain_id)
     : undefined;
@@ -55,7 +57,7 @@ export function DocumentRow({
           "transition-colors group-hover:text-foreground",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
         )}
-        aria-label={`Preview ${document.title}`}
+        aria-label={t("documents.row.previewAria", { title: document.title })}
       >
         <FileText className="size-5" />
       </button>
@@ -83,7 +85,9 @@ export function DocumentRow({
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           <span className="truncate font-mono">{document.filename}</span>
           <span aria-hidden>·</span>
-          <span>Added {formatDate(document.created_at)}</span>
+          <span>
+            {t("documents.row.added", { date: formatDate(document.created_at) })}
+          </span>
           {showDomain && domain ? (
             <>
               <span aria-hidden>·</span>
@@ -101,7 +105,7 @@ export function DocumentRow({
             variant="ghost"
             size="icon-sm"
             className="shrink-0 text-muted-foreground"
-            aria-label="Document actions"
+            aria-label={t("documents.row.actions")}
           >
             <MoreHorizontal className="size-4" />
           </Button>
@@ -109,7 +113,7 @@ export function DocumentRow({
         <DropdownMenuContent align="end" className="w-44">
           <DropdownMenuItem onSelect={() => onPreview(document)}>
             <Eye className="size-4" />
-            Preview
+            {t("documents.row.preview")}
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <a
@@ -117,7 +121,7 @@ export function DocumentRow({
               download={document.filename}
             >
               <Download className="size-4" />
-              Download
+              {t("common.download")}
             </a>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -126,7 +130,7 @@ export function DocumentRow({
             onSelect={() => onDelete(document)}
           >
             <Trash2 className="size-4" />
-            Delete
+            {t("common.delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

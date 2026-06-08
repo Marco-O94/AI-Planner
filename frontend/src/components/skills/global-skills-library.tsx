@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { EmptyState } from "@/components/common";
 import { AnimatedList, AnimatedItem, AnimatePresence } from "@/components/motion";
+import { useT } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { SkillRead } from "@/lib/types";
@@ -35,6 +36,7 @@ import { SkillDialog } from "./skill-dialog";
 import { SkillUpload } from "./skill-upload";
 
 export function GlobalSkillsLibrary() {
+  const t = useT();
   const { data, isLoading, error, mutate } = useSWR<SkillRead[]>("/skills", () =>
     api.listGlobalSkills(),
   );
@@ -64,11 +66,13 @@ export function GlobalSkillsLibrary() {
     setDeleting(true);
     try {
       await api.deleteSkill(pendingDelete.id);
-      toast.success(`Deleted “${pendingDelete.name}”`);
+      toast.success(t("skills.toasts.deleted", { name: pendingDelete.name }));
       setPendingDelete(null);
       void mutate();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Could not delete skill");
+      toast.error(
+        err instanceof ApiError ? err.message : t("skills.toasts.deleteError"),
+      );
     } finally {
       setDeleting(false);
     }
@@ -84,18 +88,18 @@ export function GlobalSkillsLibrary() {
           <Input
             value={rawQuery}
             onChange={(event) => setRawQuery(event.target.value)}
-            placeholder="Search skills…"
+            placeholder={t("skills.library.searchPlaceholder")}
             className="pl-9"
           />
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setUploadOpen(true)}>
             <Upload className="size-4" />
-            Import .md
+            {t("skills.library.importMd")}
           </Button>
           <Button size="sm" onClick={() => setCreateOpen(true)}>
             <Plus className="size-4" />
-            New skill
+            {t("skills.library.newSkill")}
           </Button>
         </div>
       </div>
@@ -109,24 +113,28 @@ export function GlobalSkillsLibrary() {
       ) : error ? (
         <EmptyState
           icon={Sparkles}
-          title="Couldn’t load skills"
-          description={error instanceof ApiError ? error.message : "Please try again."}
-          action={<Button onClick={() => void mutate()}>Retry</Button>}
+          title={t("skills.library.loadError")}
+          description={
+            error instanceof ApiError ? error.message : t("skills.library.loadErrorRetry")
+          }
+          action={
+            <Button onClick={() => void mutate()}>{t("common.retry")}</Button>
+          }
         />
       ) : total === 0 ? (
         <EmptyState
           icon={Sparkles}
-          title="No global skills yet"
-          description="Create a reusable skill or import one from a Markdown file."
+          title={t("skills.library.emptyTitle")}
+          description={t("skills.library.emptyDescription")}
           action={
             <div className="flex flex-wrap justify-center gap-2">
               <Button variant="outline" onClick={() => setUploadOpen(true)}>
                 <Upload className="size-4" />
-                Import .md
+                {t("skills.library.importMd")}
               </Button>
               <Button onClick={() => setCreateOpen(true)}>
                 <Plus className="size-4" />
-                New skill
+                {t("skills.library.newSkill")}
               </Button>
             </div>
           }
@@ -134,8 +142,8 @@ export function GlobalSkillsLibrary() {
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Search}
-          title="No matches"
-          description="No skills match your search."
+          title={t("skills.library.noMatchesTitle")}
+          description={t("skills.library.noMatchesDescription")}
         />
       ) : (
         <AnimatedList className="grid gap-3">
@@ -151,7 +159,7 @@ export function GlobalSkillsLibrary() {
                         variant="ghost"
                         size="icon"
                         className="size-8 text-muted-foreground hover:text-foreground"
-                        aria-label="Export skill"
+                        aria-label={t("skills.library.exportAria")}
                       >
                         <a href={api.skillExportUrl(skill.id)} download>
                           <Download className="size-4" />
@@ -162,7 +170,7 @@ export function GlobalSkillsLibrary() {
                         size="icon"
                         className="size-8 text-muted-foreground hover:text-foreground"
                         onClick={() => setEditing(skill)}
-                        aria-label="Edit skill"
+                        aria-label={t("skills.library.editAria")}
                       >
                         <Pencil className="size-4" />
                       </Button>
@@ -171,7 +179,7 @@ export function GlobalSkillsLibrary() {
                         size="icon"
                         className="size-8 text-muted-foreground hover:text-destructive"
                         onClick={() => setPendingDelete(skill)}
-                        aria-label="Delete skill"
+                        aria-label={t("skills.library.deleteAria")}
                       >
                         <Trash2 className="size-4" />
                       </Button>
@@ -208,14 +216,17 @@ export function GlobalSkillsLibrary() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this skill?</AlertDialogTitle>
+            <AlertDialogTitle>{t("skills.library.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              “{pendingDelete?.name}” will be permanently removed from the global library.
-              This cannot be undone.
+              {t("skills.library.deleteConfirm", {
+                name: pendingDelete?.name ?? "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault();
@@ -223,7 +234,7 @@ export function GlobalSkillsLibrary() {
               }}
               disabled={deleting}
             >
-              {deleting ? "Deleting…" : "Delete"}
+              {deleting ? t("common.deleting") : t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
