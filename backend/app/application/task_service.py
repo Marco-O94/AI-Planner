@@ -58,26 +58,39 @@ class TaskService:
     def _reject_cycle(
         self, project_id: uuid.UUID, task_id: uuid.UUID, depends_on: list[uuid.UUID]
     ) -> None:
-        adjacency = {t.id: list(t.depends_on) for t in self.repo.list_all_for_project(project_id)}
+        tasks = self.repo.list_all_for_project(project_id)
+        adjacency = {t.id: list(t.depends_on) for t in tasks}
         adjacency[task_id] = list(depends_on)
+        title_by_id = {t.id: t.title for t in tasks}
+
         visiting: set[uuid.UUID] = set()
         visited: set[uuid.UUID] = set()
+        stack: list[uuid.UUID] = []
 
-        def has_cycle(node: uuid.UUID) -> bool:
-            if node in visiting:
-                return True
-            if node in visited:
-                return False
+        def find_cycle(node: uuid.UUID) -> list[uuid.UUID] | None:
             visiting.add(node)
+            stack.append(node)
             for nxt in adjacency.get(node, []):
-                if has_cycle(nxt):
-                    return True
+                if nxt in visiting:  # back-edge to an ancestor -> cycle
+                    return stack[stack.index(nxt):] + [nxt]
+                if nxt not in visited:
+                    found = find_cycle(nxt)
+                    if found is not None:
+                        return found
             visiting.discard(node)
             visited.add(node)
-            return False
+            stack.pop()
+            return None
 
-        if has_cycle(task_id):
-            raise ValidationError("dependency cycle detected")
+        cycle = find_cycle(task_id)
+        if cycle is not None:
+            # Report the cycle by task title so the agent can see what to break;
+            # the task being created/updated has no persisted title yet.
+            path = " -> ".join(
+                title_by_id.get(n) or ("<this task>" if n == task_id else str(n))
+                for n in cycle
+            )
+            raise ValidationError(f"dependency cycle detected: {path}")
 
     def create(
         self,
