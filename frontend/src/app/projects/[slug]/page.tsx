@@ -192,11 +192,15 @@ export default function ProjectPage() {
 
       <FadeIn>
         <Tabs value={activeTab} onValueChange={onTabChange} className="gap-4">
-          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 sm:w-fit">
+          <TabsList className="flex w-full justify-start gap-1 overflow-x-auto sm:w-fit sm:overflow-visible">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               return (
-                <TabsTrigger key={tab.value} value={tab.value} className="flex-none gap-1.5">
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="shrink-0 gap-1.5 whitespace-nowrap"
+                >
                   <Icon className="size-4" />
                   <span>{t(`project.tabs.${tab.value}`)}</span>
                 </TabsTrigger>
