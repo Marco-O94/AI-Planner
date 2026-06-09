@@ -12,7 +12,7 @@ from app.application.skill_service import SkillService
 from app.application.slugs import make_unique_slug
 from app.application.task_service import TaskService
 from app.domain.entities import ProjectTemplate
-from app.domain.enums import NoteType, ScopeKind, TaskPriority, TechnologyKind
+from app.domain.enums import ScopeKind, TaskPriority, TechnologyKind
 from app.domain.errors import NotFoundError, ValidationError
 from app.domain.read_models import ProjectDetail
 from app.domain.repositories import ProjectTemplateRepository
@@ -104,7 +104,7 @@ class ProjectTemplateService:
         for note in definition.get("notes", []):
             self.note_service.create(
                 project_slug,
-                type=NoteType(note["type"]),
+                type=note["type"],
                 content=note["content"],
                 title=note.get("title"),
                 tags=note.get("tags"),
@@ -143,7 +143,12 @@ class ProjectTemplateService:
             ],
             "skill_ids": [str(s.id) for s in skills if s.scope == ScopeKind.GLOBAL],
             "notes": [
-                {"type": str(n.type), "title": n.title, "content": n.content, "tags": n.tags}
+                {
+                    "type": n.type.key or n.type.slug if n.type is not None else None,
+                    "title": n.title,
+                    "content": n.content,
+                    "tags": n.tags,
+                }
                 for n in notes
             ],
             "tasks": [

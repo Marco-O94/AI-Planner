@@ -53,7 +53,7 @@ def test_delete_in_use_type_blocked(client: TestClient, make_project) -> None:
         "/note-types",
         json={"scope": "PROJECT", "name": "InUse", "color": "red", "project_slug": slug},
     ).json()
-    note = client.post(f"/projects/{slug}/notes", json={"type": "in-use", "content": "x"})
+    note = client.post(f"/projects/{slug}/notes", json={"type": nt["slug"], "content": "x"})
     assert note.status_code == 201, note.text
     resp = client.delete(f"/note-types/{nt['id']}")
     assert resp.status_code == 409, resp.text

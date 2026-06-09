@@ -44,9 +44,9 @@ def test_note_filtering_by_type_and_tag(client: TestClient, make_project) -> Non
         json={"type": "DECISION", "content": "d", "tags": ["beta"]},
     )
     only_req = client.get(f"/projects/{slug}/notes?type=REQUIREMENT").json()
-    assert len(only_req) == 1 and only_req[0]["type"] == "REQUIREMENT"
+    assert len(only_req) == 1 and only_req[0]["type"]["key"] == "REQUIREMENT"
     only_beta = client.get(f"/projects/{slug}/notes?tag=beta").json()
-    assert len(only_beta) == 1 and only_beta[0]["type"] == "DECISION"
+    assert len(only_beta) == 1 and only_beta[0]["type"]["key"] == "DECISION"
 
 
 def test_task_filtering_by_status_and_priority(client: TestClient, make_project) -> None:
