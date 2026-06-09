@@ -16,8 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { NoteTypeBadge } from "@/components/status-badge";
-import { NOTE_TYPES, type DomainRead, type NoteType } from "@/lib/types";
+import { NoteTypePicker } from "@/components/notes/note-type-picker";
+import { type DomainRead } from "@/lib/types";
 import { titleCase } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/locale-context";
@@ -26,7 +26,8 @@ import { useT } from "@/i18n/locale-context";
 export const NO_DOMAIN = "__project__";
 
 export interface NoteFormValues {
-  type: NoteType;
+  /** Note-type slug; "" means "not yet chosen" (composer seeds a default). */
+  type: string;
   title: string;
   content: string;
   tagsInput: string;
@@ -34,7 +35,7 @@ export interface NoteFormValues {
 }
 
 export const EMPTY_NOTE_FORM: NoteFormValues = {
-  type: "REQUIREMENT",
+  type: "",
   title: "",
   content: "",
   tagsInput: "",
@@ -55,6 +56,7 @@ interface NoteFormFieldsProps {
   values: NoteFormValues;
   onChange: (patch: Partial<NoteFormValues>) => void;
   domains: DomainRead[];
+  projectSlug: string;
   /** Hide the domain picker (e.g. when scoped to a fixed domain). */
   lockDomain?: boolean;
   idPrefix: string;
@@ -66,6 +68,7 @@ export function NoteFormFields({
   values,
   onChange,
   domains,
+  projectSlug,
   lockDomain = false,
   idPrefix,
   textareaRef,
@@ -79,23 +82,12 @@ export function NoteFormFields({
           <Label htmlFor={`${idPrefix}-type`} className="text-xs text-muted-foreground">
             {t("notes.fields.typeLabel")}
           </Label>
-          <Select
+          <NoteTypePicker
+            id={`${idPrefix}-type`}
+            projectSlug={projectSlug}
             value={values.type}
-            onValueChange={(type) => onChange({ type: type as NoteType })}
-          >
-            <SelectTrigger id={`${idPrefix}-type`} className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {NOTE_TYPES.map((type) => (
-                <SelectItem key={type} value={type}>
-                  <span className="flex items-center gap-2">
-                    <NoteTypeBadge type={type} />
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(type) => onChange({ type })}
+          />
         </div>
 
         <div className="grid gap-1.5">
@@ -178,6 +170,6 @@ export function NoteFormFields({
 }
 
 /** Human label for a note type, used in toasts and headings. */
-export function noteTypeLabel(type: NoteType): string {
+export function noteTypeLabel(type: string): string {
   return titleCase(type);
 }

@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { useSWRConfig } from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { Plus, Loader2, X } from "lucide-react";
 
@@ -19,7 +19,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ApiError, api } from "@/lib/api";
-import type { DomainRead, NoteCreate, NoteRead } from "@/lib/types";
+import type { DomainRead, NoteCreate, NoteRead, NoteTypeRead } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/locale-context";
 import {
@@ -27,7 +27,6 @@ import {
   NO_DOMAIN,
   NoteFormFields,
   type NoteFormValues,
-  noteTypeLabel,
   parseTags,
 } from "./note-form-fields";
 
@@ -45,6 +44,7 @@ function makeOptimisticNote(
   projectSlug: string,
   fixedDomainId: string | undefined,
   tags: string[],
+  noteType: NoteTypeRead,
 ): NoteRead {
   const now = new Date().toISOString();
   const domainId =
@@ -53,7 +53,14 @@ function makeOptimisticNote(
     id: `optimistic-${now}-${Math.random().toString(36).slice(2)}`,
     project_id: projectSlug,
     domain_id: domainId,
-    type: values.type,
+    note_type_id: noteType.id,
+    type: {
+      id: noteType.id,
+      key: noteType.key,
+      slug: noteType.slug,
+      name: noteType.name,
+      color: noteType.color,
+    },
     title: values.title.trim() || null,
     content: values.content,
     tags,
@@ -75,12 +82,26 @@ export function QuickNoteComposer({
   const [open, setOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const { data: noteTypes } = useSWR<NoteTypeRead[]>(
+    `/projects/${projectSlug}/note-types`,
+  );
+
   const canSubmit = values.content.trim().length > 0 && !submitting;
 
   // Focus the content field as the form reveals itself.
   useEffect(() => {
     if (open) textareaRef.current?.focus();
   }, [open]);
+
+  // Seed a default type once the applicable types load, so the picker isn't empty.
+  useEffect(() => {
+    if (!values.type && noteTypes && noteTypes.length > 0) {
+      // Default to the "requirement" built-in if present, else the first type.
+      const fallback =
+        noteTypes.find((type) => type.key === "REQUIREMENT") ?? noteTypes[0];
+      setValues((prev) => ({ ...prev, type: fallback.slug }));
+    }
+  }, [noteTypes, values.type]);
 
   function patch(next: Partial<NoteFormValues>) {
     setValues((prev) => ({ ...prev, ...next }));
@@ -93,10 +114,19 @@ export function QuickNoteComposer({
 
   async function submit() {
     if (!canSubmit) return;
+
+    const chosen = (noteTypes ?? []).find((type) => type.slug === values.type);
+    if (!chosen) return; // types not loaded yet
     setSubmitting(true);
 
     const tags = parseTags(values.tagsInput);
-    const optimistic = makeOptimisticNote(values, projectSlug, fixedDomainId, tags);
+    const optimistic = makeOptimisticNote(
+      values,
+      projectSlug,
+      fixedDomainId,
+      tags,
+      chosen,
+    );
     const body: NoteCreate = {
       type: values.type,
       content: values.content,
@@ -122,7 +152,7 @@ export function QuickNoteComposer({
         { revalidate: false },
       );
       mutate(notesKey);
-      toast.success(t("notes.toasts.captured", { type: noteTypeLabel(values.type) }));
+      toast.success(t("notes.toasts.captured", { type: chosen.name }));
       setValues((prev) => ({
         ...EMPTY_NOTE_FORM,
         // Keep type + domain so rapid same-context capture stays fast.
@@ -215,6 +245,7 @@ export function QuickNoteComposer({
             values={values}
             onChange={patch}
             domains={domains}
+            projectSlug={projectSlug}
             lockDomain={Boolean(fixedDomainId)}
             idPrefix="quick-note"
             textareaRef={textareaRef}
