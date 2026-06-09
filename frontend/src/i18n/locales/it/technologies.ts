@@ -30,4 +30,8 @@ export const technologies = {
     saveError: "Impossibile salvare la tecnologia.",
     deleteError: "Impossibile eliminare la tecnologia.",
   },
+  errors: {
+    loadTitle: "Impossibile caricare le tecnologie",
+    loadDescription: "Il backend potrebbe non essere disponibile. Riprova tra un momento.",
+  },
 } as const;

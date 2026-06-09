@@ -22,7 +22,8 @@ function sortTechnologies(list: TechnologyRead[]): TechnologyRead[] {
 
 export function TechnologiesManager() {
   const t = useT();
-  const { data, isLoading } = useSWR<TechnologyRead[]>(TECHNOLOGIES_KEY);
+  const { data, error, isLoading, mutate: revalidate } =
+    useSWR<TechnologyRead[]>(TECHNOLOGIES_KEY);
   const { mutate } = useSWRConfig();
 
   const [dialogKind, setDialogKind] = useState<TechnologyKind>("LANGUAGE");
@@ -95,7 +96,18 @@ export function TechnologiesManager() {
 
   return (
     <div className="space-y-8">
-      {isEmpty ? (
+      {error ? (
+        <EmptyState
+          icon={Boxes}
+          title={t("technologies.errors.loadTitle")}
+          description={t("technologies.errors.loadDescription")}
+          action={
+            <Button variant="outline" size="sm" onClick={() => void revalidate()}>
+              {t("common.retry")}
+            </Button>
+          }
+        />
+      ) : isEmpty ? (
         <EmptyState
           icon={Boxes}
           title={t("technologies.section.emptyTitle")}
