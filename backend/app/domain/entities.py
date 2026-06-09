@@ -54,14 +54,41 @@ class Domain:
 
 
 @dataclass(frozen=True, slots=True)
+class NoteTypeRef:
+    """Compact note-type summary embedded in a Note read."""
+
+    id: uuid.UUID
+    key: str | None
+    slug: str
+    name: str
+    color: str
+
+
+@dataclass(frozen=True, slots=True)
+class NoteTypeEntity:
+    id: uuid.UUID
+    scope: ScopeKind
+    name: str
+    slug: str
+    color: str
+    project_id: uuid.UUID | None = None
+    key: str | None = None
+    description: str | None = None
+    is_default: bool = False
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class Note:
     id: uuid.UUID
     project_id: uuid.UUID
-    type: NoteType
+    note_type_id: uuid.UUID
     content: str
     domain_id: uuid.UUID | None = None
     title: str | None = None
     tags: list[str] = field(default_factory=list)
+    type: NoteTypeRef | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
