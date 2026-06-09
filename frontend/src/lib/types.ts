@@ -124,13 +124,64 @@ export interface DomainCreate {
 
 export type DomainUpdate = Partial<DomainCreate>;
 
+// -- note types ------------------------------------------------------------
+
+export const NOTE_TYPE_COLORS = [
+  "violet",
+  "blue",
+  "green",
+  "amber",
+  "red",
+  "slate",
+  "neutral",
+] as const;
+export type NoteTypeColor = (typeof NOTE_TYPE_COLORS)[number];
+
+/** Compact note-type summary embedded in a note. */
+export interface NoteTypeRef {
+  id: string;
+  key: string | null;
+  slug: string;
+  name: string;
+  color: NoteTypeColor;
+}
+
+export interface NoteTypeRead {
+  id: string;
+  scope: ScopeKind;
+  project_id: string | null;
+  key: string | null;
+  name: string;
+  slug: string;
+  color: NoteTypeColor;
+  description: string | null;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NoteTypeCreate {
+  scope: ScopeKind;
+  name: string;
+  color: NoteTypeColor;
+  description?: string | null;
+  project_slug?: string | null;
+}
+
+export interface NoteTypeUpdate {
+  name?: string | null;
+  color?: NoteTypeColor | null;
+  description?: string | null;
+}
+
 // -- notes -----------------------------------------------------------------
 
 export interface NoteRead {
   id: string;
   project_id: string;
   domain_id: string | null;
-  type: NoteType;
+  note_type_id: string;
+  type: NoteTypeRef;
   title: string | null;
   content: string;
   tags: string[];
@@ -139,7 +190,7 @@ export interface NoteRead {
 }
 
 export interface NoteCreate {
-  type: NoteType;
+  type: string;
   content: string;
   title?: string | null;
   tags?: string[];
@@ -147,7 +198,7 @@ export interface NoteCreate {
 }
 
 export interface NoteUpdate {
-  type?: NoteType | null;
+  type?: string | null;
   content?: string | null;
   title?: string | null;
   tags?: string[] | null;

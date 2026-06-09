@@ -23,6 +23,9 @@ import type {
   FileGroupRead,
   NoteCreate,
   NoteRead,
+  NoteTypeCreate,
+  NoteTypeRead,
+  NoteTypeUpdate,
   NoteUpdate,
   PhaseStatus,
   ProjectCreate,
@@ -246,6 +249,18 @@ export const api = {
     apiFetch<ArtifactTypeRead>(`/artifact-types/${typeId}`, { method: "PATCH", body }),
   deleteArtifactType: (typeId: string) =>
     apiFetch<void>(`/artifact-types/${typeId}`, { method: "DELETE" }),
+
+  // note types
+  listNoteTypes: (scope?: "GLOBAL" | "PROJECT") =>
+    apiFetch<NoteTypeRead[]>("/note-types", { query: scope ? { scope } : undefined }),
+  listProjectNoteTypes: (slug: string) =>
+    apiFetch<NoteTypeRead[]>(`/projects/${slug}/note-types`),
+  createNoteType: (body: NoteTypeCreate) =>
+    apiFetch<NoteTypeRead>("/note-types", { method: "POST", body }),
+  updateNoteType: (typeId: string, body: NoteTypeUpdate) =>
+    apiFetch<NoteTypeRead>(`/note-types/${typeId}`, { method: "PATCH", body }),
+  deleteNoteType: (typeId: string) =>
+    apiFetch<void>(`/note-types/${typeId}`, { method: "DELETE" }),
 
   // artifacts
   listArtifacts: (slug: string, query?: { artifact_type?: string }) =>
