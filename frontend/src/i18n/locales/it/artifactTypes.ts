@@ -3,7 +3,7 @@ export const artifactTypes = {
   header: {
     title: "Tipi di artefatto",
     description:
-      "Definisci modelli di artefatto riutilizzabili — istruzioni di generazione e un manifesto di file dichiarato. Il tipo predefinito integrato è di sola lettura.",
+      "Definisci i tipi di artefatto che l'agente deve generare dopo aver analizzato il materiale di input. Un tipo di artefatto specifica come l'agente genera un artefatto e quali file deve produrre. (Per artefatto si intende un output generato dall'agente, come un piano, un rapporto o un codice.)",
     newType: "Nuovo tipo",
   },
   card: {
