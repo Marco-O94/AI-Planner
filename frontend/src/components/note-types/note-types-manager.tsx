@@ -88,14 +88,16 @@ export function NoteTypesManager({ projectSlug }: NoteTypesManagerProps) {
           >
             <Pencil className="size-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t("common.delete")}
-            onClick={() => setDeleting(type)}
-          >
-            <Trash2 className="size-4" />
-          </Button>
+          {!type.is_default && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("common.delete")}
+              onClick={() => setDeleting(type)}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          )}
         </div>
       </Card>
     );
