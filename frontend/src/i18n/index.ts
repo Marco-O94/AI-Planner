@@ -16,7 +16,9 @@ import { enums as enEnums } from "./locales/en/enums";
 import { files as enFiles } from "./locales/en/files";
 import { nav as enNav } from "./locales/en/nav";
 import { notes as enNotes } from "./locales/en/notes";
+import { noteTypes as enNoteTypes } from "./locales/en/noteTypes";
 import { project as enProject } from "./locales/en/project";
+import { settings as enSettings } from "./locales/en/settings";
 import { skills as enSkills } from "./locales/en/skills";
 import { tasks as enTasks } from "./locales/en/tasks";
 import { templates as enTemplates } from "./locales/en/templates";
@@ -30,7 +32,9 @@ import { enums as itEnums } from "./locales/it/enums";
 import { files as itFiles } from "./locales/it/files";
 import { nav as itNav } from "./locales/it/nav";
 import { notes as itNotes } from "./locales/it/notes";
+import { noteTypes as itNoteTypes } from "./locales/it/noteTypes";
 import { project as itProject } from "./locales/it/project";
+import { settings as itSettings } from "./locales/it/settings";
 import { skills as itSkills } from "./locales/it/skills";
 import { tasks as itTasks } from "./locales/it/tasks";
 import { templates as itTemplates } from "./locales/it/templates";
@@ -57,6 +61,8 @@ const en = {
   dashboard: enDashboard,
   project: enProject,
   notes: enNotes,
+  noteTypes: enNoteTypes,
+  settings: enSettings,
   tasks: enTasks,
   documents: enDocuments,
   artifacts: enArtifacts,
@@ -73,6 +79,8 @@ const it = {
   dashboard: itDashboard,
   project: itProject,
   notes: itNotes,
+  noteTypes: itNoteTypes,
+  settings: itSettings,
   tasks: itTasks,
   documents: itDocuments,
   artifacts: itArtifacts,
