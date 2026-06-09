@@ -134,6 +134,8 @@ export function TasksTab({ project, domains, domainId }: TabProps) {
           onEdit={openEdit}
           patchTask={patchTask}
           onMutated={() => void refresh()}
+          projectName={project.name}
+          domains={domains}
         />
       )}
 
