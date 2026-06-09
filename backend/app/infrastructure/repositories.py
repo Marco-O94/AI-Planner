@@ -200,6 +200,23 @@ class SqlTechnologyRepository:
         stmt = stmt.order_by(m.Technology.kind, m.Technology.name)
         return [mappers.technology_to_domain(o) for o in self.db.scalars(stmt).all()]
 
+    def update(self, technology: e.Technology) -> e.Technology:
+        orm = self.db.get(m.Technology, technology.id)
+        if orm is None:
+            raise NotFoundError("technology not found")
+        orm.kind = technology.kind
+        orm.name = technology.name
+        orm.slug = technology.slug
+        self.db.flush()
+        self.db.refresh(orm)
+        return mappers.technology_to_domain(orm)
+
+    def delete(self, technology_id: uuid.UUID) -> None:
+        orm = self.db.get(m.Technology, technology_id)
+        if orm is not None:
+            self.db.delete(orm)
+            self.db.flush()
+
 
 class SqlDomainRepository:
     def __init__(self, db: Session) -> None:

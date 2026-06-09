@@ -12,6 +12,11 @@ class TechnologyCreate(BaseModel):
     name: str
 
 
+class TechnologyUpdate(BaseModel):
+    kind: TechnologyKind | None = None
+    name: str | None = None
+
+
 class TechnologyRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
