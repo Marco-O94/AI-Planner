@@ -201,7 +201,7 @@ export function Sidebar() {
           </SheetTrigger>
           <SheetContent
             side="left"
-            className="w-72 gap-0 bg-card p-0"
+            className="w-[min(90vw,18rem)] gap-0 bg-card p-0"
             showCloseButton={false}
           >
             <SheetTitle className="sr-only">{t("nav.brand")}</SheetTitle>

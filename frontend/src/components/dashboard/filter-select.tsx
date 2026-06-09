@@ -47,6 +47,7 @@ export function FilterSelect({
         data-active={isActive || undefined}
         className={cn(
           "h-9 w-full min-w-0 transition-colors sm:w-auto",
+          "*:data-[slot=select-value]:truncate",
           "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
           isActive
             ? "border-primary/40 bg-primary/5 font-medium text-primary ring-1 ring-primary/20 dark:bg-primary/10"

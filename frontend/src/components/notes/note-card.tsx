@@ -78,7 +78,7 @@ export function NoteCard({ note, domain, onOpen, onEdit, onDelete }: NoteCardPro
                 variant="ghost"
                 size="icon-sm"
                 disabled={isOptimistic}
-                className="opacity-0 transition-opacity group-hover/note:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+                className="opacity-100 transition-opacity sm:opacity-0 sm:group-hover/note:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
                 aria-label={t("notes.card.actionsAria")}
               >
                 <MoreHorizontal className="size-4" />

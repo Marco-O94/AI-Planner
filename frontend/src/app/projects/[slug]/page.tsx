@@ -137,7 +137,7 @@ export default function ProjectPage() {
           }
           description={project.description ?? undefined}
           actions={
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <DomainsButton
                 project={project}
                 domains={domains}
