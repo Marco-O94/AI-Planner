@@ -6,12 +6,16 @@ import uuid
 from dataclasses import replace
 
 from app.domain.entities import Note
-from app.domain.enums import NoteType
 from app.domain.errors import NotFoundError, ValidationError
-from app.domain.repositories import DomainRepository, NoteRepository, ProjectRepository
+from app.domain.repositories import (
+    DomainRepository,
+    NoteRepository,
+    NoteTypeRepository,
+    ProjectRepository,
+)
 from app.domain.vector import KIND_NOTE
 
-_UPDATABLE = {"domain_id", "type", "title", "content", "tags"}
+_UPDATABLE = {"domain_id", "title", "content", "tags"}
 
 
 class NoteService:
@@ -20,11 +24,13 @@ class NoteService:
         repo: NoteRepository,
         project_repo: ProjectRepository,
         domain_repo: DomainRepository,
+        note_type_repo: NoteTypeRepository,
         indexer=None,
     ) -> None:
         self.repo = repo
         self.project_repo = project_repo
         self.domain_repo = domain_repo
+        self.note_type_repo = note_type_repo
         self.indexer = indexer
 
     def _require_project_id(self, project_slug: str) -> uuid.UUID:
@@ -40,11 +46,17 @@ class NoteService:
         if domain is None or domain.project_id != project_id:
             raise ValidationError("domain does not belong to this project")
 
+    def _resolve_type_id(self, project_id: uuid.UUID, value: str) -> uuid.UUID:
+        note_type = self.note_type_repo.resolve(value, project_id)
+        if note_type is None:
+            raise ValidationError(f"unknown note type '{value}'")
+        return note_type.id
+
     def create(
         self,
         project_slug: str,
         *,
-        type: NoteType,
+        type: str,
         content: str,
         title: str | None = None,
         tags: list[str] | None = None,
@@ -52,12 +64,13 @@ class NoteService:
     ) -> Note:
         project_id = self._require_project_id(project_slug)
         self._validate_domain(project_id, domain_id)
+        note_type_id = self._resolve_type_id(project_id, type)
         note = self.repo.add(
             Note(
                 id=uuid.uuid4(),
                 project_id=project_id,
+                note_type_id=note_type_id,
                 domain_id=domain_id,
-                type=type,
                 title=title,
                 content=content,
                 tags=tags or [],
@@ -78,17 +91,22 @@ class NoteService:
         project_slug: str,
         *,
         domain_id: uuid.UUID | None = None,
-        type: NoteType | None = None,
+        type: str | None = None,
         tag: str | None = None,
     ) -> list[Note]:
         project_id = self._require_project_id(project_slug)
-        return self.repo.list(project_id, domain_id=domain_id, type=type, tag=tag)
+        note_type_id = self._resolve_type_id(project_id, type) if type else None
+        return self.repo.list(
+            project_id, domain_id=domain_id, note_type_id=note_type_id, tag=tag
+        )
 
     def update(self, note_id: uuid.UUID, changes: dict) -> Note:
         note = self.get(note_id)
         applied = {k: v for k, v in changes.items() if k in _UPDATABLE}
         if "domain_id" in applied:
             self._validate_domain(note.project_id, applied["domain_id"])
+        if changes.get("type"):
+            applied["note_type_id"] = self._resolve_type_id(note.project_id, changes["type"])
         updated = self.repo.update(replace(note, **applied))
         if self.indexer is not None:
             self.indexer.index_note(updated)
