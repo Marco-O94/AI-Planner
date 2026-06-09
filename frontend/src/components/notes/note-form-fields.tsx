@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Label } from "@/components/ui/label";
 import { NoteTypePicker } from "@/components/notes/note-type-picker";
 import { type DomainRead } from "@/lib/types";
@@ -109,13 +109,13 @@ export function NoteFormFields({
           {t("notes.fields.contentLabel")}{" "}
           <span className="font-normal opacity-70">{t("notes.fields.contentMarkdown")}</span>
         </Label>
-        <Textarea
+        <MarkdownEditor
           id={`${idPrefix}-content`}
-          ref={textareaRef}
+          textareaRef={textareaRef}
           value={values.content}
           placeholder={t("notes.fields.contentPlaceholder")}
-          className="min-h-28 font-mono text-[0.8125rem] leading-relaxed"
-          onChange={(event) => onChange({ content: event.target.value })}
+          className="min-h-28"
+          onChange={(content) => onChange({ content })}
         />
       </div>
 

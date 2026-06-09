@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { ManifestEditor } from "@/components/artifact-types/manifest-editor";
 
 interface ArtifactTypeDialogProps {
@@ -151,13 +151,12 @@ export function ArtifactTypeDialog({
 
           <div className="space-y-2">
             <Label htmlFor="at-instructions">{t("artifactTypes.dialog.instructionsLabel")}</Label>
-            <Textarea
+            <MarkdownEditor
               id="at-instructions"
               value={form.instructions}
               placeholder={t("artifactTypes.dialog.instructionsPlaceholder")}
               rows={8}
-              className="font-mono text-sm"
-              onChange={(e) => setForm((f) => ({ ...f, instructions: e.target.value }))}
+              onChange={(instructions) => setForm((f) => ({ ...f, instructions }))}
             />
           </div>
 

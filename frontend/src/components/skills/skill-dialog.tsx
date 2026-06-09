@@ -26,7 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { ScopeBadge } from "@/components/status-badge";
 import { useT } from "@/i18n/locale-context";
 import { api, ApiError } from "@/lib/api";
@@ -198,12 +198,12 @@ export function SkillDialog({
                 {t("skills.dialog.contentHint")}
               </span>
             </Label>
-            <Textarea
+            <MarkdownEditor
               id="skill-content"
               value={values.content}
               placeholder={t("skills.dialog.contentPlaceholder")}
-              className="min-h-48 font-mono text-[0.8125rem] leading-relaxed"
-              onChange={(event) => patch({ content: event.target.value })}
+              className="min-h-48"
+              onChange={(content) => patch({ content })}
             />
           </div>
 
