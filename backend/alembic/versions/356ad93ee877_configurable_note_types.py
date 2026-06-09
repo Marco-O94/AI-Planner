@@ -20,6 +20,7 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+# Self-contained seed snapshot; keep in sync with app.domain.enums.NOTE_TYPE_DEFAULTS
 _DEFAULTS = (
     ("REQUIREMENT", "Requirement", "requirement", "violet"),
     ("CONSTRAINT", "Constraint", "constraint", "red"),
@@ -34,7 +35,12 @@ def upgrade() -> None:
     # 1. note_types table
     op.create_table(
         "note_types",
-        sa.Column("id", sa.UUID(as_uuid=True), primary_key=True),
+        sa.Column(
+            "id",
+            sa.UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
         sa.Column(
             "scope",
             PgEnum("GLOBAL", "PROJECT", name="scope_kind", create_type=False),
@@ -121,6 +127,14 @@ def downgrade() -> None:
     op.alter_column("notes", "type", nullable=False)
     op.drop_constraint("fk_notes_note_type_id", "notes", type_="foreignkey")
     op.drop_column("notes", "note_type_id")
-    op.drop_index("uq_note_types_project_slug", table_name="note_types")
-    op.drop_index("uq_note_types_global_slug", table_name="note_types")
+    op.drop_index(
+        "uq_note_types_project_slug",
+        table_name="note_types",
+        postgresql_where=sa.text("project_id IS NOT NULL"),
+    )
+    op.drop_index(
+        "uq_note_types_global_slug",
+        table_name="note_types",
+        postgresql_where=sa.text("project_id IS NULL"),
+    )
     op.drop_table("note_types")

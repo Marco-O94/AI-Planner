@@ -31,7 +31,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.domain.enums import (
     ArtifactStatus,
-    NoteType as NoteTypeEnum,
     PhaseStatus,
     ProjectStatus,
     ScopeKind,
@@ -186,6 +185,7 @@ class Note(UUIDPKMixin, TimestampMixin, Base):
         ForeignKey("note_types.id", ondelete="RESTRICT"),
         nullable=False,
     )
+    # eager-load: every NoteRead embeds the type summary, so join avoids N+1 on note lists
     note_type: Mapped["NoteType"] = relationship("NoteType", lazy="joined")
     title: Mapped[str | None] = mapped_column(String, nullable=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
