@@ -45,6 +45,9 @@ export const tasks = {
     blocked: "Blocked",
     blockedWaitingOn: "Waiting on: {titles}",
     blockedWaitingGeneric: "Waiting on an unfinished dependency",
+    copyMarkdown: "Copy as Markdown",
+    copiedMarkdown: "Task copied as Markdown",
+    copyMarkdownFailed: "Couldn't copy to clipboard",
   },
   dialog: {
     editTitle: "Edit task",

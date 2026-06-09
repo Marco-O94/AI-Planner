@@ -46,6 +46,9 @@ export const tasks = {
     blocked: "Bloccata",
     blockedWaitingOn: "In attesa di: {titles}",
     blockedWaitingGeneric: "In attesa di una dipendenza non completata",
+    copyMarkdown: "Copia come Markdown",
+    copiedMarkdown: "Task copiato come Markdown",
+    copyMarkdownFailed: "Impossibile copiare negli appunti",
   },
   dialog: {
     editTitle: "Modifica attività",
