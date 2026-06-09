@@ -58,6 +58,10 @@ export const notes = {
     title: "No matching notes",
     description: "Adjust the search text or clear the type filter.",
   },
+  pagination: {
+    loadMore: "Load more notes",
+    showing: "Showing {visible} of {total}",
+  },
   previewFallback: "Note",
   toasts: {
     captured: "{type} note captured",

@@ -58,6 +58,10 @@ export const notes = {
     title: "Nessuna nota corrispondente",
     description: "Modifica il testo di ricerca o rimuovi il filtro per tipo.",
   },
+  pagination: {
+    loadMore: "Carica altre note",
+    showing: "Visualizzate {visible} di {total}",
+  },
   previewFallback: "Nota",
   toasts: {
     captured: "Nota {type} catturata",
