@@ -49,12 +49,18 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-projectnotes}:${POSTGRES_PASSWORD:-projectnotes}@postgres:5432/${POSTGRES_DB:-projectnotes}
       QDRANT_URL: http://qdrant:6333
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
+      # Persist the fastembed model cache on a named volume so it survives
+      # `deploy.sh down`/`up`. Without this the cache lives in the container's
+      # /tmp, gets wiped on recreate, and re-downloads on startup — an
+      # interrupted download leaves a 0-byte ONNX and every notes read 500s.
+      FASTEMBED_CACHE_PATH: ${FASTEMBED_CACHE_PATH:-/data/fastembed}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       STORAGE_DIR: /data/storage
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - docstore:/data/storage
+      - fastembedcache:/data/fastembed
     depends_on:
       postgres:
         condition: service_healthy
@@ -117,6 +123,7 @@ volumes:
   pgdata:
   qdrantdata:
   docstore:
+  fastembedcache:
 
 networks:
   pnnet:

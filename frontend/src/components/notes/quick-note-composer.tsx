@@ -240,7 +240,7 @@ export function QuickNoteComposer({
             </span>
           </CollapsibleTrigger>
         ) : (
-          <div className="flex items-center gap-2 pt-4 pb-3">
+          <div className="flex items-center gap-2 pb-3">
             <span className="grid size-7 place-items-center rounded-md bg-primary/10 text-primary">
               <Plus className="size-4" />
             </span>

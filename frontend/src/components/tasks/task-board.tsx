@@ -21,7 +21,8 @@ import { AnimatedItem, AnimatePresence, motion } from "@/components/motion";
 import { Badge } from "@/components/ui/badge";
 import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
-import type { TaskRead, TaskStatus } from "@/lib/types";
+import { taskToMarkdown } from "@/lib/task-markdown";
+import type { DomainRead, TaskRead, TaskStatus } from "@/lib/types";
 
 import { BOARD_COLUMNS } from "./constants";
 import { TaskCard } from "./task-card";
@@ -35,6 +36,10 @@ interface TaskBoardProps {
   onEdit: (task: TaskRead) => void;
   patchTask: UseTasksResult["patchTask"];
   onMutated: () => void;
+  /** Project name, surfaced in the "Copy as Markdown" export. */
+  projectName?: string;
+  /** Domains, used to resolve a task's domain name for the Markdown export. */
+  domains?: DomainRead[];
 }
 
 /** A droppable status column that highlights while a card hovers over it. */
@@ -114,6 +119,8 @@ export function TaskBoard({
   onEdit,
   patchTask,
   onMutated,
+  projectName,
+  domains,
 }: TaskBoardProps) {
   const t = useT();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -128,6 +135,19 @@ export function TaskBoard({
     () => new Map(allTasks.map((task) => [task.id, task.title])),
     [allTasks],
   );
+
+  const domainNameById = useMemo(
+    () => new Map((domains ?? []).map((domain) => [domain.id, domain.name])),
+    [domains],
+  );
+
+  function markdownFor(task: TaskRead): string {
+    return taskToMarkdown(task, {
+      projectName,
+      domainName: task.domain_id ? (domainNameById.get(task.domain_id) ?? null) : null,
+      dependencyTitles: task.depends_on.map((id) => titleById.get(id) ?? id),
+    });
+  }
 
   function blockingTitles(task: TaskRead): string[] {
     if (!task.blocked) return [];
@@ -186,6 +206,7 @@ export function TaskBoard({
                         patchTask={patchTask}
                         onDeleted={onMutated}
                         dragHandle={handle}
+                        toMarkdown={() => markdownFor(task)}
                       />
                     )}
                   </DraggableCard>

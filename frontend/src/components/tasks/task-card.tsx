@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Ban, Link2, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Ban, ClipboardCopy, Link2, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +44,8 @@ interface TaskCardProps {
   onDeleted: () => void;
   /** Optional drag handle (wired by the board's DnD context). */
   dragHandle?: React.ReactNode;
+  /** When provided, enables a "Copy as Markdown" action that copies this string. */
+  toMarkdown?: () => string;
 }
 
 /** A single task on the board: inline status/priority, blocked badge, actions. */
@@ -54,9 +56,20 @@ export function TaskCard({
   patchTask,
   onDeleted,
   dragHandle,
+  toMarkdown,
 }: TaskCardProps) {
   const t = useT();
   const [deleting, setDeleting] = useState(false);
+
+  async function copyAsMarkdown() {
+    if (!toMarkdown) return;
+    try {
+      await navigator.clipboard.writeText(toMarkdown());
+      toast.success(t("tasks.card.copiedMarkdown"));
+    } catch {
+      toast.error(t("tasks.card.copyMarkdownFailed"));
+    }
+  }
 
   async function changeStatus(status: TaskStatus) {
     if (status === task.status) return;
@@ -113,7 +126,18 @@ export function TaskCard({
               <MoreVertical />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
+          <DropdownMenuContent align="end" className="w-44">
+            {toMarkdown ? (
+              <DropdownMenuItem
+                onSelect={(event) => {
+                  event.preventDefault();
+                  void copyAsMarkdown();
+                }}
+              >
+                <ClipboardCopy />
+                {t("tasks.card.copyMarkdown")}
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuItem onSelect={() => onEdit(task)}>
               <Pencil />
               {t("common.edit")}
