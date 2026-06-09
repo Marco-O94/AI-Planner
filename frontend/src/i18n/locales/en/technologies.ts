@@ -8,6 +8,16 @@ export const technologies = {
     emptyTitle: "No technologies yet",
     emptyDescription:
       "Technologies are created automatically when you tag a project. You can also add them here.",
+    scrollAria: "{kind} technologies list, scrollable",
+  },
+  bulk: {
+    selectAllAria: "Select all {kind} technologies",
+    deleteSelected: "Delete selected ({count})",
+    confirmTitle: "Delete {count} technologies?",
+    confirmDescription:
+      "Technologies still used by a project will be skipped.",
+    resultDeleted: "Deleted {count}",
+    resultPartial: "Deleted {deleted} · {skipped} skipped (in use)",
   },
   dialog: {
     newTitle: "New technology",

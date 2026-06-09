@@ -8,6 +8,16 @@ export const technologies = {
     emptyTitle: "Ancora nessuna tecnologia",
     emptyDescription:
       "Le tecnologie vengono create automaticamente quando etichetti un progetto. Puoi anche aggiungerle qui.",
+    scrollAria: "Elenco tecnologie {kind}, scorrevole",
+  },
+  bulk: {
+    selectAllAria: "Seleziona tutte le tecnologie {kind}",
+    deleteSelected: "Elimina selezionate ({count})",
+    confirmTitle: "Eliminare {count} tecnologie?",
+    confirmDescription:
+      "Le tecnologie ancora usate da un progetto verranno saltate.",
+    resultDeleted: "Eliminate {count}",
+    resultPartial: "Eliminate {deleted} · {skipped} saltate (in uso)",
   },
   dialog: {
     newTitle: "Nuova tecnologia",
