@@ -11,7 +11,6 @@ from datetime import datetime
 
 from app.domain.enums import (
     ArtifactStatus,
-    NoteType,
     PhaseStatus,
     ProjectStatus,
     ScopeKind,
