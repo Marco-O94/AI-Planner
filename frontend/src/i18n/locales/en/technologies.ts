@@ -18,6 +18,7 @@ export const technologies = {
       "Technologies still used by a project will be skipped.",
     resultDeleted: "Deleted {count}",
     resultPartial: "Deleted {deleted} · {skipped} skipped (in use)",
+    resultFailed: "{failed} could not be deleted",
   },
   dialog: {
     newTitle: "New technology",

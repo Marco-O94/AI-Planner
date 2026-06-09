@@ -18,6 +18,7 @@ export const technologies = {
       "Le tecnologie ancora usate da un progetto verranno saltate.",
     resultDeleted: "Eliminate {count}",
     resultPartial: "Eliminate {deleted} · {skipped} saltate (in uso)",
+    resultFailed: "{failed} non eliminate",
   },
   dialog: {
     newTitle: "Nuova tecnologia",

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { useT } from "@/i18n/locale-context";
 import type { TechnologyRead } from "@/lib/types";
 import {
@@ -25,9 +25,18 @@ interface BulkDeleteTechnologiesDialogProps {
   onDeleted: () => void;
 }
 
+/** HTTP status the API returns when a technology is still used by a project. */
+const STATUS_IN_USE = 409;
+
+/** True when a rejected delete is the expected "still in use" skip, not a real error. */
+function isInUseRejection(reason: unknown): boolean {
+  return reason instanceof ApiError && reason.status === STATUS_IN_USE;
+}
+
 /**
  * Confirms and runs a client-side batch delete over the per-item DELETE endpoint.
- * Rejected items (mostly 409 in-use) are tallied as skipped, reported in one toast.
+ * In-use items (409) are tallied as skipped; any other rejection (network, 401,
+ * 500, timeout) is surfaced as a genuine failure so real outages are not hidden.
  */
 export function BulkDeleteTechnologiesDialog({
   technologies,
@@ -45,13 +54,21 @@ export function BulkDeleteTechnologiesDialog({
       const results = await Promise.allSettled(
         technologies.map((tech) => api.deleteTechnology(tech.id)),
       );
-      const deleted = results.filter((r) => r.status === "fulfilled").length;
-      const skipped = count - deleted;
 
-      if (skipped === 0) {
-        toast.success(t("technologies.bulk.resultDeleted", { count: deleted }));
-      } else {
+      const deleted = results.filter((r) => r.status === "fulfilled").length;
+      const rejections = results.filter((r) => r.status === "rejected");
+      const skipped = rejections.filter((r) => isInUseRejection(r.reason)).length;
+      const failed = rejections.length - skipped;
+
+      if (skipped > 0) {
         toast.message(t("technologies.bulk.resultPartial", { deleted, skipped }));
+      } else if (deleted > 0) {
+        toast.success(t("technologies.bulk.resultDeleted", { count: deleted }));
+      }
+
+      // Genuine failures (network, 401, 500, timeout) must not be hidden as "in use".
+      if (failed > 0) {
+        toast.error(t("technologies.bulk.resultFailed", { failed }));
       }
 
       onDeleted();
