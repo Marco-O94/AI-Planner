@@ -23,4 +23,4 @@ RUN uv sync --no-dev
 EXPOSE 8050
 
 # --no-dev: don't let `uv run` re-sync dev deps (pytest/ruff) into the runtime image.
-CMD ["uv", "run", "--no-dev", "python", "-m", "project_notes_mcp"]
+CMD ["uv", "run", "--no-dev", "python", "-m", "ai_planner_mcp"]

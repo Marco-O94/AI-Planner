@@ -3,7 +3,7 @@
 import httpx
 import pytest
 
-from project_notes_mcp.client import BackendClient, BackendError
+from ai_planner_mcp.client import BackendClient, BackendError
 
 
 def test_non_2xx_raises_backend_error_with_detail():

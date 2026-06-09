@@ -1,7 +1,7 @@
 [project]
-name = "project-notes-mcp"
+name = "ai-planner-mcp"
 version = "0.1.0"
-description = "ProjectNotes MCP server — exposes project context & typed artifact generation to AI agents"
+description = "AI Planner MCP server — exposes project context & typed artifact generation to AI agents"
 requires-python = ">=3.12"
 dependencies = [
     "mcp>=1.2",

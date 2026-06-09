@@ -21,7 +21,7 @@ from app.api.routers import (
 )
 from app.config import settings
 
-app = FastAPI(title="ProjectNotes API", version="0.1.0")
+app = FastAPI(title="AI Planner API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,

@@ -3,8 +3,8 @@
 import httpx
 import pytest
 
-from project_notes_mcp import tools
-from project_notes_mcp.client import BackendClient, BackendError
+from ai_planner_mcp import tools
+from ai_planner_mcp.client import BackendClient, BackendError
 from tests.conftest import PROJECT_SLUG, FakeBackend
 
 

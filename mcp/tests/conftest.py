@@ -16,7 +16,7 @@ from typing import Any
 import httpx
 import pytest
 
-from project_notes_mcp.client import BackendClient
+from ai_planner_mcp.client import BackendClient
 
 JSON = dict[str, Any]
 

@@ -240,13 +240,13 @@ domain‑scoped, with dependency/cycle validation on tasks), `save_artifact` + `
 
 - **stdio** (simplest for local use) — [`mcp/.mcp.stdio.json`](./mcp/.mcp.stdio.json):
   ```json
-  { "mcpServers": { "project-notes": {
-      "command": "uv", "args": ["run", "python", "-m", "project_notes_mcp"],
+  { "mcpServers": { "ai-planner": {
+      "command": "uv", "args": ["run", "python", "-m", "ai_planner_mcp"],
       "cwd": "/path/to/AI-Planner/mcp", "env": { "BACKEND_URL": "http://localhost:8088" } } } }
   ```
 - **SSE** (the always‑on compose service) — [`mcp/.mcp.sse.json`](./mcp/.mcp.sse.json):
   ```json
-  { "mcpServers": { "project-notes": { "type": "sse", "url": "http://localhost:8050/sse" } } }
+  { "mcpServers": { "ai-planner": { "type": "sse", "url": "http://localhost:8050/sse" } } }
   ```
 
 **The loop:** `list_artifact_types(project)` → `prepare_generation(project, "development-plan")`
@@ -269,7 +269,7 @@ uv run uvicorn app.main:app --reload        # http://localhost:8000/docs
 **MCP** — talks to the running backend over HTTP:
 ```bash
 cd mcp && uv sync
-BACKEND_URL=http://localhost:8088 uv run python -m project_notes_mcp   # stdio (default)
+BACKEND_URL=http://localhost:8088 uv run python -m ai_planner_mcp   # stdio (default)
 ```
 
 **Frontend** — Node 20.9+ (Node 24 recommended):
@@ -304,7 +304,7 @@ AI-Planner/
 │  ├─ alembic/               # migrations
 │  └─ tests/
 ├─ mcp/                      # FastMCP server (HTTP → backend only)
-│  ├─ project_notes_mcp/{config,client,formatting,tools,server,__main__}.py
+│  ├─ ai_planner_mcp/{config,client,formatting,tools,server,__main__}.py
 │  ├─ .mcp.stdio.json / .mcp.sse.json
 │  └─ tests/
 ├─ frontend/                 # Next.js 16 App Router

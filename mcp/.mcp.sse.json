@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "project-notes": {
+    "ai-planner": {
       "type": "sse",
       "url": "http://localhost:8050/sse"
     }

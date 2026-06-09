@@ -1,6 +1,6 @@
 """Pure markdown-assembly tests — no client involved."""
 
-from project_notes_mcp.formatting import (
+from ai_planner_mcp.formatting import (
     order_tasks_by_dependency,
     render_generation_bundle,
     render_project_context,

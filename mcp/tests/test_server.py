@@ -2,8 +2,8 @@
 
 import asyncio
 
-from project_notes_mcp.client import BackendClient
-from project_notes_mcp.server import build_server
+from ai_planner_mcp.client import BackendClient
+from ai_planner_mcp.server import build_server
 
 EXPECTED_TOOLS = {
     "list_projects", "list_domains", "get_project_context",

@@ -1,6 +1,6 @@
 """Live end-to-end smoke against a running backend, via the real MCP runtime.
 
-Spawns `python -m project_notes_mcp` over stdio and drives the Phase 4 flow:
+Spawns `python -m ai_planner_mcp` over stdio and drives the Phase 4 flow:
 discover -> context -> prepare_generation -> save_artifact (v1) ->
 save again (v2) -> versions -> update_phase_status -> search.
 
@@ -33,7 +33,7 @@ async def main() -> None:
     env = dict(os.environ)
     env["BACKEND_URL"] = env.get("BACKEND_URL", "http://localhost:8088")
     params = StdioServerParameters(
-        command="uv", args=["run", "python", "-m", "project_notes_mcp"], env=env
+        command="uv", args=["run", "python", "-m", "ai_planner_mcp"], env=env
     )
 
     async with stdio_client(params) as (read, write):

@@ -17,7 +17,7 @@ from .client import BackendClient
 JSON = dict[str, Any]
 
 SERVER_INSTRUCTIONS = (
-    "ProjectNotes: capture per-project notes/tasks/documents organized by DDD "
+    "AI Planner: capture per-project notes/tasks/documents organized by DDD "
     "domain, then generate typed, versioned artifacts (e.g. a Development Plan).\n\n"
     "Capture: use create_note and create_task to write new knowledge back into a "
     "project (e.g. record a decision you reached, or file follow-up tasks) before "
@@ -34,7 +34,7 @@ def build_server(
     client: BackendClient, *, host: str = "127.0.0.1", port: int = 8050
 ) -> FastMCP:
     """Construct a FastMCP server whose tools call ``client``."""
-    mcp = FastMCP("project-notes", instructions=SERVER_INSTRUCTIONS, host=host, port=port)
+    mcp = FastMCP("ai-planner", instructions=SERVER_INSTRUCTIONS, host=host, port=port)
 
     # -- read: discovery ---------------------------------------------------
 

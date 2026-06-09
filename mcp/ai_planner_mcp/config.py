@@ -1,7 +1,7 @@
 """Runtime configuration, read from the environment.
 
 All knobs are optional with sensible localhost defaults so ``python -m
-project_notes_mcp`` works out of the box for local Claude Code (stdio).
+ai_planner_mcp`` works out of the box for local Claude Code (stdio).
 """
 
 from __future__ import annotations

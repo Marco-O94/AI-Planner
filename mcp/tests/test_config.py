@@ -2,7 +2,7 @@
 
 import pytest
 
-from project_notes_mcp.config import load_settings
+from ai_planner_mcp.config import load_settings
 
 
 def test_defaults_target_localhost_stdio():

@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "project-notes": {
+    "ai-planner": {
       "command": "uv",
-      "args": ["run", "python", "-m", "project_notes_mcp"],
+      "args": ["run", "python", "-m", "ai_planner_mcp"],
       "cwd": "/home/marco-oliveri/pvt/AI-Planner/mcp",
       "env": {
         "BACKEND_URL": "http://localhost:8088"

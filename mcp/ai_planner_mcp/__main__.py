@@ -1,4 +1,4 @@
-"""Entry point: ``python -m project_notes_mcp``.
+"""Entry point: ``python -m ai_planner_mcp``.
 
 Builds settings from the environment, wires a backend client into the FastMCP
 server, and runs the selected transport:
@@ -23,7 +23,7 @@ def main() -> None:
     server = build_server(client, host=settings.host, port=settings.port)
 
     print(
-        f"[project-notes-mcp] transport={settings.transport} "
+        f"[ai-planner-mcp] transport={settings.transport} "
         f"backend={settings.backend_url}",
         file=sys.stderr,
         flush=True,

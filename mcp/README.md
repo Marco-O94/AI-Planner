@@ -1,6 +1,6 @@
-# ProjectNotes MCP server
+# AI Planner MCP server
 
-Exposes the ProjectNotes backend to an AI agent (Claude Code) over MCP so it can
+Exposes the AI Planner backend to an AI agent (Claude Code) over MCP so it can
 discover projects, pull structured context, choose an artifact type, and write
 typed, versioned artifacts back.
 
@@ -10,7 +10,7 @@ imports backend code, keeping the two services decoupled.
 ## Layout
 
 ```
-project_notes_mcp/
+ai_planner_mcp/
   config.py       # env-driven Settings (BACKEND_URL, MCP_TRANSPORT, host/port)
   client.py       # BackendClient — thin httpx wrapper, one method per endpoint
   formatting.py   # pure markdown assembly (context + generation bundle, dep-ordered)
@@ -68,10 +68,10 @@ relevant material first on large projects.
 ```bash
 uv sync
 # stdio (for local Claude Code) — talks to the dev backend on :8088
-BACKEND_URL=http://localhost:8088 uv run python -m project_notes_mcp
+BACKEND_URL=http://localhost:8088 uv run python -m ai_planner_mcp
 # sse (containerized / shared)
 MCP_TRANSPORT=sse MCP_PORT=8050 BACKEND_URL=http://localhost:8088 \
-  uv run python -m project_notes_mcp        # SSE endpoint at /sse
+  uv run python -m ai_planner_mcp        # SSE endpoint at /sse
 ```
 
 Configuration (all optional, localhost defaults): `BACKEND_URL`,
@@ -87,9 +87,9 @@ over stdin/stdout. Copy [`.mcp.stdio.json`](./.mcp.stdio.json) (adjust `cwd` /
 ```json
 {
   "mcpServers": {
-    "project-notes": {
+    "ai-planner": {
       "command": "uv",
-      "args": ["run", "python", "-m", "project_notes_mcp"],
+      "args": ["run", "python", "-m", "ai_planner_mcp"],
       "cwd": "/home/marco-oliveri/pvt/AI-Planner/mcp",
       "env": { "BACKEND_URL": "http://localhost:8088" }
     }
@@ -103,7 +103,7 @@ Claude Code connects to a running URL. Copy [`.mcp.sse.json`](./.mcp.sse.json):
 ```json
 {
   "mcpServers": {
-    "project-notes": { "type": "sse", "url": "http://localhost:8050/sse" }
+    "ai-planner": { "type": "sse", "url": "http://localhost:8050/sse" }
   }
 }
 ```
