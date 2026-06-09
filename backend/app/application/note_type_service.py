@@ -8,7 +8,7 @@ from dataclasses import replace
 from app.application.slugs import make_unique_slug
 from app.domain.entities import NoteTypeEntity
 from app.domain.enums import NOTE_TYPE_COLORS, ScopeKind
-from app.domain.errors import NotFoundError, ProtectedResourceError, ValidationError
+from app.domain.errors import NotFoundError, ValidationError
 from app.domain.repositories import NoteTypeRepository, ProjectRepository
 
 _UPDATABLE = {"name", "color", "description"}
@@ -86,9 +86,8 @@ class NoteTypeService:
         return self.repo.update(replace(note_type, **applied))
 
     def delete(self, type_id: uuid.UUID) -> None:
-        note_type = self.get(type_id)  # 404 if missing
-        if note_type.is_default:
-            raise ProtectedResourceError("the default note type cannot be deleted")
-        # FK ondelete RESTRICT raises IntegrityError when notes still reference it,
-        # mapped to HTTP 409 by the global handler.
+        # Built-ins are fully deletable (spec decision): the only delete guard is the
+        # notes.note_type_id FK (ondelete RESTRICT), which raises IntegrityError when
+        # any note still references this type, mapped to HTTP 409 by the global handler.
+        self.get(type_id)  # 404 if missing
         self.repo.delete(type_id)

@@ -47,21 +47,6 @@ def test_delete_unused_type(client: TestClient) -> None:
     assert client.delete(f"/note-types/{created['id']}").status_code == 204
 
 
-def test_default_note_type_cannot_be_deleted(client: TestClient) -> None:
-    globals_ = client.get("/note-types", params={"scope": "GLOBAL"}).json()
-    default = next(t for t in globals_ if t["is_default"])
-    assert default["key"] in {
-        "REQUIREMENT",
-        "CONSTRAINT",
-        "DECISION",
-        "QUESTION",
-        "SNIPPET",
-        "REFERENCE",
-    }
-    resp = client.delete(f"/note-types/{default['id']}")
-    assert resp.status_code == 409, resp.text
-
-
 def test_delete_in_use_type_blocked(client: TestClient, make_project) -> None:
     slug = make_project()["slug"]
     nt = client.post(
