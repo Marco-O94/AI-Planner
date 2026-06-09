@@ -31,6 +31,22 @@ class NoteType(StrEnum):
     REFERENCE = "REFERENCE"
 
 
+# Allowed badge tones for a note type's color (mirrors the frontend palette).
+NOTE_TYPE_COLORS: frozenset[str] = frozenset(
+    {"violet", "blue", "green", "amber", "red", "slate", "neutral"}
+)
+
+# Built-in note types seeded as GLOBAL defaults: key -> (label, slug, color).
+NOTE_TYPE_DEFAULTS: tuple[tuple[str, str, str, str], ...] = (
+    ("REQUIREMENT", "Requirement", "requirement", "violet"),
+    ("CONSTRAINT", "Constraint", "constraint", "red"),
+    ("DECISION", "Decision", "decision", "green"),
+    ("QUESTION", "Question", "question", "amber"),
+    ("SNIPPET", "Snippet", "snippet", "blue"),
+    ("REFERENCE", "Reference", "reference", "slate"),
+)
+
+
 class TaskStatus(StrEnum):
     TODO = "TODO"
     IN_PROGRESS = "IN_PROGRESS"
