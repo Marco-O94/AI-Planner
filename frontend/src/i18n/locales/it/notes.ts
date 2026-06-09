@@ -7,6 +7,11 @@ export const notes = {
     captureFast: "Annota al volo —",
     collapseLabel: "Riduci nota rapida",
     addNote: "Aggiungi nota",
+    discardTitle: "Scartare questa nota?",
+    discardDescription:
+      "Hai del testo non salvato nella nota rapida. Chiudendo ora andrà perso.",
+    discardConfirm: "Scarta",
+    keepEditing: "Continua a modificare",
   },
   fields: {
     typeLabel: "Tipo",
@@ -52,6 +57,10 @@ export const notes = {
   emptyFiltered: {
     title: "Nessuna nota corrispondente",
     description: "Modifica il testo di ricerca o rimuovi il filtro per tipo.",
+  },
+  pagination: {
+    loadMore: "Carica altre note",
+    showing: "Visualizzate {visible} di {total}",
   },
   previewFallback: "Nota",
   toasts: {

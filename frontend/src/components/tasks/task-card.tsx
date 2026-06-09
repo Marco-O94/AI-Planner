@@ -32,6 +32,9 @@ import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/types";
 
 import type { UseTasksResult } from "./use-tasks";
 
+/** Long descriptions scroll inside the card past this height (Tailwind max-h-32 = 8rem). */
+const DESCRIPTION_MAX_HEIGHT = "max-h-32";
+
 interface TaskCardProps {
   task: TaskRead;
   /** Titles of unfinished dependencies, for the blocked tooltip. */
@@ -132,9 +135,11 @@ export function TaskCard({
       </div>
 
       {task.description ? (
-        <Markdown className="line-clamp-3 text-xs text-muted-foreground prose-p:my-0">
-          {task.description}
-        </Markdown>
+        <div className={`${DESCRIPTION_MAX_HEIGHT} overflow-y-auto`}>
+          <Markdown className="text-xs text-muted-foreground prose-p:my-0">
+            {task.description}
+          </Markdown>
+        </div>
       ) : null}
 
       {task.blocked ? (

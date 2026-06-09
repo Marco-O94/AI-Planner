@@ -35,11 +35,12 @@ export const skills = {
   library: {
     searchPlaceholder: "Cerca skill…",
     importMd: "Importa .md",
-    newSkill: "Nuova skill",
+    newSkill: "Nuova skill globale",
     loadError: "Impossibile caricare le skill",
     loadErrorRetry: "Riprova.",
     emptyTitle: "Ancora nessuna skill globale",
-    emptyDescription: "Crea una skill riutilizzabile o importane una da un file Markdown.",
+    emptyDescription:
+      "Crea una skill riutilizzabile e indipendente dal progetto o importane una da un file Markdown.",
     noMatchesTitle: "Nessun risultato",
     noMatchesDescription: "Nessuna skill corrisponde alla ricerca.",
     exportAria: "Esporta skill",

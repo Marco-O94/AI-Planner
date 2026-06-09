@@ -14,7 +14,6 @@ export const nav = {
   localAccount: "Account locale",
   account: "Account",
   settings: "Impostazioni",
-  settingsSoon: "Le impostazioni saranno presto disponibili.",
   themeLight: "Chiaro",
   themeDark: "Scuro",
   themeSystem: "Sistema",

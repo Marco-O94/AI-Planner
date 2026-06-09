@@ -13,6 +13,9 @@ export const dashboard = {
     database: "Database",
     any: "Qualsiasi {label}",
     clear: "Cancella filtri",
+    clearAll: "Cancella tutto",
+    activeAria: "Filtri attivi",
+    removeFilter: "Rimuovi filtro {label}",
   },
   card: {
     updated: "Aggiornato il {date}",

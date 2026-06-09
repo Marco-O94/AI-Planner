@@ -43,8 +43,10 @@ import type {
   TaskRead,
   TaskStatus,
   TaskUpdate,
+  TechnologyCreate,
   TechnologyInput,
   TechnologyRead,
+  TechnologyUpdate,
   TemplateCreate,
   TemplateRead,
   TemplateUpdate,
@@ -136,6 +138,12 @@ export const apiUrl = (path: string): string => `${API_URL}${path}`;
 export const api = {
   // technologies
   listTechnologies: () => apiFetch<TechnologyRead[]>("/technologies"),
+  createTechnology: (body: TechnologyCreate) =>
+    apiFetch<TechnologyRead>("/technologies", { method: "POST", body }),
+  updateTechnology: (technologyId: string, body: TechnologyUpdate) =>
+    apiFetch<TechnologyRead>(`/technologies/${technologyId}`, { method: "PATCH", body }),
+  deleteTechnology: (technologyId: string) =>
+    apiFetch<void>(`/technologies/${technologyId}`, { method: "DELETE" }),
 
   // projects
   listProjects: (query?: {

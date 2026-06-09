@@ -6,10 +6,11 @@
  * composer at the top and an item→artifact preview on click.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { NotebookPen, StickyNote } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { EmptyState } from "@/components/common";
@@ -25,6 +26,9 @@ import { NoteCard } from "@/components/notes/note-card";
 import { NoteEditDialog } from "@/components/notes/note-edit-dialog";
 import { NoteDeleteDialog } from "@/components/notes/note-delete-dialog";
 import { NotesFilterBar } from "@/components/notes/notes-filter-bar";
+
+/** Notes revealed per "Load more" step (filtering/grouping stays client-side). */
+const PAGE_SIZE = 30;
 
 function matchesQuery(note: NoteRead, query: string): boolean {
   if (!query) return true;
@@ -55,6 +59,7 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
 
   const [query, setQuery] = useState("");
   const [activeType, setActiveType] = useState<string | "ALL">("ALL");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [editNote, setEditNote] = useState<NoteRead | null>(null);
   const [deleteNote, setDeleteNote] = useState<NoteRead | null>(null);
@@ -88,15 +93,27 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
     [scoped, activeType, query],
   );
 
+  // A narrower search/filter changes which notes match — start the page over.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [query, activeType]);
+
+  // Paginate the FILTERED flat list before grouping so the count is global.
+  const visible = useMemo(
+    () => filtered.slice(0, visibleCount),
+    [filtered, visibleCount],
+  );
+  const hasMore = filtered.length > visibleCount;
+
   const grouped = useMemo(
     () =>
       types
         .map((type) => ({
           type,
-          notes: filtered.filter((note) => note.type.slug === type.slug),
+          notes: visible.filter((note) => note.type.slug === type.slug),
         }))
         .filter((group) => group.notes.length > 0),
-    [types, filtered],
+    [types, visible],
   );
 
   const previewNote = previewId
@@ -184,6 +201,20 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
                   </AnimatedList>
                 </section>
               ))}
+
+              {hasMore ? (
+                <div className="flex flex-col items-center gap-2 pt-1">
+                  <Button variant="outline" size="sm" onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}>
+                    {t("notes.pagination.loadMore")}
+                  </Button>
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {t("notes.pagination.showing", {
+                      visible: visible.length,
+                      total: filtered.length,
+                    })}
+                  </span>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

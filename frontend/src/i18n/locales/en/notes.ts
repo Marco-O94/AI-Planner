@@ -7,6 +7,11 @@ export const notes = {
     captureFast: "Capture fast —",
     collapseLabel: "Collapse quick note",
     addNote: "Add note",
+    discardTitle: "Discard this note?",
+    discardDescription:
+      "You have unsaved text in the quick note. Closing now will discard it.",
+    discardConfirm: "Discard",
+    keepEditing: "Keep editing",
   },
   fields: {
     typeLabel: "Type",
@@ -52,6 +57,10 @@ export const notes = {
   emptyFiltered: {
     title: "No matching notes",
     description: "Adjust the search text or clear the type filter.",
+  },
+  pagination: {
+    loadMore: "Load more notes",
+    showing: "Showing {visible} of {total}",
   },
   previewFallback: "Note",
   toasts: {

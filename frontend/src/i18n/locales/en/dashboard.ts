@@ -13,6 +13,9 @@ export const dashboard = {
     database: "Database",
     any: "Any {label}",
     clear: "Clear filters",
+    clearAll: "Clear all",
+    activeAria: "Active filters",
+    removeFilter: "Remove {label} filter",
   },
   card: {
     updated: "Updated {date}",
