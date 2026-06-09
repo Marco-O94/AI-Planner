@@ -20,6 +20,7 @@ from app.domain.entities import (
     Document,
     Domain,
     Note,
+    NoteTypeEntity,
     Project,
     ProjectTemplate,
     Skill,
@@ -28,7 +29,6 @@ from app.domain.entities import (
 )
 from app.domain.enums import (
     ArtifactStatus,
-    NoteType,
     ProjectStatus,
     ScopeKind,
     TaskPriority,
@@ -92,7 +92,7 @@ class NoteRepository(Protocol):
         project_id: uuid.UUID,
         *,
         domain_id: uuid.UUID | None = None,
-        type: NoteType | None = None,
+        note_type_id: uuid.UUID | None = None,
         tag: str | None = None,
     ) -> list[Note]: ...
 
@@ -113,6 +113,18 @@ class TaskRepository(Protocol):
         priority: TaskPriority | None = None,
         tag: str | None = None,
     ) -> list[Task]: ...
+
+
+class NoteTypeRepository(Protocol):
+    def add(self, note_type: NoteTypeEntity) -> NoteTypeEntity: ...
+    def get_by_id(self, type_id: uuid.UUID) -> NoteTypeEntity | None: ...
+    def get_by_slug(self, slug: str, project_id: uuid.UUID | None) -> NoteTypeEntity | None: ...
+    def resolve(self, value: str, project_id: uuid.UUID) -> NoteTypeEntity | None: ...
+    def list(self, *, scope: ScopeKind | None = None) -> list[NoteTypeEntity]: ...
+    def list_applicable(self, project_id: uuid.UUID) -> list[NoteTypeEntity]: ...
+    def update(self, note_type: NoteTypeEntity) -> NoteTypeEntity: ...
+    def delete(self, type_id: uuid.UUID) -> None: ...
+    def slug_exists(self, slug: str, project_id: uuid.UUID | None) -> bool: ...
 
 
 class ArtifactTypeRepository(Protocol):
@@ -203,6 +215,7 @@ __all__ = [
     "DomainRepository",
     "NoteRepository",
     "TaskRepository",
+    "NoteTypeRepository",
     "ArtifactTypeRepository",
     "ArtifactRepository",
     "SkillRepository",
