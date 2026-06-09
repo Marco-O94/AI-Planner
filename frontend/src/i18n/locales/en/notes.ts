@@ -63,6 +63,14 @@ export const notes = {
     showing: "Showing {visible} of {total}",
   },
   previewFallback: "Note",
+  aiProcessed: {
+    badge: "AI-processed",
+    mark: "Mark AI-processed",
+    unmark: "Unmark AI-processed",
+    marked: "Note marked AI-processed",
+    unmarked: "Note brought back",
+    toggleFailed: "Could not update the note",
+  },
   toasts: {
     captured: "{type} note captured",
     saveFailed: "Could not save the note",

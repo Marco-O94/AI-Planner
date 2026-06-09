@@ -265,3 +265,78 @@ def test_update_phase_status_patches_backend(client: BackendClient, fake_backend
     path, body = fake_backend.patches[-1]
     assert path == "/artifacts/a1/phases/ph1"
     assert body == {"status": "DONE", "note": "shipped"}
+
+
+# -- notes <-> tasks: AI-processed flag --------------------------------------
+
+
+def test_list_notes_filters_by_processed(client: BackendClient):
+    assert {n["id"] for n in tools.list_notes(client, PROJECT_SLUG)} == {"n1", "n2", "n3"}
+    assert {n["id"] for n in tools.list_notes(client, PROJECT_SLUG, processed=False)} == {"n1", "n2"}
+    assert [n["id"] for n in tools.list_notes(client, PROJECT_SLUG, processed=True)] == ["n3"]
+
+
+def test_create_tasks_from_notes_builds_body_and_resolves_domain(
+    client: BackendClient, fake_backend: FakeBackend
+):
+    result = tools.create_tasks_from_notes(
+        client,
+        PROJECT_SLUG,
+        items=[
+            {"note_id": "n1", "title": "Build billing", "priority": "HIGH", "domain_slug": "billing"},
+            {"note_id": "n2", "title": "Wire Stripe"},
+        ],
+    )
+
+    assert [t["source_note_id"] for t in result] == ["n1", "n2"]
+    path, body = fake_backend.posts[-1]
+    assert path == f"/projects/{PROJECT_SLUG}/tasks/from-notes"
+    first, second = body["items"]
+    assert first == {
+        "source_note_id": "n1", "title": "Build billing",
+        "priority": "HIGH", "domain_id": "d1",  # slug resolved to id
+    }
+    # unset optionals dropped so the backend applies its defaults
+    assert second == {"source_note_id": "n2", "title": "Wire Stripe"}
+
+
+def test_create_tasks_from_notes_unknown_domain_raises(client: BackendClient):
+    with pytest.raises(ValueError, match="domain"):
+        tools.create_tasks_from_notes(
+            client, PROJECT_SLUG, items=[{"note_id": "n1", "title": "x", "domain_slug": "ghost"}]
+        )
+
+
+def test_mark_notes_processed_posts_body(client: BackendClient, fake_backend: FakeBackend):
+    result = tools.mark_notes_processed(client, PROJECT_SLUG, ["n1", "n2"])
+
+    assert all(n["ai_processed"] is True for n in result)
+    path, body = fake_backend.posts[-1]
+    assert path == f"/projects/{PROJECT_SLUG}/notes/mark-ai-processed"
+    assert body == {"note_ids": ["n1", "n2"], "processed": True}
+
+
+def test_mark_notes_processed_can_clear(client: BackendClient, fake_backend: FakeBackend):
+    result = tools.mark_notes_processed(client, PROJECT_SLUG, ["n3"], processed=False)
+
+    assert result[0]["ai_processed"] is False
+    _, body = fake_backend.posts[-1]
+    assert body == {"note_ids": ["n3"], "processed": False}
+
+
+def test_get_project_context_excludes_processed_by_default(client: BackendClient):
+    default = tools.get_project_context(client, PROJECT_SLUG)
+    assert "Old idea" not in default  # n3 is AI-processed
+
+    included = tools.get_project_context(client, PROJECT_SLUG, include_processed=True)
+    assert "Old idea" in included
+
+
+def test_prepare_generation_excludes_processed_by_default(client: BackendClient):
+    default = tools.prepare_generation(client, PROJECT_SLUG, "development-plan")
+    assert "Old idea" not in default
+
+    included = tools.prepare_generation(
+        client, PROJECT_SLUG, "development-plan", include_processed=True
+    )
+    assert "Old idea" in included

@@ -7,8 +7,11 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
+import { toast } from "sonner";
 import { NotebookPen, StickyNote } from "lucide-react";
+
+import { api, ApiError } from "@/lib/api";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,9 +45,29 @@ function matchesQuery(note: NoteRead, query: string): boolean {
 
 export function NotesTab({ project, domains, domainId }: TabProps) {
   const t = useT();
+  const { mutate } = useSWRConfig();
   // SWR key is the backend path string; the global fetcher resolves it.
   const notesKey = `/projects/${project.slug}/notes`;
   const { data, isLoading, error } = useSWR<NoteRead[]>(notesKey);
+
+  // Toggle the AI-processed flag, then revalidate the list (badge) and the
+  // project (its open-notes count excludes processed notes).
+  const handleToggleProcessed = async (note: NoteRead) => {
+    try {
+      await api.markNotesAiProcessed(project.slug, [note.id], !note.ai_processed);
+      mutate(notesKey);
+      mutate(`/projects/${project.slug}`);
+      toast.success(
+        note.ai_processed
+          ? t("notes.aiProcessed.unmarked")
+          : t("notes.aiProcessed.marked"),
+      );
+    } catch (err) {
+      toast.error(
+        err instanceof ApiError ? err.message : t("notes.aiProcessed.toggleFailed"),
+      );
+    }
+  };
 
   const { data: noteTypes } = useSWR<NoteTypeRead[]>(
     `/projects/${project.slug}/note-types`,
@@ -194,6 +217,7 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
                             onOpen={() => setPreviewId(note.id)}
                             onEdit={() => setEditNote(note)}
                             onDelete={() => setDeleteNote(note)}
+                            onToggleProcessed={() => handleToggleProcessed(note)}
                           />
                         </AnimatedItem>
                       ))}

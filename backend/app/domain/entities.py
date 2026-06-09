@@ -89,6 +89,7 @@ class Note:
     title: str | None = None
     tags: list[str] = field(default_factory=list)
     type: NoteTypeRef | None = None
+    ai_processed_at: datetime | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
@@ -101,6 +102,7 @@ class Task:
     status: TaskStatus
     priority: TaskPriority
     domain_id: uuid.UUID | None = None
+    source_note_id: uuid.UUID | None = None
     description: str | None = None
     depends_on: list[uuid.UUID] = field(default_factory=list)
     tags: list[str] = field(default_factory=list)

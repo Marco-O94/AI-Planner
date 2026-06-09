@@ -8,7 +8,7 @@ from app.api.deps import get_artifact_service, get_note_service
 from app.application.artifact_service import ArtifactService
 from app.application.note_service import NoteService
 from app.schemas.artifact import ArtifactRead
-from app.schemas.note import NoteCreate, NoteRead, NoteUpdate
+from app.schemas.note import NoteCreate, NoteRead, NotesMarkProcessed, NoteUpdate
 
 router = APIRouter(tags=["notes"])
 
@@ -19,9 +19,20 @@ def list_notes(
     domain_id: uuid.UUID | None = None,
     type: str | None = None,
     tag: str | None = None,
+    processed: bool | None = None,
     service: NoteService = Depends(get_note_service),
 ) -> list[NoteRead]:
-    notes = service.list(slug, domain_id=domain_id, type=type, tag=tag)
+    notes = service.list(slug, domain_id=domain_id, type=type, tag=tag, processed=processed)
+    return [NoteRead.model_validate(n) for n in notes]
+
+
+@router.post("/projects/{slug}/notes/mark-ai-processed", response_model=list[NoteRead])
+def mark_notes_ai_processed(
+    slug: str,
+    payload: NotesMarkProcessed,
+    service: NoteService = Depends(get_note_service),
+) -> list[NoteRead]:
+    notes = service.mark_processed(payload.note_ids, processed=payload.processed)
     return [NoteRead.model_validate(n) for n in notes]
 
 

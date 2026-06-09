@@ -48,13 +48,18 @@ def list_domains(client: BackendClient, project_slug: str) -> list[JSON]:
 
 
 def get_project_context(
-    client: BackendClient, project_slug: str, domain_slug: str | None = None
+    client: BackendClient,
+    project_slug: str,
+    domain_slug: str | None = None,
+    include_processed: bool = False,
 ) -> str:
     project = client.get_project(project_slug)
+    # Skip notes already actioned by the AI unless explicitly asked to include them.
+    processed = None if include_processed else False
     return render_project_context(
         project=project,
         domains=client.list_domains(project_slug),
-        notes=client.list_notes(project_slug),
+        notes=client.list_notes(project_slug, processed=processed),
         tasks=client.list_tasks(project_slug),
         documents=client.list_documents(project_slug),
         skills=client.list_project_skills(project_slug),
@@ -129,6 +134,12 @@ def get_task(client: BackendClient, task_id: str) -> JSON:
 
 def get_note(client: BackendClient, note_id: str) -> JSON:
     return client.get_note(note_id)
+
+
+def list_notes(
+    client: BackendClient, project_slug: str, processed: bool | None = None
+) -> list[JSON]:
+    return client.list_notes(project_slug, processed=processed)
 
 
 def list_documents(client: BackendClient, project_slug: str) -> list[JSON]:
@@ -211,6 +222,7 @@ def prepare_generation(
     domain_slug: str | None = None,
     note_ids: list[str] | None = None,
     task_ids: list[str] | None = None,
+    include_processed: bool = False,
 ) -> str:
     project = client.get_project(project_slug)
     artifact_type = _resolve_artifact_type(client, artifact_type_slug, project_slug)
@@ -221,7 +233,10 @@ def prepare_generation(
         notes = [client.get_note(nid) for nid in note_ids or []]
         tasks = [client.get_task(tid) for tid in task_ids or []]
     else:
-        notes = client.list_notes(project_slug)
+        # Skip AI-processed notes from a full build unless explicitly included.
+        notes = client.list_notes(
+            project_slug, processed=None if include_processed else False
+        )
         tasks = client.list_tasks(project_slug)
         if domain_slug:
             scope_id = _domain_id(domains, domain_slug)
@@ -292,6 +307,43 @@ def create_task(
     # and never sees an explicit ``null`` on its non-nullable list fields.
     body = {key: value for key, value in body.items() if value is not None}
     return client.create_task(project_slug, body)
+
+
+def create_tasks_from_notes(
+    client: BackendClient, project_slug: str, items: list[JSON]
+) -> list[JSON]:
+    """Batch-create tasks distilled from notes; marks each source note AI-processed.
+
+    Each item is ``{note_id, title, description?, status?, priority?, tags?,
+    domain_slug?}``. ``domain_slug`` is resolved per item to a backend id (an
+    unknown slug raises ValueError before any write).
+    """
+    payload_items: list[JSON] = []
+    for item in items:
+        domain_id = _resolve_domain_slug(client, project_slug, item.get("domain_slug"))
+        spec: JSON = {
+            "source_note_id": item["note_id"],
+            "title": item["title"],
+            "description": item.get("description"),
+            "status": item.get("status"),
+            "priority": item.get("priority"),
+            "tags": item.get("tags"),
+            "domain_id": domain_id,
+        }
+        # Drop unset optionals so the backend applies its own defaults.
+        payload_items.append({k: v for k, v in spec.items() if v is not None})
+    return client.create_tasks_from_notes(project_slug, {"items": payload_items})
+
+
+def mark_notes_processed(
+    client: BackendClient,
+    project_slug: str,
+    note_ids: list[str],
+    processed: bool = True,
+) -> list[JSON]:
+    return client.mark_notes_processed(
+        project_slug, {"note_ids": note_ids, "processed": processed}
+    )
 
 
 def save_artifact(

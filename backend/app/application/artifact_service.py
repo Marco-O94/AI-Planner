@@ -11,6 +11,7 @@ from __future__ import annotations
 import difflib
 import uuid
 from dataclasses import replace
+from datetime import datetime, timezone
 
 from slugify import slugify
 
@@ -23,6 +24,7 @@ from app.domain.repositories import (
     ArtifactRepository,
     ArtifactTypeRepository,
     DomainRepository,
+    NoteRepository,
     ProjectRepository,
 )
 from app.domain.vector import KIND_ARTIFACT_FILE
@@ -37,12 +39,14 @@ class ArtifactService:
         type_repo: ArtifactTypeRepository,
         project_repo: ProjectRepository,
         domain_repo: DomainRepository,
+        note_repo: NoteRepository | None = None,
         indexer=None,
     ) -> None:
         self.repo = repo
         self.type_repo = type_repo
         self.project_repo = project_repo
         self.domain_repo = domain_repo
+        self.note_repo = note_repo
         self.indexer = indexer
 
     # --- helpers ---------------------------------------------------------
@@ -158,8 +162,21 @@ class ArtifactService:
         )
         self._create_phases(artifact_type.output_files, files, version.id)
         self.repo.set_current_version(artifact.id, version.id)
+        # Producing the plan is what "consumes" the notes: mark every source note
+        # AI-processed so it drops out of counts and later generation passes.
+        self._mark_source_notes_processed(source_note_ids or [])
         self._reindex_files(artifact, previous_files, new_files)
         return self.get_detail(artifact.id)
+
+    def _mark_source_notes_processed(self, note_ids: list[uuid.UUID]) -> None:
+        if not note_ids or self.note_repo is None:
+            return
+        stamp = datetime.now(timezone.utc)
+        for note_id in note_ids:
+            note = self.note_repo.get_by_id(note_id)
+            # Tolerant + idempotent: skip unknown ids, don't re-stamp on re-save.
+            if note is not None and note.ai_processed_at is None:
+                self.note_repo.update(replace(note, ai_processed_at=stamp))
 
     def _reindex_files(self, artifact, previous_files, new_files) -> None:
         if self.indexer is None:

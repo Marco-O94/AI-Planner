@@ -9,11 +9,12 @@ EXPECTED_TOOLS = {
     "list_projects", "list_domains", "get_project_context",
     "list_artifact_types", "get_artifact_type",
     "list_artifacts", "get_artifact", "list_artifact_versions", "get_artifact_version",
-    "list_tasks", "get_task", "get_note",
+    "list_tasks", "get_task", "get_note", "list_notes",
     "list_documents", "get_document",
     "get_project_skills", "get_skill",
     "search_knowledge", "prepare_generation",
     "create_note", "create_task",
+    "create_tasks_from_notes", "mark_notes_processed",
     "save_artifact", "update_phase_status",
 }
 

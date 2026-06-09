@@ -63,6 +63,14 @@ export const notes = {
     showing: "Visualizzate {visible} di {total}",
   },
   previewFallback: "Nota",
+  aiProcessed: {
+    badge: "Elaborata dall’IA",
+    mark: "Segna come elaborata dall’IA",
+    unmark: "Rimuovi elaborata dall’IA",
+    marked: "Nota segnata come elaborata dall’IA",
+    unmarked: "Nota ripristinata",
+    toggleFailed: "Impossibile aggiornare la nota",
+  },
   toasts: {
     captured: "Nota {type} catturata",
     saveFailed: "Impossibile salvare la nota",

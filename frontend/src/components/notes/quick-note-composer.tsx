@@ -74,6 +74,8 @@ function makeOptimisticNote(
     title: values.title.trim() || null,
     content: values.content,
     tags,
+    ai_processed: false,
+    ai_processed_at: null,
     created_at: now,
     updated_at: now,
   };

@@ -168,6 +168,31 @@ def test_export_multiple_files_as_zip(client: TestClient, make_project) -> None:
         assert set(archive.namelist()) == {"a.md", "b.md"}
 
 
+def test_saving_plan_marks_source_notes_ai_processed(client: TestClient, make_project) -> None:
+    project = make_project()
+    slug = project["slug"]
+    used = client.post(
+        f"/projects/{slug}/notes", json={"type": "REQUIREMENT", "content": "used"}
+    ).json()
+    client.post(f"/projects/{slug}/notes", json={"type": "DECISION", "content": "untouched"})
+    assert client.get(f"/projects/{slug}").json()["note_count"] == 2
+
+    _save(
+        client,
+        slug,
+        artifact_type_slug="development-plan",
+        title=f"Plan {uuid.uuid4().hex[:6]}",
+        files=[{"path": "IMPLEMENTATION_PLAN.md", "content": "x"}],
+        source_note_ids=[used["id"]],
+    )
+
+    # The note that fed the plan is now processed; the other still counts.
+    assert client.get(f"/notes/{used['id']}").json()["ai_processed"] is True
+    assert client.get(f"/projects/{slug}").json()["note_count"] == 1
+    open_notes = client.get(f"/projects/{slug}/notes", params={"processed": "false"}).json()
+    assert [n["content"] for n in open_notes] == ["untouched"]
+
+
 def test_reverse_lookup_from_note_and_task(client: TestClient, make_project) -> None:
     slug = make_project()["slug"]
     note = client.post(

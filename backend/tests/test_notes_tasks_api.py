@@ -120,3 +120,104 @@ def test_create_note_with_uppercase_key_backcompat(client: TestClient, make_proj
     resp = client.post(f"/projects/{slug}/notes", json={"type": "REQUIREMENT", "content": "x"})
     assert resp.status_code == 201, resp.text
     assert resp.json()["type"]["key"] == "REQUIREMENT"
+
+
+# -- AI-processed flag + create-tasks-from-notes -----------------------------
+
+
+def test_note_read_exposes_ai_processed_default_false(client: TestClient, make_project) -> None:
+    slug = make_project()["slug"]
+    note = client.post(f"/projects/{slug}/notes", json={"type": "REQUIREMENT", "content": "x"}).json()
+    assert note["ai_processed"] is False
+    assert note["ai_processed_at"] is None
+
+
+def test_mark_notes_ai_processed_sets_and_clears_flag(client: TestClient, make_project) -> None:
+    slug = make_project()["slug"]
+    note = client.post(f"/projects/{slug}/notes", json={"type": "REQUIREMENT", "content": "x"}).json()
+
+    marked = client.post(
+        f"/projects/{slug}/notes/mark-ai-processed", json={"note_ids": [note["id"]]}
+    )
+    assert marked.status_code == 200, marked.text
+    body = marked.json()[0]
+    assert body["ai_processed"] is True and body["ai_processed_at"] is not None
+
+    cleared = client.post(
+        f"/projects/{slug}/notes/mark-ai-processed",
+        json={"note_ids": [note["id"]], "processed": False},
+    ).json()[0]
+    assert cleared["ai_processed"] is False and cleared["ai_processed_at"] is None
+
+
+def test_list_notes_filter_by_processed(client: TestClient, make_project) -> None:
+    slug = make_project()["slug"]
+    handled = client.post(f"/projects/{slug}/notes", json={"type": "REQUIREMENT", "content": "h"}).json()
+    client.post(f"/projects/{slug}/notes", json={"type": "DECISION", "content": "open"})
+    client.post(f"/projects/{slug}/notes/mark-ai-processed", json={"note_ids": [handled["id"]]})
+
+    unprocessed = client.get(f"/projects/{slug}/notes", params={"processed": "false"}).json()
+    assert [n["content"] for n in unprocessed] == ["open"]
+    processed = client.get(f"/projects/{slug}/notes", params={"processed": "true"}).json()
+    assert [n["content"] for n in processed] == ["h"]
+    all_notes = client.get(f"/projects/{slug}/notes").json()
+    assert len(all_notes) == 2
+
+
+def test_note_count_excludes_ai_processed(client: TestClient, make_project) -> None:
+    project = make_project()
+    slug = project["slug"]
+    n1 = client.post(f"/projects/{slug}/notes", json={"type": "REQUIREMENT", "content": "a"}).json()
+    client.post(f"/projects/{slug}/notes", json={"type": "DECISION", "content": "b"})
+    assert client.get(f"/projects/{slug}").json()["note_count"] == 2
+
+    client.post(f"/projects/{slug}/notes/mark-ai-processed", json={"note_ids": [n1["id"]]})
+    assert client.get(f"/projects/{slug}").json()["note_count"] == 1
+
+
+def test_create_tasks_from_notes_links_source_note(client: TestClient, make_project) -> None:
+    slug = make_project()["slug"]
+    note = client.post(
+        f"/projects/{slug}/notes", json={"type": "REQUIREMENT", "content": "ship login"}
+    ).json()
+
+    resp = client.post(
+        f"/projects/{slug}/tasks/from-notes",
+        json={"items": [{"source_note_id": note["id"], "title": "Build login", "priority": "HIGH"}]},
+    )
+    assert resp.status_code == 201, resp.text
+    task = resp.json()[0]
+    assert task["source_note_id"] == note["id"]
+    assert task["title"] == "Build login" and task["priority"] == "HIGH"
+
+    # Creating tasks does NOT consume the note: it stays unprocessed until a plan
+    # is generated from it.
+    refreshed = client.get(f"/notes/{note['id']}").json()
+    assert refreshed["ai_processed"] is False
+    assert len(client.get(f"/projects/{slug}/notes", params={"processed": "false"}).json()) == 1
+
+
+def test_create_tasks_from_notes_is_atomic_on_bad_item(client: TestClient, make_project) -> None:
+    project_a = make_project()
+    project_b = make_project()
+    good = client.post(
+        f"/projects/{project_a['slug']}/notes", json={"type": "REQUIREMENT", "content": "g"}
+    ).json()
+    foreign = client.post(
+        f"/projects/{project_b['slug']}/notes", json={"type": "REQUIREMENT", "content": "f"}
+    ).json()
+
+    # Second item references a note from another project -> whole batch rejected.
+    resp = client.post(
+        f"/projects/{project_a['slug']}/tasks/from-notes",
+        json={
+            "items": [
+                {"source_note_id": good["id"], "title": "ok"},
+                {"source_note_id": foreign["id"], "title": "bad"},
+            ]
+        },
+    )
+    assert resp.status_code == 422, resp.text
+    # Nothing was written: no task created, the good note stays unprocessed.
+    assert client.get(f"/projects/{project_a['slug']}/tasks").json() == []
+    assert client.get(f"/notes/{good['id']}").json()["ai_processed"] is False

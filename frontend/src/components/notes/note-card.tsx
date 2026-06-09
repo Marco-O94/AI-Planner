@@ -7,7 +7,7 @@
  */
 
 import { useState } from "react";
-import { ChevronDown, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, MoreHorizontal, Pencil, Sparkles, Trash2, Undo2 } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { NoteTypeBadge } from "@/components/status-badge";
+import { AiProcessedBadge, NoteTypeBadge } from "@/components/status-badge";
 import { TagList } from "@/components/common";
 import { Markdown } from "@/components/markdown";
 import { formatDate } from "@/lib/format";
@@ -34,9 +34,17 @@ interface NoteCardProps {
   onOpen: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleProcessed: () => void;
 }
 
-export function NoteCard({ note, domain, onOpen, onEdit, onDelete }: NoteCardProps) {
+export function NoteCard({
+  note,
+  domain,
+  onOpen,
+  onEdit,
+  onDelete,
+  onToggleProcessed,
+}: NoteCardProps) {
   const t = useT();
   const [expanded, setExpanded] = useState(false);
   const isLong = note.content.length > PREVIEW_THRESHOLD;
@@ -57,6 +65,7 @@ export function NoteCard({ note, domain, onOpen, onEdit, onDelete }: NoteCardPro
           className="flex flex-1 flex-wrap items-center gap-2 text-left outline-none"
         >
           <NoteTypeBadge type={note.type} />
+          {note.ai_processed ? <AiProcessedBadge /> : null}
           {note.title ? (
             <span className="text-sm font-medium underline-offset-4 group-hover/note:text-primary group-hover/note:underline">
               {note.title}
@@ -88,6 +97,16 @@ export function NoteCard({ note, domain, onOpen, onEdit, onDelete }: NoteCardPro
               <DropdownMenuItem onSelect={onEdit}>
                 <Pencil className="size-4" />
                 {t("common.edit")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={onToggleProcessed}>
+                {note.ai_processed ? (
+                  <Undo2 className="size-4" />
+                ) : (
+                  <Sparkles className="size-4" />
+                )}
+                {note.ai_processed
+                  ? t("notes.aiProcessed.unmark")
+                  : t("notes.aiProcessed.mark")}
               </DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onSelect={onDelete}>
                 <Trash2 className="size-4" />

@@ -96,6 +96,7 @@ class NoteRepository(Protocol):
         domain_id: uuid.UUID | None = None,
         note_type_id: uuid.UUID | None = None,
         tag: str | None = None,
+        processed: bool | None = None,
     ) -> list[Note]: ...
 
 

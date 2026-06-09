@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import replace
+from datetime import datetime, timezone
 
 from app.domain.entities import Note
 from app.domain.errors import NotFoundError, ValidationError
@@ -93,12 +94,33 @@ class NoteService:
         domain_id: uuid.UUID | None = None,
         type: str | None = None,
         tag: str | None = None,
+        processed: bool | None = None,
     ) -> list[Note]:
         project_id = self._require_project_id(project_slug)
         note_type_id = self._resolve_type_id(project_id, type) if type else None
         return self.repo.list(
-            project_id, domain_id=domain_id, note_type_id=note_type_id, tag=tag
+            project_id,
+            domain_id=domain_id,
+            note_type_id=note_type_id,
+            tag=tag,
+            processed=processed,
         )
+
+    def mark_processed(
+        self, note_ids: list[uuid.UUID], *, processed: bool = True
+    ) -> list[Note]:
+        """Flag notes as reviewed/processed by the AI (or clear the flag).
+
+        Stamps ``ai_processed_at`` with the current time when ``processed`` is
+        True, or resets it to ``None`` to bring a note back into play. Does not
+        re-index: the note's searchable content is unchanged.
+        """
+        stamp = datetime.now(timezone.utc) if processed else None
+        updated: list[Note] = []
+        for note_id in note_ids:
+            note = self.get(note_id)
+            updated.append(self.repo.update(replace(note, ai_processed_at=stamp)))
+        return updated
 
     def update(self, note_id: uuid.UUID, changes: dict) -> Note:
         note = self.get(note_id)

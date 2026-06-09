@@ -49,6 +49,7 @@ def note_to_domain(o: m.Note) -> e.Note:
         content=o.content,
         tags=list(o.tags or []),
         type=note_type_ref(o.note_type) if o.note_type is not None else None,
+        ai_processed_at=o.ai_processed_at,
         created_at=o.created_at,
         updated_at=o.updated_at,
     )
@@ -79,6 +80,7 @@ def task_to_domain(o: m.Task) -> e.Task:
         id=o.id,
         project_id=o.project_id,
         domain_id=o.domain_id,
+        source_note_id=o.source_note_id,
         title=o.title,
         description=o.description,
         status=o.status,

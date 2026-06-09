@@ -29,10 +29,28 @@ class TaskUpdate(BaseModel):
     domain_id: uuid.UUID | None = None
 
 
+class TaskFromNote(BaseModel):
+    """One task distilled from a note, carrying its source note id."""
+
+    source_note_id: uuid.UUID
+    title: str
+    description: str | None = None
+    status: TaskStatus = TaskStatus.TODO
+    priority: TaskPriority = TaskPriority.MEDIUM
+    depends_on: list[uuid.UUID] = []
+    tags: list[str] = []
+    domain_id: uuid.UUID | None = None
+
+
+class TasksFromNotesCreate(BaseModel):
+    items: list[TaskFromNote]
+
+
 class TaskRead(BaseModel):
     id: uuid.UUID
     project_id: uuid.UUID
     domain_id: uuid.UUID | None
+    source_note_id: uuid.UUID | None
     title: str
     description: str | None
     status: TaskStatus
@@ -50,6 +68,7 @@ class TaskRead(BaseModel):
             id=t.id,
             project_id=t.project_id,
             domain_id=t.domain_id,
+            source_note_id=t.source_note_id,
             title=t.title,
             description=t.description,
             status=t.status,

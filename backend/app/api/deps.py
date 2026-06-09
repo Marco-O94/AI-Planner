@@ -77,7 +77,10 @@ def get_note_type_service(db: Session = Depends(get_db)) -> NoteTypeService:
 
 def get_task_service(db: Session = Depends(get_db)) -> TaskService:
     return TaskService(
-        SqlTaskRepository(db), SqlProjectRepository(db), SqlDomainRepository(db)
+        SqlTaskRepository(db),
+        SqlProjectRepository(db),
+        SqlDomainRepository(db),
+        SqlNoteRepository(db),
     )
 
 
@@ -95,6 +98,7 @@ def get_artifact_service(db: Session = Depends(get_db)) -> ArtifactService:
         SqlArtifactTypeRepository(db),
         SqlProjectRepository(db),
         SqlDomainRepository(db),
+        SqlNoteRepository(db),
         indexer=get_indexer(),
     )
 

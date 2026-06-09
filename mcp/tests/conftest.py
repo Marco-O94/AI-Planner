@@ -67,12 +67,20 @@ _NOTES: list[JSON] = [
     {
         "id": "n1", "project_id": "p1", "domain_id": "d1", "type": "REQUIREMENT",
         "title": "Charge monthly", "content": "Bill customers on the 1st.",
-        "tags": ["mvp"], "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
+        "tags": ["mvp"], "ai_processed": False, "ai_processed_at": None,
+        "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
     },
     {
         "id": "n2", "project_id": "p1", "domain_id": None, "type": "DECISION",
         "title": "Use Stripe", "content": "Stripe for card processing.",
-        "tags": [], "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
+        "tags": [], "ai_processed": False, "ai_processed_at": None,
+        "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
+    },
+    {
+        "id": "n3", "project_id": "p1", "domain_id": None, "type": "SNIPPET",
+        "title": "Old idea", "content": "Already folded into a plan.",
+        "tags": [], "ai_processed": True, "ai_processed_at": "2026-01-02T00:00:00Z",
+        "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-02T00:00:00Z",
     },
 ]
 
@@ -177,10 +185,14 @@ class FakeBackend:
             self.posts.append((path, body))
             if re.fullmatch(r"/projects/[^/]+/artifacts", path):
                 return _ok(_ARTIFACT_DETAIL, status=201)
+            if re.fullmatch(r"/projects/[^/]+/notes/mark-ai-processed", path):
+                return _ok(_marked_notes(body), status=200)
             if re.fullmatch(r"/projects/[^/]+/notes", path):
                 if body.get("type") not in _NOTE_TYPES:
                     return _ok({"detail": f"invalid note type: {body.get('type')!r}"}, status=422)
                 return _ok(_created_note(body), status=201)
+            if re.fullmatch(r"/projects/[^/]+/tasks/from-notes", path):
+                return _ok([_created_task(it) for it in body.get("items", [])], status=201)
             if re.fullmatch(r"/projects/[^/]+/tasks", path):
                 if (bad := _invalid_task_enum(body)) is not None:
                     return _ok({"detail": bad}, status=422)
@@ -204,7 +216,6 @@ class FakeBackend:
             "/projects": _list(_PROJECT),
             f"/projects/{PROJECT_SLUG}": _PROJECT,
             f"/projects/{PROJECT_SLUG}/domains": _DOMAINS,
-            f"/projects/{PROJECT_SLUG}/notes": _NOTES,
             f"/projects/{PROJECT_SLUG}/documents": _DOCUMENTS,
             f"/projects/{PROJECT_SLUG}/skills": _SKILLS,
             f"/projects/{PROJECT_SLUG}/artifact-types": _ARTIFACT_TYPES,
@@ -227,6 +238,8 @@ class FakeBackend:
         }
         if path == f"/projects/{PROJECT_SLUG}/tasks":
             return _ok(_filter_tasks(params))
+        if path == f"/projects/{PROJECT_SLUG}/notes":
+            return _ok(_filter_notes(params))
         if path == "/search":
             return _ok(_search(params))
         if path in routes:
@@ -269,12 +282,28 @@ def _created_task(body: JSON) -> JSON:
     return {
         "id": "new-task", "project_id": "p1",
         "domain_id": body.get("domain_id"),
+        "source_note_id": body.get("source_note_id"),
         "title": body.get("title"), "description": body.get("description"),
         "status": body.get("status", "TODO"), "priority": body.get("priority", "MEDIUM"),
         "depends_on": body.get("depends_on", []), "tags": body.get("tags", []),
         "blocked": False,
         "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z",
     }
+
+
+def _marked_notes(body: JSON) -> list[JSON]:
+    """Echo NoteRead rows with the ai_processed flag the request asked for."""
+    processed = body.get("processed", True)
+    stamp = "2026-01-02T00:00:00Z" if processed else None
+    return [
+        {
+            "id": nid, "project_id": "p1", "domain_id": None, "type": "REQUIREMENT",
+            "title": None, "content": "", "tags": [],
+            "ai_processed": processed, "ai_processed_at": stamp,
+            "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-02T00:00:00Z",
+        }
+        for nid in body.get("note_ids", [])
+    ]
 
 
 def _list(*items: JSON) -> list[JSON]:
@@ -288,6 +317,16 @@ def _filter_tasks(params: httpx.QueryParams) -> list[JSON]:
     if priority := params.get("priority"):
         tasks = [t for t in tasks if t["priority"] == priority]
     return tasks
+
+
+def _filter_notes(params: httpx.QueryParams) -> list[JSON]:
+    notes = _NOTES
+    processed = params.get("processed")
+    if processed == "true":
+        notes = [n for n in notes if n.get("ai_processed")]
+    elif processed == "false":
+        notes = [n for n in notes if not n.get("ai_processed")]
+    return notes
 
 
 def _search(params: httpx.QueryParams) -> list[JSON]:

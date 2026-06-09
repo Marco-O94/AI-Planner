@@ -196,6 +196,9 @@ export interface NoteRead {
   title: string | null;
   content: string;
   tags: string[];
+  /** True once the AI has folded the note into a plan/artifact. */
+  ai_processed: boolean;
+  ai_processed_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -222,6 +225,8 @@ export interface TaskRead {
   id: string;
   project_id: string;
   domain_id: string | null;
+  /** The note this task was distilled from, if created via create-tasks-from-notes. */
+  source_note_id: string | null;
   title: string;
   description: string | null;
   status: TaskStatus;

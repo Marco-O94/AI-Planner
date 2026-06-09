@@ -86,6 +86,10 @@ export const PhaseStatusBadge = ({ status }: { status: PhaseStatus }) => {
   const t = useT();
   return <Pill tone={PHASE_STATUS_TONE[status]}>{t(`enums.phaseStatus.${status}`)}</Pill>;
 };
+export const AiProcessedBadge = () => {
+  const t = useT();
+  return <Pill tone="green">{t("notes.aiProcessed.badge")}</Pill>;
+};
 export const NoteTypeBadge = ({ type }: { type: NoteTypeRef }) => {
   const t = useT();
   // Built-in types have an i18n key; t() echoes the key back when it's missing,

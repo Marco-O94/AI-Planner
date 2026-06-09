@@ -199,6 +199,11 @@ class Note(UUIDPKMixin, TimestampMixin, Base):
             persisted=True,
         ),
     )
+    # Set when the AI distills the note into tasks (or reviews it). NULL = not yet
+    # processed; lets context/generation passes and note counts skip handled notes.
+    ai_processed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
 
 class Task(UUIDPKMixin, TimestampMixin, Base):
@@ -207,6 +212,7 @@ class Task(UUIDPKMixin, TimestampMixin, Base):
         Index("ix_tasks_depends_on", "depends_on", postgresql_using="gin"),
         Index("ix_tasks_tags", "tags", postgresql_using="gin"),
         Index("ix_tasks_project_id", "project_id"),
+        Index("ix_tasks_source_note_id", "source_note_id"),
     )
 
     project_id: Mapped[uuid.UUID] = mapped_column(
@@ -214,6 +220,10 @@ class Task(UUIDPKMixin, TimestampMixin, Base):
     )
     domain_id: Mapped[uuid.UUID | None] = mapped_column(
         PgUUID(as_uuid=True), ForeignKey("domains.id", ondelete="SET NULL"), nullable=True
+    )
+    # The note this task was distilled from, when created via create_tasks_from_notes.
+    source_note_id: Mapped[uuid.UUID | None] = mapped_column(
+        PgUUID(as_uuid=True), ForeignKey("notes.id", ondelete="SET NULL"), nullable=True
     )
     title: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)

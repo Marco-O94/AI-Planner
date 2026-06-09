@@ -92,14 +92,21 @@ class BackendClient:
 
     # -- notes / tasks / documents ----------------------------------------
 
-    def list_notes(self, project_slug: str) -> list[JSON]:
-        return self._get(f"/projects/{project_slug}/notes")
+    def list_notes(
+        self, project_slug: str, *, processed: bool | None = None
+    ) -> list[JSON]:
+        return self._get(
+            f"/projects/{project_slug}/notes", params={"processed": processed}
+        )
 
     def create_note(self, project_slug: str, body: JSON) -> JSON:
         return self._post(f"/projects/{project_slug}/notes", json=body)
 
     def get_note(self, note_id: str) -> JSON:
         return self._get(f"/notes/{note_id}")
+
+    def mark_notes_processed(self, project_slug: str, body: JSON) -> list[JSON]:
+        return self._post(f"/projects/{project_slug}/notes/mark-ai-processed", json=body)
 
     def list_tasks(
         self,
@@ -115,6 +122,9 @@ class BackendClient:
 
     def create_task(self, project_slug: str, body: JSON) -> JSON:
         return self._post(f"/projects/{project_slug}/tasks", json=body)
+
+    def create_tasks_from_notes(self, project_slug: str, body: JSON) -> list[JSON]:
+        return self._post(f"/projects/{project_slug}/tasks/from-notes", json=body)
 
     def get_task(self, task_id: str) -> JSON:
         return self._get(f"/tasks/{task_id}")

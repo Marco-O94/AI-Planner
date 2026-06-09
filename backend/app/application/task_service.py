@@ -10,7 +10,12 @@ from app.domain.entities import Task
 from app.domain.enums import TaskPriority, TaskStatus
 from app.domain.errors import NotFoundError, ValidationError
 from app.domain.read_models import TaskWithStatus
-from app.domain.repositories import DomainRepository, ProjectRepository, TaskRepository
+from app.domain.repositories import (
+    DomainRepository,
+    NoteRepository,
+    ProjectRepository,
+    TaskRepository,
+)
 
 _UPDATABLE = {"domain_id", "title", "description", "status", "priority", "depends_on", "tags"}
 
@@ -21,10 +26,12 @@ class TaskService:
         repo: TaskRepository,
         project_repo: ProjectRepository,
         domain_repo: DomainRepository,
+        note_repo: NoteRepository | None = None,
     ) -> None:
         self.repo = repo
         self.project_repo = project_repo
         self.domain_repo = domain_repo
+        self.note_repo = note_repo
 
     def _require_project_id(self, project_slug: str) -> uuid.UUID:
         project = self.project_repo.get_by_slug(project_slug)
@@ -38,6 +45,15 @@ class TaskService:
         domain = self.domain_repo.get_by_id(domain_id)
         if domain is None or domain.project_id != project_id:
             raise ValidationError("domain does not belong to this project")
+
+    def _validate_source_note(
+        self, project_id: uuid.UUID, source_note_id: uuid.UUID | None
+    ) -> None:
+        if source_note_id is None or self.note_repo is None:
+            return
+        note = self.note_repo.get_by_id(source_note_id)
+        if note is None or note.project_id != project_id:
+            raise ValidationError("source note does not belong to this project")
 
     def _validate_dependencies(
         self, project_id: uuid.UUID, task_id: uuid.UUID, depends_on: list[uuid.UUID]
@@ -103,9 +119,11 @@ class TaskService:
         depends_on: list[uuid.UUID] | None = None,
         tags: list[str] | None = None,
         domain_id: uuid.UUID | None = None,
+        source_note_id: uuid.UUID | None = None,
     ) -> TaskWithStatus:
         project_id = self._require_project_id(project_slug)
         self._validate_domain(project_id, domain_id)
+        self._validate_source_note(project_id, source_note_id)
         task_id = uuid.uuid4()
         self._validate_dependencies(project_id, task_id, depends_on or [])
         task = self.repo.add(
@@ -113,6 +131,7 @@ class TaskService:
                 id=task_id,
                 project_id=project_id,
                 domain_id=domain_id,
+                source_note_id=source_note_id,
                 title=title,
                 description=description,
                 status=status,

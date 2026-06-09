@@ -185,13 +185,19 @@ export const api = {
     apiFetch<void>(`/domains/${domainId}`, { method: "DELETE" }),
 
   // notes
-  listNotes: (slug: string) => apiFetch<NoteRead[]>(`/projects/${slug}/notes`),
+  listNotes: (slug: string, query?: { processed?: boolean }) =>
+    apiFetch<NoteRead[]>(`/projects/${slug}/notes`, { query }),
   createNote: (slug: string, body: NoteCreate) =>
     apiFetch<NoteRead>(`/projects/${slug}/notes`, { method: "POST", body }),
   getNote: (noteId: string) => apiFetch<NoteRead>(`/notes/${noteId}`),
   updateNote: (noteId: string, body: NoteUpdate) =>
     apiFetch<NoteRead>(`/notes/${noteId}`, { method: "PATCH", body }),
   deleteNote: (noteId: string) => apiFetch<void>(`/notes/${noteId}`, { method: "DELETE" }),
+  markNotesAiProcessed: (slug: string, noteIds: string[], processed = true) =>
+    apiFetch<NoteRead[]>(`/projects/${slug}/notes/mark-ai-processed`, {
+      method: "POST",
+      body: { note_ids: noteIds, processed },
+    }),
   noteArtifacts: (noteId: string) =>
     apiFetch<ArtifactRead[]>(`/notes/${noteId}/artifacts`),
 

@@ -149,11 +149,20 @@ class SqlProjectRepository:
             select(func.count()).select_from(model).where(model.project_id == project_id)
         )
 
+    def _unprocessed_note_count(self, project_id: uuid.UUID) -> int:
+        # AI-processed notes are "done" knowledge — exclude them so the count
+        # reflects what still needs actioning.
+        return self.db.scalar(
+            select(func.count())
+            .select_from(m.Note)
+            .where(m.Note.project_id == project_id, m.Note.ai_processed_at.is_(None))
+        )
+
     def _detail(self, orm: m.Project) -> ProjectDetail:
         return ProjectDetail(
             project=mappers.project_to_domain(orm),
             technologies=self.list_technologies(orm.id),
-            note_count=self._count(m.Note, orm.id),
+            note_count=self._unprocessed_note_count(orm.id),
             task_count=self._count(m.Task, orm.id),
             artifact_count=self._count(m.Artifact, orm.id),
         )
@@ -311,6 +320,7 @@ class SqlNoteRepository:
         orm.title = note.title
         orm.content = note.content
         orm.tags = note.tags
+        orm.ai_processed_at = note.ai_processed_at
         self.db.flush()
         self.db.refresh(orm)
         return mappers.note_to_domain(orm)
@@ -331,6 +341,7 @@ class SqlNoteRepository:
         domain_id: uuid.UUID | None = None,
         note_type_id: uuid.UUID | None = None,
         tag: str | None = None,
+        processed: bool | None = None,
     ) -> list[e.Note]:
         stmt = select(m.Note).where(m.Note.project_id == project_id)
         if domain_id is not None:
@@ -339,6 +350,10 @@ class SqlNoteRepository:
             stmt = stmt.where(m.Note.note_type_id == note_type_id)
         if tag is not None:
             stmt = stmt.where(m.Note.tags.any(tag))
+        if processed is True:
+            stmt = stmt.where(m.Note.ai_processed_at.isnot(None))
+        elif processed is False:
+            stmt = stmt.where(m.Note.ai_processed_at.is_(None))
         stmt = stmt.order_by(m.Note.created_at.desc())
         return [mappers.note_to_domain(o) for o in self.db.scalars(stmt).all()]
 
@@ -352,6 +367,7 @@ class SqlTaskRepository:
             id=task.id,
             project_id=task.project_id,
             domain_id=task.domain_id,
+            source_note_id=task.source_note_id,
             title=task.title,
             description=task.description,
             status=task.status,
