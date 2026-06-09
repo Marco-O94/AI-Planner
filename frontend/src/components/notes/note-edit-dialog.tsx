@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { useSWRConfig } from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ApiError, api } from "@/lib/api";
-import type { DomainRead, NoteRead, NoteUpdate } from "@/lib/types";
+import type { DomainRead, NoteRead, NoteTypeRead, NoteUpdate } from "@/lib/types";
 import { useT } from "@/i18n/locale-context";
 import {
   NO_DOMAIN,
@@ -32,13 +32,14 @@ import {
 interface NoteEditDialogProps {
   note: NoteRead | null;
   domains: DomainRead[];
+  projectSlug: string;
   notesKey: string;
   onClose: () => void;
 }
 
 function toFormValues(note: NoteRead): NoteFormValues {
   return {
-    type: note.type,
+    type: note.type.slug,
     title: note.title ?? "",
     content: note.content,
     tagsInput: note.tags.join(" "),
@@ -49,15 +50,22 @@ function toFormValues(note: NoteRead): NoteFormValues {
 export function NoteEditDialog({
   note,
   domains,
+  projectSlug,
   notesKey,
   onClose,
 }: NoteEditDialogProps) {
   const t = useT();
   const { mutate } = useSWRConfig();
   const [values, setValues] = useState<NoteFormValues>(() =>
-    note ? toFormValues(note) : { type: "REQUIREMENT", title: "", content: "", tagsInput: "", domainId: NO_DOMAIN },
+    note
+      ? toFormValues(note)
+      : { type: "", title: "", content: "", tagsInput: "", domainId: NO_DOMAIN },
   );
   const [saving, setSaving] = useState(false);
+
+  const { data: noteTypes } = useSWR<NoteTypeRead[]>(
+    `/projects/${projectSlug}/note-types`,
+  );
 
   useEffect(() => {
     if (note) setValues(toFormValues(note));
@@ -81,9 +89,21 @@ export function NoteEditDialog({
       tags,
       domain_id: values.domainId === NO_DOMAIN ? null : values.domainId,
     };
+    // Build the embedded type ref from the loaded list; keep the current one
+    // when the chosen slug isn't loaded yet (badge reconciles on revalidate).
+    const chosen = (noteTypes ?? []).find((type) => type.slug === values.type);
     const optimistic: NoteRead = {
       ...note,
-      type: values.type,
+      note_type_id: chosen ? chosen.id : note.note_type_id,
+      type: chosen
+        ? {
+            id: chosen.id,
+            key: chosen.key,
+            slug: chosen.slug,
+            name: chosen.name,
+            color: chosen.color,
+          }
+        : note.type,
       content: values.content,
       title: values.title.trim() || null,
       tags,
@@ -134,6 +154,7 @@ export function NoteEditDialog({
           values={values}
           onChange={patch}
           domains={domains}
+          projectSlug={projectSlug}
           idPrefix="edit-note"
         />
 

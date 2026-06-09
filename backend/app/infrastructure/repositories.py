@@ -15,7 +15,6 @@ from sqlalchemy.orm import Session
 
 from app.domain import entities as e
 from app.domain.enums import (
-    NoteType,
     ProjectStatus,
     ScopeKind,
     TaskPriority,
@@ -272,7 +271,7 @@ class SqlNoteRepository:
             id=note.id,
             project_id=note.project_id,
             domain_id=note.domain_id,
-            type=note.type,
+            note_type_id=note.note_type_id,
             title=note.title,
             content=note.content,
             tags=note.tags,
@@ -291,7 +290,7 @@ class SqlNoteRepository:
         if orm is None:
             raise NotFoundError("note not found")
         orm.domain_id = note.domain_id
-        orm.type = note.type
+        orm.note_type_id = note.note_type_id
         orm.title = note.title
         orm.content = note.content
         orm.tags = note.tags
@@ -313,14 +312,14 @@ class SqlNoteRepository:
         project_id: uuid.UUID,
         *,
         domain_id: uuid.UUID | None = None,
-        type: NoteType | None = None,
+        note_type_id: uuid.UUID | None = None,
         tag: str | None = None,
     ) -> list[e.Note]:
         stmt = select(m.Note).where(m.Note.project_id == project_id)
         if domain_id is not None:
             stmt = stmt.where(m.Note.domain_id == domain_id)
-        if type is not None:
-            stmt = stmt.where(m.Note.type == type)
+        if note_type_id is not None:
+            stmt = stmt.where(m.Note.note_type_id == note_type_id)
         if tag is not None:
             stmt = stmt.where(m.Note.tags.any(tag))
         stmt = stmt.order_by(m.Note.created_at.desc())
@@ -403,6 +402,100 @@ class SqlTaskRepository:
             stmt = stmt.where(m.Task.tags.any(tag))
         stmt = stmt.order_by(m.Task.created_at.desc())
         return [mappers.task_to_domain(o) for o in self.db.scalars(stmt).all()]
+
+
+class SqlNoteTypeRepository:
+    def __init__(self, db: Session) -> None:
+        self.db = db
+
+    def add(self, note_type: e.NoteTypeEntity) -> e.NoteTypeEntity:
+        orm = m.NoteType(
+            id=note_type.id,
+            scope=note_type.scope,
+            project_id=note_type.project_id,
+            key=note_type.key,
+            name=note_type.name,
+            slug=note_type.slug,
+            color=note_type.color,
+            description=note_type.description,
+            is_default=note_type.is_default,
+        )
+        self.db.add(orm)
+        self.db.flush()
+        self.db.refresh(orm)
+        return mappers.note_type_to_domain(orm)
+
+    def get_by_id(self, type_id: uuid.UUID) -> e.NoteTypeEntity | None:
+        orm = self.db.get(m.NoteType, type_id)
+        return mappers.note_type_to_domain(orm) if orm else None
+
+    def get_by_slug(self, slug: str, project_id: uuid.UUID | None) -> e.NoteTypeEntity | None:
+        stmt = select(m.NoteType).where(m.NoteType.slug == slug)
+        stmt = stmt.where(
+            m.NoteType.project_id == project_id
+            if project_id is not None
+            else m.NoteType.project_id.is_(None)
+        )
+        orm = self.db.scalar(stmt)
+        return mappers.note_type_to_domain(orm) if orm else None
+
+    def resolve(self, value: str, project_id: uuid.UUID) -> e.NoteTypeEntity | None:
+        # Match by slug OR key, within GLOBAL + this project's types.
+        stmt = (
+            select(m.NoteType)
+            .where(
+                or_(m.NoteType.slug == value, m.NoteType.key == value),
+                or_(
+                    m.NoteType.scope == ScopeKind.GLOBAL,
+                    m.NoteType.project_id == project_id,
+                ),
+            )
+            # Prefer a project-scoped match over a global one on a tie.
+            .order_by(m.NoteType.project_id.isnot(None).desc())
+        )
+        orm = self.db.scalars(stmt).first()
+        return mappers.note_type_to_domain(orm) if orm else None
+
+    def list(self, *, scope: ScopeKind | None = None) -> list[e.NoteTypeEntity]:
+        stmt = select(m.NoteType)
+        if scope is not None:
+            stmt = stmt.where(m.NoteType.scope == scope)
+        stmt = stmt.order_by(m.NoteType.name)
+        return [mappers.note_type_to_domain(o) for o in self.db.scalars(stmt).all()]
+
+    def list_applicable(self, project_id: uuid.UUID) -> list[e.NoteTypeEntity]:
+        stmt = (
+            select(m.NoteType)
+            .where(
+                or_(
+                    m.NoteType.scope == ScopeKind.GLOBAL,
+                    m.NoteType.project_id == project_id,
+                )
+            )
+            .order_by(m.NoteType.name)
+        )
+        return [mappers.note_type_to_domain(o) for o in self.db.scalars(stmt).all()]
+
+    def update(self, note_type: e.NoteTypeEntity) -> e.NoteTypeEntity:
+        orm = self.db.get(m.NoteType, note_type.id)
+        if orm is None:
+            raise NotFoundError("note type not found")
+        orm.name = note_type.name
+        orm.slug = note_type.slug
+        orm.color = note_type.color
+        orm.description = note_type.description
+        self.db.flush()
+        self.db.refresh(orm)
+        return mappers.note_type_to_domain(orm)
+
+    def delete(self, type_id: uuid.UUID) -> None:
+        orm = self.db.get(m.NoteType, type_id)
+        if orm is not None:
+            self.db.delete(orm)
+            self.db.flush()
+
+    def slug_exists(self, slug: str, project_id: uuid.UUID | None) -> bool:
+        return self.get_by_slug(slug, project_id) is not None
 
 
 class SqlArtifactTypeRepository:

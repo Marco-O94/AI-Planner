@@ -12,6 +12,7 @@ import {
   ListChecks,
   MoreHorizontal,
   Pencil,
+  Settings,
   Sparkles,
   StickyNote,
   Trash2,
@@ -143,6 +144,12 @@ export default function ProjectPage() {
                 isLoading={domainsLoading}
               />
               <ProjectSearchButton projectSlug={project.slug} />
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/projects/${project.slug}/settings`}>
+                  <Settings className="size-4" />
+                  <span className="hidden sm:inline">{t("settings.entry")}</span>
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
                 <Pencil className="size-3.5" />
                 <span className="hidden sm:inline">{t("project.page.editAction")}</span>

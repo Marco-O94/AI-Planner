@@ -303,7 +303,11 @@ def _resolve_domain(domains: list[JSON], domain_slug: str | None) -> JSON | None
 def _group_by_type(notes: list[JSON]) -> dict[str, list[JSON]]:
     grouped: dict[str, list[JSON]] = {}
     for note in notes:
-        grouped.setdefault(note.get("type", "NOTE"), []).append(note)
+        # `type` is now a nested object {id,key,slug,name,color}; fall back to a
+        # plain string for legacy/test payloads.
+        note_type = note.get("type")
+        label = note_type.get("name") if isinstance(note_type, dict) else (note_type or "NOTE")
+        grouped.setdefault(label, []).append(note)
     return dict(sorted(grouped.items()))
 
 

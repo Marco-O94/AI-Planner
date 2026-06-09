@@ -13,6 +13,7 @@ from app.application.document_service import DocumentService
 from app.application.domain_service import DomainService
 from app.application.indexer import SearchIndexer
 from app.application.note_service import NoteService
+from app.application.note_type_service import NoteTypeService
 from app.application.project_service import ProjectService
 from app.application.reindex_service import ReindexService
 from app.application.search_service import SearchService
@@ -31,6 +32,7 @@ from app.infrastructure.repositories import (
     SqlDocumentRepository,
     SqlDomainRepository,
     SqlNoteRepository,
+    SqlNoteTypeRepository,
     SqlProjectRepository,
     SqlProjectTemplateRepository,
     SqlSkillRepository,
@@ -64,8 +66,13 @@ def get_note_service(db: Session = Depends(get_db)) -> NoteService:
         SqlNoteRepository(db),
         SqlProjectRepository(db),
         SqlDomainRepository(db),
+        SqlNoteTypeRepository(db),
         indexer=get_indexer(),
     )
+
+
+def get_note_type_service(db: Session = Depends(get_db)) -> NoteTypeService:
+    return NoteTypeService(SqlNoteTypeRepository(db), SqlProjectRepository(db))
 
 
 def get_task_service(db: Session = Depends(get_db)) -> TaskService:
@@ -123,6 +130,7 @@ def get_template_service(db: Session = Depends(get_db)) -> ProjectTemplateServic
             SqlNoteRepository(db),
             SqlProjectRepository(db),
             SqlDomainRepository(db),
+            SqlNoteTypeRepository(db),
             indexer=indexer,
         ),
         TaskService(SqlTaskRepository(db), SqlProjectRepository(db), SqlDomainRepository(db)),

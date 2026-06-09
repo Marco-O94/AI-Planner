@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends
 from app.api.deps import get_artifact_service, get_note_service
 from app.application.artifact_service import ArtifactService
 from app.application.note_service import NoteService
-from app.domain.enums import NoteType
 from app.schemas.artifact import ArtifactRead
 from app.schemas.note import NoteCreate, NoteRead, NoteUpdate
 
@@ -18,7 +17,7 @@ router = APIRouter(tags=["notes"])
 def list_notes(
     slug: str,
     domain_id: uuid.UUID | None = None,
-    type: NoteType | None = None,
+    type: str | None = None,
     tag: str | None = None,
     service: NoteService = Depends(get_note_service),
 ) -> list[NoteRead]:

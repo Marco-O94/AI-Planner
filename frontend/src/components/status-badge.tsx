@@ -5,7 +5,7 @@ import { useT } from "@/i18n/locale-context";
 import { cn } from "@/lib/utils";
 import type {
   ArtifactStatus,
-  NoteType,
+  NoteTypeRef,
   PhaseStatus,
   ProjectStatus,
   ScopeKind,
@@ -59,14 +59,6 @@ const PHASE_STATUS_TONE: Record<PhaseStatus, Tone> = {
   IN_PROGRESS: "blue",
   DONE: "green",
 };
-const NOTE_TYPE_TONE: Record<NoteType, Tone> = {
-  REQUIREMENT: "violet",
-  CONSTRAINT: "red",
-  DECISION: "green",
-  QUESTION: "amber",
-  SNIPPET: "blue",
-  REFERENCE: "slate",
-};
 const TECH_KIND_TONE: Record<TechnologyKind, Tone> = {
   LANGUAGE: "violet",
   FRAMEWORK: "blue",
@@ -94,9 +86,14 @@ export const PhaseStatusBadge = ({ status }: { status: PhaseStatus }) => {
   const t = useT();
   return <Pill tone={PHASE_STATUS_TONE[status]}>{t(`enums.phaseStatus.${status}`)}</Pill>;
 };
-export const NoteTypeBadge = ({ type }: { type: NoteType }) => {
+export const NoteTypeBadge = ({ type }: { type: NoteTypeRef }) => {
   const t = useT();
-  return <Pill tone={NOTE_TYPE_TONE[type]}>{t(`enums.noteType.${type}`)}</Pill>;
+  // Built-in types have an i18n key; t() echoes the key back when it's missing,
+  // so fall back to the stored name when the lookup didn't resolve.
+  const translated = type.key ? t(`enums.noteType.${type.key}`) : null;
+  const label =
+    translated && !translated.startsWith("enums.") ? translated : type.name;
+  return <Pill tone={type.color as Tone}>{label}</Pill>;
 };
 export const TechKindBadge = ({
   kind,

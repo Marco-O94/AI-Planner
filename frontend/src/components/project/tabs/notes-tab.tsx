@@ -17,7 +17,7 @@ import { NoteTypeBadge } from "@/components/status-badge";
 import { AnimatedList, AnimatedItem, AnimatePresence } from "@/components/motion";
 import { ItemArtifactPreview } from "@/components/project/item-artifact-preview";
 import type { TabProps } from "@/components/project/types";
-import { NOTE_TYPES, type NoteRead, type NoteType } from "@/lib/types";
+import type { NoteRead, NoteTypeRead } from "@/lib/types";
 import { useT } from "@/i18n/locale-context";
 
 import { QuickNoteComposer } from "@/components/notes/quick-note-composer";
@@ -25,17 +25,6 @@ import { NoteCard } from "@/components/notes/note-card";
 import { NoteEditDialog } from "@/components/notes/note-edit-dialog";
 import { NoteDeleteDialog } from "@/components/notes/note-delete-dialog";
 import { NotesFilterBar } from "@/components/notes/notes-filter-bar";
-
-function emptyCounts(): Record<NoteType, number> {
-  return {
-    REQUIREMENT: 0,
-    CONSTRAINT: 0,
-    DECISION: 0,
-    QUESTION: 0,
-    SNIPPET: 0,
-    REFERENCE: 0,
-  };
-}
 
 function matchesQuery(note: NoteRead, query: string): boolean {
   if (!query) return true;
@@ -53,8 +42,19 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
   const notesKey = `/projects/${project.slug}/notes`;
   const { data, isLoading, error } = useSWR<NoteRead[]>(notesKey);
 
+  const { data: noteTypes } = useSWR<NoteTypeRead[]>(
+    `/projects/${project.slug}/note-types`,
+  );
+  const types = useMemo(() => {
+    const list = noteTypes ?? [];
+    return [...list].sort((a, b) => {
+      if (a.is_default !== b.is_default) return a.is_default ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [noteTypes]);
+
   const [query, setQuery] = useState("");
-  const [activeType, setActiveType] = useState<NoteType | "ALL">("ALL");
+  const [activeType, setActiveType] = useState<string | "ALL">("ALL");
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [editNote, setEditNote] = useState<NoteRead | null>(null);
   const [deleteNote, setDeleteNote] = useState<NoteRead | null>(null);
@@ -71,8 +71,10 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
   );
 
   const counts = useMemo(() => {
-    const next = emptyCounts();
-    for (const note of scoped) next[note.type] += 1;
+    const next: Record<string, number> = {};
+    for (const note of scoped) {
+      next[note.type.slug] = (next[note.type.slug] ?? 0) + 1;
+    }
     return next;
   }, [scoped]);
 
@@ -80,18 +82,22 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
     () =>
       scoped.filter(
         (note) =>
-          (activeType === "ALL" || note.type === activeType) &&
+          (activeType === "ALL" || note.type.slug === activeType) &&
           matchesQuery(note, query),
       ),
     [scoped, activeType, query],
   );
 
-  const grouped = useMemo(() => {
-    return NOTE_TYPES.map((type) => ({
-      type,
-      notes: filtered.filter((note) => note.type === type),
-    })).filter((group) => group.notes.length > 0);
-  }, [filtered]);
+  const grouped = useMemo(
+    () =>
+      types
+        .map((type) => ({
+          type,
+          notes: filtered.filter((note) => note.type.slug === type.slug),
+        }))
+        .filter((group) => group.notes.length > 0),
+    [types, filtered],
+  );
 
   const previewNote = previewId
     ? scoped.find((note) => note.id === previewId)
@@ -127,6 +133,7 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
             onQueryChange={setQuery}
             activeType={activeType}
             onTypeChange={setActiveType}
+            types={types}
             counts={counts}
             total={scoped.length}
           />
@@ -140,9 +147,17 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
           ) : (
             <div className="space-y-6">
               {grouped.map((group) => (
-                <section key={group.type} className="space-y-2.5">
+                <section key={group.type.id} className="space-y-2.5">
                   <div className="flex items-center gap-2">
-                    <NoteTypeBadge type={group.type} />
+                    <NoteTypeBadge
+                      type={{
+                        id: group.type.id,
+                        key: group.type.key,
+                        slug: group.type.slug,
+                        name: group.type.name,
+                        color: group.type.color,
+                      }}
+                    />
                     <Separator className="flex-1" />
                     <span className="text-xs tabular-nums text-muted-foreground">
                       {group.notes.length}
@@ -185,6 +200,7 @@ export function NotesTab({ project, domains, domainId }: TabProps) {
       <NoteEditDialog
         note={editNote}
         domains={domains}
+        projectSlug={project.slug}
         notesKey={notesKey}
         onClose={() => setEditNote(null)}
       />

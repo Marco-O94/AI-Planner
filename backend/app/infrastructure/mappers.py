@@ -43,11 +43,32 @@ def note_to_domain(o: m.Note) -> e.Note:
     return e.Note(
         id=o.id,
         project_id=o.project_id,
+        note_type_id=o.note_type_id,
         domain_id=o.domain_id,
-        type=o.type,
         title=o.title,
         content=o.content,
         tags=list(o.tags or []),
+        type=note_type_ref(o.note_type) if o.note_type is not None else None,
+        created_at=o.created_at,
+        updated_at=o.updated_at,
+    )
+
+
+def note_type_ref(o: m.NoteType) -> e.NoteTypeRef:
+    return e.NoteTypeRef(id=o.id, key=o.key, slug=o.slug, name=o.name, color=o.color)
+
+
+def note_type_to_domain(o: m.NoteType) -> e.NoteTypeEntity:
+    return e.NoteTypeEntity(
+        id=o.id,
+        scope=o.scope,
+        project_id=o.project_id,
+        key=o.key,
+        name=o.name,
+        slug=o.slug,
+        color=o.color,
+        description=o.description,
+        is_default=o.is_default,
         created_at=o.created_at,
         updated_at=o.updated_at,
     )

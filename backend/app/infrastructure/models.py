@@ -27,11 +27,10 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.domain.enums import (
     ArtifactStatus,
-    NoteType,
     PhaseStatus,
     ProjectStatus,
     ScopeKind,
@@ -132,6 +131,41 @@ class Domain(UUIDPKMixin, TimestampMixin, Base):
 # --- Knowledge & work --------------------------------------------------------
 
 
+class NoteType(UUIDPKMixin, TimestampMixin, Base):
+    __tablename__ = "note_types"
+    __table_args__ = (
+        CheckConstraint(
+            "(scope = 'GLOBAL' AND project_id IS NULL) OR "
+            "(scope = 'PROJECT' AND project_id IS NOT NULL)",
+            name="ck_note_types_scope_project",
+        ),
+        Index(
+            "uq_note_types_global_slug",
+            "slug",
+            unique=True,
+            postgresql_where=text("project_id IS NULL"),
+        ),
+        Index(
+            "uq_note_types_project_slug",
+            "project_id",
+            "slug",
+            unique=True,
+            postgresql_where=text("project_id IS NOT NULL"),
+        ),
+    )
+
+    scope: Mapped[ScopeKind] = mapped_column(_pg_enum(ScopeKind, "scope_kind"), nullable=False)
+    project_id: Mapped[uuid.UUID | None] = mapped_column(
+        PgUUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=True
+    )
+    key: Mapped[str | None] = mapped_column(String, nullable=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    slug: Mapped[str] = mapped_column(String, nullable=False)
+    color: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_default: Mapped[bool] = mapped_column(nullable=False, server_default=text("false"))
+
+
 class Note(UUIDPKMixin, TimestampMixin, Base):
     __tablename__ = "notes"
     __table_args__ = (
@@ -146,7 +180,13 @@ class Note(UUIDPKMixin, TimestampMixin, Base):
     domain_id: Mapped[uuid.UUID | None] = mapped_column(
         PgUUID(as_uuid=True), ForeignKey("domains.id", ondelete="SET NULL"), nullable=True
     )
-    type: Mapped[NoteType] = mapped_column(_pg_enum(NoteType, "note_type"), nullable=False)
+    note_type_id: Mapped[uuid.UUID] = mapped_column(
+        PgUUID(as_uuid=True),
+        ForeignKey("note_types.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    # eager-load: every NoteRead embeds the type summary, so join avoids N+1 on note lists
+    note_type: Mapped["NoteType"] = relationship("NoteType", lazy="joined")
     title: Mapped[str | None] = mapped_column(String, nullable=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     tags: Mapped[list[str]] = mapped_column(
