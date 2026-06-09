@@ -67,6 +67,17 @@ export interface TechnologyInput {
   version?: string | null;
 }
 
+/** Create payload for a global technology (no per-project version). */
+export interface TechnologyCreate {
+  kind: TechnologyKind;
+  name: string;
+}
+
+export interface TechnologyUpdate {
+  kind?: TechnologyKind | null;
+  name?: string | null;
+}
+
 // -- projects --------------------------------------------------------------
 
 export interface ProjectRead {

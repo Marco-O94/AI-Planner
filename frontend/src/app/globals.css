@@ -51,6 +51,8 @@
   --color-tab-templates-foreground: var(--tab-templates-foreground);
   --color-tab-skills: var(--tab-skills);
   --color-tab-skills-foreground: var(--tab-skills-foreground);
+  --color-tab-settings: var(--tab-settings);
+  --color-tab-settings-foreground: var(--tab-settings-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -103,11 +105,13 @@
   --tab-artifact-types: oklch(0.66 0.15 150);
   --tab-templates: oklch(0.76 0.14 75);
   --tab-skills: oklch(0.64 0.2 350);
+  --tab-settings: oklch(0.6 0.08 230);
   --tab-projects-foreground: oklch(0.99 0.004 285);
   --tab-files-foreground: oklch(0.99 0.004 285);
   --tab-artifact-types-foreground: oklch(0.99 0.004 285);
   --tab-templates-foreground: oklch(0.2 0.04 75);
   --tab-skills-foreground: oklch(0.99 0.004 285);
+  --tab-settings-foreground: oklch(0.99 0.004 285);
 }
 
 .dark {
@@ -152,11 +156,13 @@
   --tab-artifact-types: oklch(0.7 0.15 150);
   --tab-templates: oklch(0.8 0.14 75);
   --tab-skills: oklch(0.68 0.2 350);
+  --tab-settings: oklch(0.66 0.08 230);
   --tab-projects-foreground: oklch(0.16 0.03 285);
   --tab-files-foreground: oklch(0.16 0.03 285);
   --tab-artifact-types-foreground: oklch(0.16 0.03 285);
   --tab-templates-foreground: oklch(0.16 0.04 75);
   --tab-skills-foreground: oklch(0.16 0.03 285);
+  --tab-settings-foreground: oklch(0.16 0.03 285);
 }
 
 @layer base {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   ChevronsUpDown,
   Languages,
@@ -11,7 +12,6 @@ import {
   User,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { toast } from "sonner";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -131,9 +131,11 @@ export function SidebarProfile({
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onSelect={() => toast.info(t("nav.settingsSoon"))}>
-          <Settings />
-          {t("nav.settings")}
+        <DropdownMenuItem asChild>
+          <Link href="/settings">
+            <Settings />
+            {t("nav.settings")}
+          </Link>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

@@ -11,6 +11,7 @@ import {
   LayoutGrid,
   Layers,
   Menu,
+  Settings,
   Sparkles,
 } from "lucide-react";
 
@@ -64,6 +65,12 @@ const NAV: NavItem[] = [
     tabClass: "bg-tab-templates",
   },
   { href: "/skills", labelKey: "nav.skills", icon: Sparkles, tabClass: "bg-tab-skills" },
+  {
+    href: "/settings",
+    labelKey: "nav.settings",
+    icon: Settings,
+    tabClass: "bg-tab-settings",
+  },
 ];
 
 function isActive(pathname: string, item: NavItem): boolean {

@@ -21,6 +21,7 @@ import { project as enProject } from "./locales/en/project";
 import { settings as enSettings } from "./locales/en/settings";
 import { skills as enSkills } from "./locales/en/skills";
 import { tasks as enTasks } from "./locales/en/tasks";
+import { technologies as enTechnologies } from "./locales/en/technologies";
 import { templates as enTemplates } from "./locales/en/templates";
 
 import { artifactTypes as itArtifactTypes } from "./locales/it/artifactTypes";
@@ -37,6 +38,7 @@ import { project as itProject } from "./locales/it/project";
 import { settings as itSettings } from "./locales/it/settings";
 import { skills as itSkills } from "./locales/it/skills";
 import { tasks as itTasks } from "./locales/it/tasks";
+import { technologies as itTechnologies } from "./locales/it/technologies";
 import { templates as itTemplates } from "./locales/it/templates";
 
 export type Locale = "en" | "it";
@@ -68,6 +70,7 @@ const en = {
   artifacts: enArtifacts,
   skills: enSkills,
   templates: enTemplates,
+  technologies: enTechnologies,
   artifactTypes: enArtifactTypes,
   files: enFiles,
 };
@@ -86,6 +89,7 @@ const it = {
   artifacts: itArtifacts,
   skills: itSkills,
   templates: itTemplates,
+  technologies: itTechnologies,
   artifactTypes: itArtifactTypes,
   files: itFiles,
 };
