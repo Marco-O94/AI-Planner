@@ -58,10 +58,15 @@ class TechnologyService:
                 raise ConflictError("a technology with that name already exists")
             # Re-slug under the target kind. The unique key is (kind, slug), so a
             # kind change moves the row and a name change derives a fresh slug.
-            target_slug = make_unique_slug(
-                target_name,
-                lambda candidate: self.repo.slug_exists(target_kind, candidate),
-            )
+            # When the kind is unchanged, the row's own current slug is free for
+            # itself, so a case/punctuation-only rename keeps the slug stable
+            # instead of bumping to "<slug>-2".
+            def _slug_taken(candidate: str) -> bool:
+                if target_kind == current.kind and candidate == current.slug:
+                    return False
+                return self.repo.slug_exists(target_kind, candidate)
+
+            target_slug = make_unique_slug(target_name, _slug_taken)
 
         return self.repo.update(
             replace(current, kind=target_kind, name=target_name, slug=target_slug)

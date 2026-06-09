@@ -71,6 +71,18 @@ def test_delete_attached_to_project_conflicts(client: TestClient, make_project) 
     assert resp.status_code == 409, resp.text
 
 
+def test_case_only_rename_keeps_slug_stable(client: TestClient) -> None:
+    # Renaming to a case variant slugifies to the same value; the row's own slug
+    # must be treated as free so it stays stable (no "-2" bump).
+    base = f"Stable-{uuid.uuid4().hex[:8]}"
+    created = client.post("/technologies", json={"kind": "LANGUAGE", "name": base}).json()
+    resp = client.patch(f"/technologies/{created['id']}", json={"name": base.upper()})
+    assert resp.status_code == 200, resp.text
+    renamed = resp.json()
+    assert renamed["name"] == base.upper()
+    assert renamed["slug"] == created["slug"]
+
+
 def test_patch_missing_id_returns_404(client: TestClient) -> None:
     resp = client.patch(f"/technologies/{uuid.uuid4()}", json={"name": _name()})
     assert resp.status_code == 404, resp.text

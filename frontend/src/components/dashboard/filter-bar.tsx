@@ -8,7 +8,7 @@ import { useT, type TranslateFn } from "@/i18n/locale-context";
 import { PROJECT_STATUSES, type ProjectStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { FilterSelect, type FilterOption } from "./filter-select";
-import { ALL, hasActiveFilters, type DashboardFilters } from "./filters";
+import { ALL, type DashboardFilters } from "./filters";
 import type { GroupedTechnologies } from "./use-technologies";
 
 interface FilterBarProps {
@@ -94,7 +94,6 @@ export function FilterBar({
   techLoading,
 }: FilterBarProps) {
   const t = useT();
-  const active = hasActiveFilters(filters);
 
   const statusOptions: FilterOption[] = PROJECT_STATUSES.map((status) => ({
     value: status,
@@ -155,7 +154,7 @@ export function FilterBar({
 
       {/* Active-filter chips: one per narrowing dimension, each individually
           removable, plus a "Clear all" affordance. */}
-      {active ? (
+      {chips.length > 0 ? (
         <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t border-border/50 pt-3">
           <span
             className="mr-1 text-xs font-medium text-muted-foreground"
