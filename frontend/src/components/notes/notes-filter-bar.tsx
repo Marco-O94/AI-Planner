@@ -7,16 +7,17 @@ import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { NoteTypeBadge } from "@/components/status-badge";
-import { NOTE_TYPES, type NoteType } from "@/lib/types";
+import type { NoteTypeRead } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useT } from "@/i18n/locale-context";
 
 interface NotesFilterBarProps {
   query: string;
   onQueryChange: (value: string) => void;
-  activeType: NoteType | "ALL";
-  onTypeChange: (value: NoteType | "ALL") => void;
-  counts: Record<NoteType, number>;
+  activeType: string | "ALL"; // slug or ALL
+  onTypeChange: (value: string | "ALL") => void;
+  types: NoteTypeRead[]; // applicable types, ordered
+  counts: Record<string, number>; // keyed by slug
   total: number;
 }
 
@@ -25,6 +26,7 @@ export function NotesFilterBar({
   onQueryChange,
   activeType,
   onTypeChange,
+  types,
   counts,
   total,
 }: NotesFilterBarProps) {
@@ -60,22 +62,34 @@ export function NotesFilterBar({
           active={activeType === "ALL"}
           onClick={() => onTypeChange("ALL")}
         />
-        {NOTE_TYPES.filter((type) => counts[type] > 0).map((type) => (
-          <button
-            key={type}
-            type="button"
-            onClick={() => onTypeChange(activeType === type ? "ALL" : type)}
-            className={cn(
-              "rounded-full outline-none ring-offset-background transition-all focus-visible:ring-2 focus-visible:ring-ring",
-              activeType === type
-                ? "ring-2 ring-primary/40"
-                : "opacity-70 hover:opacity-100",
-            )}
-            aria-pressed={activeType === type}
-          >
-            <NoteTypeBadge type={type} />
-          </button>
-        ))}
+        {types
+          .filter((type) => (counts[type.slug] ?? 0) > 0)
+          .map((type) => (
+            <button
+              key={type.id}
+              type="button"
+              onClick={() =>
+                onTypeChange(activeType === type.slug ? "ALL" : type.slug)
+              }
+              className={cn(
+                "rounded-full outline-none ring-offset-background transition-all focus-visible:ring-2 focus-visible:ring-ring",
+                activeType === type.slug
+                  ? "ring-2 ring-primary/40"
+                  : "opacity-70 hover:opacity-100",
+              )}
+              aria-pressed={activeType === type.slug}
+            >
+              <NoteTypeBadge
+                type={{
+                  id: type.id,
+                  key: type.key,
+                  slug: type.slug,
+                  name: type.name,
+                  color: type.color,
+                }}
+              />
+            </button>
+          ))}
       </div>
     </div>
   );
