@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/select";
 import { ApiError, api } from "@/lib/api";
 import { useT } from "@/i18n/locale-context";
-import { titleCase } from "@/lib/format";
 import { PROJECT_STATUSES } from "@/lib/types";
 import type {
   ProjectStatus,
@@ -181,7 +180,7 @@ export function CreateProjectDialog({ onCreated }: CreateProjectDialogProps) {
                 <SelectContent>
                   {PROJECT_STATUSES.map((status) => (
                     <SelectItem key={status} value={status}>
-                      {titleCase(status)}
+                      {t(`enums.projectStatus.${status}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>

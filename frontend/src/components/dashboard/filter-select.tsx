@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useT } from "@/i18n/locale-context";
+import { cn } from "@/lib/utils";
 import { ALL } from "./filters";
 
 export interface FilterOption {
@@ -37,12 +38,20 @@ export function FilterSelect({
 }: FilterSelectProps) {
   const t = useT();
   const anyLabel = t("dashboard.filters.any", { label: label.toLowerCase() });
+  const isActive = value !== ALL;
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
       <SelectTrigger
         size="default"
         aria-label={label}
-        className="h-9 w-full min-w-0 sm:w-auto"
+        data-active={isActive || undefined}
+        className={cn(
+          "h-9 w-full min-w-0 transition-colors sm:w-auto",
+          "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+          isActive
+            ? "border-primary/40 bg-primary/5 font-medium text-primary ring-1 ring-primary/20 dark:bg-primary/10"
+            : "text-muted-foreground hover:border-foreground/20 hover:text-foreground",
+        )}
       >
         <SelectValue placeholder={anyLabel} />
       </SelectTrigger>
