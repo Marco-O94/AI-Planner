@@ -7,6 +7,11 @@ export const notes = {
     captureFast: "Capture fast —",
     collapseLabel: "Collapse quick note",
     addNote: "Add note",
+    discardTitle: "Discard this note?",
+    discardDescription:
+      "You have unsaved text in the quick note. Closing now will discard it.",
+    discardConfirm: "Discard",
+    keepEditing: "Keep editing",
   },
   fields: {
     typeLabel: "Type",

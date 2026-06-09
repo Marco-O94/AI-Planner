@@ -7,6 +7,11 @@ export const notes = {
     captureFast: "Annota al volo —",
     collapseLabel: "Riduci nota rapida",
     addNote: "Aggiungi nota",
+    discardTitle: "Scartare questa nota?",
+    discardDescription:
+      "Hai del testo non salvato nella nota rapida. Chiudendo ora andrà perso.",
+    discardConfirm: "Scarta",
+    keepEditing: "Continua a modificare",
   },
   fields: {
     typeLabel: "Tipo",

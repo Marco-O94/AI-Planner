@@ -18,6 +18,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ApiError, api } from "@/lib/api";
 import type { DomainRead, NoteCreate, NoteRead, NoteTypeRead } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -80,6 +90,7 @@ export function QuickNoteComposer({
   const [values, setValues] = useState<NoteFormValues>(EMPTY_NOTE_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: noteTypes } = useSWR<NoteTypeRead[]>(
@@ -87,6 +98,12 @@ export function QuickNoteComposer({
   );
 
   const canSubmit = values.content.trim().length > 0 && !submitting;
+
+  // Any user-entered text means closing would lose work — guard the discard.
+  const isDirty =
+    values.content.trim().length > 0 ||
+    values.title.trim().length > 0 ||
+    values.tagsInput.trim().length > 0;
 
   // Focus the content field as the form reveals itself.
   useEffect(() => {
@@ -108,8 +125,15 @@ export function QuickNoteComposer({
   }
 
   function collapse() {
+    setConfirmDiscard(false);
     setOpen(false);
     setValues(EMPTY_NOTE_FORM);
+  }
+
+  // X / close: confirm before discarding a non-empty draft, else close directly.
+  function requestClose() {
+    if (isDirty) setConfirmDiscard(true);
+    else collapse();
   }
 
   async function submit() {
@@ -184,6 +208,7 @@ export function QuickNoteComposer({
   }
 
   return (
+    <>
     <Collapsible open={open} onOpenChange={setOpen}>
       <Card
         className={cn(
@@ -231,7 +256,7 @@ export function QuickNoteComposer({
               type="button"
               variant="ghost"
               size="icon-sm"
-              onClick={collapse}
+              onClick={requestClose}
               aria-label={t("notes.composer.collapseLabel")}
               className="ml-auto text-muted-foreground"
             >
@@ -270,5 +295,29 @@ export function QuickNoteComposer({
         </CollapsibleContent>
       </Card>
     </Collapsible>
+
+      <AlertDialog open={confirmDiscard} onOpenChange={setConfirmDiscard}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("notes.composer.discardTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("notes.composer.discardDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("notes.composer.keepEditing")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault();
+                collapse();
+              }}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              {t("notes.composer.discardConfirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
