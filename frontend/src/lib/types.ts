@@ -469,3 +469,12 @@ export interface TemplateUpdate {
   description?: string | null;
   definition?: Record<string, unknown> | null;
 }
+
+// -- auth ------------------------------------------------------------------
+
+export interface UserRead {
+  id: string;
+  email: string;
+  is_active: boolean;
+  created_at: string | null;
+}

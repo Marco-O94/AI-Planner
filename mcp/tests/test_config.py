@@ -12,6 +12,12 @@ def test_defaults_target_localhost_stdio():
     assert settings.transport == "stdio"
     assert settings.host == "127.0.0.1"  # secure-by-default: loopback unless opted in
     assert settings.port == 8050
+    assert settings.service_api_key == ""  # unset unless provided
+
+
+def test_service_api_key_is_read_from_env():
+    settings = load_settings(env={"SERVICE_API_KEY": "s3cr3t"})
+    assert settings.service_api_key == "s3cr3t"
 
 
 def test_env_overrides_are_applied():

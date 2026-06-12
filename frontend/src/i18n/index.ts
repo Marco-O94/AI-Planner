@@ -9,6 +9,7 @@
 
 import { artifactTypes as enArtifactTypes } from "./locales/en/artifactTypes";
 import { artifacts as enArtifacts } from "./locales/en/artifacts";
+import { auth as enAuth } from "./locales/en/auth";
 import { common as enCommon } from "./locales/en/common";
 import { dashboard as enDashboard } from "./locales/en/dashboard";
 import { documents as enDocuments } from "./locales/en/documents";
@@ -27,6 +28,7 @@ import { templates as enTemplates } from "./locales/en/templates";
 
 import { artifactTypes as itArtifactTypes } from "./locales/it/artifactTypes";
 import { artifacts as itArtifacts } from "./locales/it/artifacts";
+import { auth as itAuth } from "./locales/it/auth";
 import { common as itCommon } from "./locales/it/common";
 import { dashboard as itDashboard } from "./locales/it/dashboard";
 import { documents as itDocuments } from "./locales/it/documents";
@@ -60,6 +62,7 @@ export const LOCALE_NAMES: Record<Locale, string> = {
 
 const en = {
   common: enCommon,
+  auth: enAuth,
   nav: enNav,
   enums: enEnums,
   dashboard: enDashboard,
@@ -80,6 +83,7 @@ const en = {
 
 const it = {
   common: itCommon,
+  auth: itAuth,
   nav: itNav,
   enums: itEnums,
   dashboard: itDashboard,

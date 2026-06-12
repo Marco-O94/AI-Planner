@@ -23,9 +23,11 @@ from app.domain.entities import (
     NoteTypeEntity,
     Project,
     ProjectTemplate,
+    Session,
     Skill,
     Task,
     Technology,
+    User,
 )
 from app.domain.enums import (
     ArtifactStatus,
@@ -212,6 +214,18 @@ class ProjectTemplateRepository(Protocol):
     def slug_exists(self, slug: str) -> bool: ...
 
 
+class UserRepository(Protocol):
+    def add(self, user: User) -> User: ...
+    def get_by_id(self, user_id: uuid.UUID) -> User | None: ...
+    def get_by_email(self, email: str) -> User | None: ...
+
+
+class SessionRepository(Protocol):
+    def add(self, session: Session) -> Session: ...
+    def get_by_token_hash(self, token_hash: str) -> Session | None: ...
+    def delete_by_token_hash(self, token_hash: str) -> None: ...
+
+
 __all__ = [
     "ProjectRepository",
     "TechnologyRepository",
@@ -224,5 +238,7 @@ __all__ = [
     "SkillRepository",
     "DocumentRepository",
     "ProjectTemplateRepository",
+    "UserRepository",
+    "SessionRepository",
     "ArtifactStatus",
 ]

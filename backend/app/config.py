@@ -39,6 +39,17 @@ class Settings(BaseSettings):
         "http://localhost:3000"
     ]
 
+    # --- Auth ---------------------------------------------------------------
+    # Reserved for signing needs; rotate in production (deploy.sh vps does this).
+    secret_key: str = "dev-insecure-change-me"
+    # Static key the MCP service sends (X-Service-API-Key) to call the API headless.
+    service_api_key: str = "dev-service-key-change-me"
+    # Session lifetime / cookie behaviour.
+    session_ttl_seconds: int = 60 * 60 * 24 * 14  # 14 days
+    session_cookie_name: str = "ai_planner_session"
+    session_cookie_secure: bool = False  # True behind TLS (deploy.sh vps --tls)
+    session_cookie_samesite: str = "lax"
+
 
 @lru_cache
 def get_settings() -> Settings:

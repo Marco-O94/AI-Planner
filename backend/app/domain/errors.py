@@ -5,6 +5,7 @@ The API layer maps these to HTTP status codes (see app/api/errors.py):
   ConflictError        -> 409
   ValidationError      -> 422
   ProtectedResourceError -> 409
+  AuthenticationError  -> 401
 """
 
 
@@ -26,3 +27,7 @@ class ValidationError(DomainError):
 
 class ProtectedResourceError(DomainError):
     """A protected resource cannot be mutated (e.g. the default artifact type)."""
+
+
+class AuthenticationError(DomainError):
+    """Authentication failed or is required (bad credentials, no/expired session)."""

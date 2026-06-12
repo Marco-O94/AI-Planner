@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   ChevronsUpDown,
   Languages,
+  LogOut,
   Monitor,
   Moon,
   Settings,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
+import { useAuth } from "@/components/auth/auth-provider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,17 +55,19 @@ export function SidebarProfile({
   const t = useT();
   const { locale, setLocale } = useLocale();
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
-  const name = t("nav.localUser");
+  const name = user?.email ?? t("nav.localUser");
+  const subtitle = user ? t("nav.account") : t("nav.localAccount");
   const isDark = mounted && resolvedTheme === "dark";
 
   const avatar = (
     <Avatar className="size-8 shrink-0">
       <AvatarFallback className="bg-primary/15 text-primary">
-        <User className="size-4" />
+        {user ? user.email.charAt(0).toUpperCase() : <User className="size-4" />}
       </AvatarFallback>
     </Avatar>
   );
@@ -101,7 +105,7 @@ export function SidebarProfile({
             {name}
           </span>
           <span className="block truncate text-xs leading-tight text-muted-foreground">
-            {t("nav.localAccount")}
+            {subtitle}
           </span>
         </span>
         <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
@@ -125,7 +129,7 @@ export function SidebarProfile({
               {name}
             </span>
             <span className="block truncate text-xs font-normal leading-tight text-muted-foreground">
-              {t("nav.localAccount")}
+              {subtitle}
             </span>
           </span>
         </DropdownMenuLabel>
@@ -184,6 +188,16 @@ export function SidebarProfile({
             </DropdownMenuRadioGroup>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
+
+        {user && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => void logout()}>
+              <LogOut />
+              {t("auth.signOut")}
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

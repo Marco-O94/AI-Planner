@@ -1,9 +1,10 @@
 import { test, expect, type ConsoleMessage, type Page } from "@playwright/test";
 
 /**
- * Data-agnostic smoke: every primary route loads, renders the app shell, and
- * throws no uncaught/console errors. Intentionally avoids asserting seeded data
- * so it passes against any backend state.
+ * Auth-aware smoke: the app is gated, so every protected route now redirects to
+ * /login unless a session cookie is present. We register a fresh user, then
+ * assert the primary routes render the shell with no runtime errors. Still
+ * data-agnostic — no seeded data assumptions.
  */
 
 const ROUTES = ["/", "/files", "/artifact-types", "/templates", "/skills"];
@@ -19,16 +20,49 @@ function collectErrors(page: Page): string[] {
   return errors;
 }
 
-for (const route of ROUTES) {
-  test(`route ${route} renders without errors`, async ({ page }) => {
-    const errors = collectErrors(page);
+function freshEmail(): string {
+  return `e2e-${Date.now()}-${Math.random().toString(16).slice(2, 8)}@example.com`;
+}
+
+/** Register a brand-new account; resolves once the app shell is visible. */
+async function registerFreshUser(page: Page): Promise<string> {
+  const email = freshEmail();
+  await page.goto("/register", { waitUntil: "load" });
+  await page.locator("#email").fill(email);
+  await page.locator("#password").fill("secret12345");
+  await page.getByRole("button", { name: /create account|crea account/i }).click();
+  await expect(page.getByRole("link", { name: "AI Planner" })).toBeVisible({ timeout: 15000 });
+  return email;
+}
+
+test("unauthenticated visitor is redirected to login", async ({ page }) => {
+  await page.goto("/", { waitUntil: "load" });
+  await expect(page).toHaveURL(/\/login/);
+  await expect(page.getByLabel(/email/i)).toBeVisible();
+});
+
+test("register, land in the app, then sign out", async ({ page }) => {
+  const email = await registerFreshUser(page);
+  // Session persists across a reload.
+  await page.reload({ waitUntil: "load" });
+  await expect(page.getByRole("link", { name: "AI Planner" })).toBeVisible();
+
+  // The profile trigger's accessible name is the user's email. Open it and sign out.
+  await page.getByRole("button", { name: email }).first().click();
+  await page.getByRole("menuitem", { name: /sign out|esci/i }).click();
+  await expect(page).toHaveURL(/\/login/);
+});
+
+test("primary routes render without errors once authenticated", async ({ page }) => {
+  const errors = collectErrors(page);
+  await registerFreshUser(page);
+
+  for (const route of ROUTES) {
     const response = await page.goto(route, { waitUntil: "load" });
     expect(response?.status() ?? 0).toBeLessThan(400);
-
-    // App shell is present on every page.
     await expect(page.getByRole("link", { name: "AI Planner" })).toBeVisible();
-    // Let client data fetching settle, then assert no runtime errors surfaced.
-    await page.waitForTimeout(1500);
-    expect(errors, errors.join("\n")).toEqual([]);
-  });
-}
+    await page.waitForTimeout(800);
+  }
+
+  expect(errors, errors.join("\n")).toEqual([]);
+});

@@ -50,6 +50,7 @@ import type {
   TemplateCreate,
   TemplateRead,
   TemplateUpdate,
+  UserRead,
   VersionFilesRead,
   VersionRefRead,
 } from "./types";
@@ -111,7 +112,9 @@ export interface RequestOptions {
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", query, body, formData, signal } = options;
-  const init: RequestInit = { method, signal, headers: {} };
+  // `include` so the backend's httpOnly session cookie rides on every request
+  // (cross-origin to NEXT_PUBLIC_API_URL; the backend sets allow_credentials).
+  const init: RequestInit = { method, signal, credentials: "include", headers: {} };
 
   if (formData) {
     init.body = formData;
@@ -327,4 +330,12 @@ export const api = {
 
   // admin
   reindex: () => apiFetch<{ status: string } | unknown>("/admin/reindex", { method: "POST" }),
+
+  // auth
+  register: (body: { email: string; password: string }) =>
+    apiFetch<UserRead>("/auth/register", { method: "POST", body }),
+  login: (body: { email: string; password: string }) =>
+    apiFetch<UserRead>("/auth/login", { method: "POST", body }),
+  logout: () => apiFetch<void>("/auth/logout", { method: "POST" }),
+  me: () => apiFetch<UserRead>("/auth/me"),
 };

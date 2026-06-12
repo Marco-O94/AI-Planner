@@ -160,6 +160,8 @@ cmd_vps() {
     # Behind a TLS reverse proxy: address the API/UI by hostname (no :port).
     env_set NEXT_PUBLIC_API_URL "https://${host}"
     env_set CORS_ORIGINS "https://${host}"
+    # Session cookie can carry the Secure flag only over HTTPS.
+    env_set SESSION_COOKIE_SECURE "true"
   else
     env_set NEXT_PUBLIC_API_URL "http://${host}:${bport}"
     env_set CORS_ORIGINS "http://${host}:${fport}"
@@ -171,6 +173,16 @@ cmd_vps() {
     env_set POSTGRES_PASSWORD "$secret"
     env_set DATABASE_URL "postgresql+psycopg://$(env_get POSTGRES_USER projectnotes):${secret}@postgres:5432/$(env_get POSTGRES_DB projectnotes)"
     ok "Generated a random POSTGRES_PASSWORD (stored in .env)."
+  fi
+
+  # Rotate auth secrets if still the shipped insecure defaults.
+  if [ "$(env_get SECRET_KEY)" = "dev-insecure-change-me" ]; then
+    env_set SECRET_KEY "$(random_secret)"
+    ok "Generated a random SECRET_KEY (stored in .env)."
+  fi
+  if [ "$(env_get SERVICE_API_KEY)" = "dev-service-key-change-me" ]; then
+    env_set SERVICE_API_KEY "$(random_secret)"
+    ok "Generated a random SERVICE_API_KEY shared by backend + mcp (stored in .env)."
   fi
 
   ok "Updated .env: NEXT_PUBLIC_API_URL=$(env_get NEXT_PUBLIC_API_URL), CORS_ORIGINS=$(env_get CORS_ORIGINS)"

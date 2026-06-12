@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
 from app.domain.errors import (
+    AuthenticationError,
     ConflictError,
     NotFoundError,
     ProtectedResourceError,
@@ -32,6 +33,10 @@ def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(ProtectedResourceError)
     async def _protected(_: Request, exc: ProtectedResourceError) -> JSONResponse:
         return _json(409, str(exc))
+
+    @app.exception_handler(AuthenticationError)
+    async def _auth(_: Request, exc: AuthenticationError) -> JSONResponse:
+        return _json(401, str(exc))
 
     @app.exception_handler(IntegrityError)
     async def _integrity(_: Request, exc: IntegrityError) -> JSONResponse:

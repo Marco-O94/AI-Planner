@@ -29,6 +29,7 @@ class Settings:
     host: str
     port: int
     timeout: float
+    service_api_key: str
 
 
 def load_settings(env: dict[str, str] | None = None) -> Settings:
@@ -50,4 +51,5 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         host=source.get("MCP_HOST", DEFAULT_HOST),
         port=int(source.get("MCP_PORT", str(DEFAULT_PORT))),
         timeout=float(source.get("BACKEND_TIMEOUT", str(DEFAULT_TIMEOUT))),
+        service_api_key=source.get("SERVICE_API_KEY", ""),
     )

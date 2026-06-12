@@ -19,7 +19,11 @@ from .server import build_server
 
 def main() -> None:
     settings = load_settings()
-    client = BackendClient(settings.backend_url, timeout=settings.timeout)
+    client = BackendClient(
+        settings.backend_url,
+        timeout=settings.timeout,
+        service_api_key=settings.service_api_key,
+    )
     server = build_server(client, host=settings.host, port=settings.port)
 
     print(
@@ -28,6 +32,13 @@ def main() -> None:
         file=sys.stderr,
         flush=True,
     )
+    if not settings.service_api_key:
+        print(
+            "[ai-planner-mcp] WARNING: SERVICE_API_KEY is unset — calls to an "
+            "auth-gated backend will fail with 401.",
+            file=sys.stderr,
+            flush=True,
+        )
     try:
         server.run(transport=settings.transport)
     finally:

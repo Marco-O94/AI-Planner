@@ -2,6 +2,7 @@
 
 import { SWRConfig } from "swr";
 
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,7 +26,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
             dedupingInterval: 2000,
           }}
         >
-          <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+          <AuthProvider>
+            <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+          </AuthProvider>
           <Toaster richColors closeButton position="bottom-right" />
         </SWRConfig>
       </LocaleProvider>

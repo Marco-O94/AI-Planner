@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.domain.entities import Note
 from app.domain.errors import NotFoundError, ValidationError
@@ -115,7 +115,7 @@ class NoteService:
         True, or resets it to ``None`` to bring a note back into play. Does not
         re-index: the note's searchable content is unchanged.
         """
-        stamp = datetime.now(timezone.utc) if processed else None
+        stamp = datetime.now(UTC) if processed else None
         updated: list[Note] = []
         for note_id in note_ids:
             note = self.get(note_id)

@@ -211,3 +211,27 @@ class ProjectTemplate:
     description: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+
+# --- Auth --------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class User:
+    id: uuid.UUID
+    email: str
+    password_hash: str
+    is_active: bool = True
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class Session:
+    """A server-side login session. The raw token is never stored — only its hash."""
+
+    id: uuid.UUID
+    user_id: uuid.UUID
+    token_hash: str
+    expires_at: datetime
+    created_at: datetime | None = None

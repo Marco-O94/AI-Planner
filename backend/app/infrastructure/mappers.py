@@ -201,3 +201,24 @@ def skill_to_domain(o: m.Skill) -> e.Skill:
         created_at=o.created_at,
         updated_at=o.updated_at,
     )
+
+
+def user_to_domain(o: m.User) -> e.User:
+    return e.User(
+        id=o.id,
+        email=o.email,
+        password_hash=o.password_hash,
+        is_active=o.is_active,
+        created_at=o.created_at,
+        updated_at=o.updated_at,
+    )
+
+
+def session_to_domain(o: m.Session) -> e.Session:
+    return e.Session(
+        id=o.id,
+        user_id=o.user_id,
+        token_hash=o.token_hash,
+        expires_at=o.expires_at,
+        created_at=o.created_at,
+    )

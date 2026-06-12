@@ -38,9 +38,14 @@ class BackendClient:
         base_url: str = "",
         *,
         timeout: float = 30.0,
+        service_api_key: str = "",
         http_client: httpx.Client | None = None,
     ) -> None:
         self._client = http_client or httpx.Client(base_url=base_url, timeout=timeout)
+        # The backend gates every data route; the headless MCP authenticates with a
+        # static service key. Applied to injected clients too so it always rides along.
+        if service_api_key:
+            self._client.headers["X-Service-API-Key"] = service_api_key
 
     def close(self) -> None:
         self._client.close()

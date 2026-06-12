@@ -55,3 +55,33 @@ def test_list_query_params_repeat():
     client = BackendClient(http_client=http)
 
     client.search("x", kinds=["note", "document"])
+
+
+def test_service_api_key_is_sent_on_every_request():
+    seen: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["key"] = request.headers.get("X-Service-API-Key", "")
+        return httpx.Response(200, json=[])
+
+    http = httpx.Client(transport=httpx.MockTransport(handler), base_url="http://b.test")
+    client = BackendClient(http_client=http, service_api_key="s3cr3t")
+
+    client.list_projects()
+
+    assert seen["key"] == "s3cr3t"
+
+
+def test_no_service_key_sends_no_auth_header():
+    seen: dict[str, str | None] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["key"] = request.headers.get("X-Service-API-Key")
+        return httpx.Response(200, json=[])
+
+    http = httpx.Client(transport=httpx.MockTransport(handler), base_url="http://b.test")
+    client = BackendClient(http_client=http)
+
+    client.list_projects()
+
+    assert seen["key"] is None

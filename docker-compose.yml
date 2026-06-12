@@ -56,6 +56,12 @@ services:
       FASTEMBED_CACHE_PATH: ${FASTEMBED_CACHE_PATH:-/data/fastembed}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       STORAGE_DIR: /data/storage
+      # Auth: rotate SECRET_KEY + SERVICE_API_KEY on public deploys (deploy.sh vps).
+      # SERVICE_API_KEY must match the mcp service below or every MCP call 401s.
+      SECRET_KEY: ${SECRET_KEY:-dev-insecure-change-me}
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-dev-service-key-change-me}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      SESSION_COOKIE_SAMESITE: ${SESSION_COOKIE_SAMESITE:-lax}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
@@ -84,6 +90,8 @@ services:
       MCP_TRANSPORT: ${MCP_TRANSPORT:-sse}
       MCP_HOST: 0.0.0.0
       MCP_PORT: 8050
+      # Must equal the backend's SERVICE_API_KEY so the headless MCP passes the guard.
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-dev-service-key-change-me}
     ports:
       - "${MCP_PORT:-8050}:8050"
     depends_on:
@@ -103,6 +111,9 @@ services:
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      # Read by proxy.ts (Node runtime) for the auth-gate cookie check; must match
+      # the backend's SESSION_COOKIE_NAME.
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-ai_planner_session}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:

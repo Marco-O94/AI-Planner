@@ -26,7 +26,10 @@ def _migrated() -> None:
 
 @pytest.fixture
 def client(_migrated: None) -> TestClient:
-    return TestClient(app)
+    # All data routers are now auth-gated; send the static service key by default so
+    # existing tests exercise the real guard (the service-key path is a production
+    # credential, not a bypass). Auth-flow tests build their own keyless clients.
+    return TestClient(app, headers={"X-Service-API-Key": settings.service_api_key})
 
 
 @pytest.fixture

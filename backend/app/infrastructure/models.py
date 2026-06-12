@@ -501,3 +501,29 @@ class ProjectTemplate(UUIDPKMixin, TimestampMixin, Base):
     definition: Mapped[dict] = mapped_column(
         JSONB, nullable=False, server_default=text("'{}'::jsonb")
     )
+
+
+# --- Auth --------------------------------------------------------------------
+
+
+class User(UUIDPKMixin, TimestampMixin, Base):
+    __tablename__ = "users"
+
+    email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    is_active: Mapped[bool] = mapped_column(nullable=False, server_default=text("true"))
+
+
+class Session(UUIDPKMixin, Base):
+    __tablename__ = "sessions"
+    __table_args__ = (Index("ix_sessions_user_id", "user_id"),)
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        PgUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    # SHA-256 of the raw token; the raw token only ever lives in the client cookie.
+    token_hash: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

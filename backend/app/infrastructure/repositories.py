@@ -1028,3 +1028,55 @@ class SqlProjectTemplateRepository:
             self.db.scalar(select(m.ProjectTemplate.id).where(m.ProjectTemplate.slug == slug))
             is not None
         )
+
+
+class SqlUserRepository:
+    def __init__(self, db: Session) -> None:
+        self.db = db
+
+    def add(self, user: e.User) -> e.User:
+        orm = m.User(
+            id=user.id,
+            email=user.email,
+            password_hash=user.password_hash,
+            is_active=user.is_active,
+        )
+        self.db.add(orm)
+        self.db.flush()
+        self.db.refresh(orm)
+        return mappers.user_to_domain(orm)
+
+    def get_by_id(self, user_id: uuid.UUID) -> e.User | None:
+        orm = self.db.get(m.User, user_id)
+        return mappers.user_to_domain(orm) if orm else None
+
+    def get_by_email(self, email: str) -> e.User | None:
+        orm = self.db.scalar(select(m.User).where(m.User.email == email))
+        return mappers.user_to_domain(orm) if orm else None
+
+
+class SqlSessionRepository:
+    def __init__(self, db: Session) -> None:
+        self.db = db
+
+    def add(self, session: e.Session) -> e.Session:
+        orm = m.Session(
+            id=session.id,
+            user_id=session.user_id,
+            token_hash=session.token_hash,
+            expires_at=session.expires_at,
+        )
+        self.db.add(orm)
+        self.db.flush()
+        self.db.refresh(orm)
+        return mappers.session_to_domain(orm)
+
+    def get_by_token_hash(self, token_hash: str) -> e.Session | None:
+        orm = self.db.scalar(select(m.Session).where(m.Session.token_hash == token_hash))
+        return mappers.session_to_domain(orm) if orm else None
+
+    def delete_by_token_hash(self, token_hash: str) -> None:
+        orm = self.db.scalar(select(m.Session).where(m.Session.token_hash == token_hash))
+        if orm is not None:
+            self.db.delete(orm)
+            self.db.flush()

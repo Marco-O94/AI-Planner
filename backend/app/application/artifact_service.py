@@ -11,7 +11,7 @@ from __future__ import annotations
 import difflib
 import uuid
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from slugify import slugify
 
@@ -171,7 +171,7 @@ class ArtifactService:
     def _mark_source_notes_processed(self, note_ids: list[uuid.UUID]) -> None:
         if not note_ids or self.note_repo is None:
             return
-        stamp = datetime.now(timezone.utc)
+        stamp = datetime.now(UTC)
         for note_id in note_ids:
             note = self.note_repo.get_by_id(note_id)
             # Tolerant + idempotent: skip unknown ids, don't re-stamp on re-save.
