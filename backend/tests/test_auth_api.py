@@ -140,6 +140,25 @@ def test_session_cookie_authenticates_data_routes(_migrated: None) -> None:
     assert client.get("/projects").status_code == 200
 
 
+def test_login_is_rate_limited(_migrated: None) -> None:
+    from app.api.rate_limit import limiter  # noqa: PLC0415
+
+    limiter.enabled = True
+    try:
+        client = _keyless()
+        # Default limit is 10/minute; exceed it and expect a 429.
+        statuses = [
+            client.post(
+                "/auth/login", json={"email": "ratelimit@example.com", "password": "nope12345"}
+            ).status_code
+            for _ in range(12)
+        ]
+        assert 429 in statuses
+    finally:
+        limiter.reset()
+        limiter.enabled = False
+
+
 def test_expired_session_is_rejected(_migrated: None, engine: Engine) -> None:
     client = _keyless()
     email = _email()

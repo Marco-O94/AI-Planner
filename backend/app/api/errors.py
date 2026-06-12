@@ -17,6 +17,11 @@ def _json(status_code: int, message: str) -> JSONResponse:
     return JSONResponse(status_code=status_code, content={"detail": message})
 
 
+def rate_limit_handler(_: Request, __: Exception) -> JSONResponse:
+    """slowapi RateLimitExceeded -> 429 in our error envelope."""
+    return _json(429, "too many requests, slow down and try again later")
+
+
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(NotFoundError)
     async def _not_found(_: Request, exc: NotFoundError) -> JSONResponse:

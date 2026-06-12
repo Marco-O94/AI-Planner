@@ -7,6 +7,7 @@ guarded at the route level. Sessions ride in an httpOnly cookie.
 from fastapi import APIRouter, Depends, Request, Response
 
 from app.api.deps import Principal, get_auth_service, require_auth
+from app.api.rate_limit import limiter
 from app.application.auth_service import AuthService
 from app.config import settings
 from app.domain.errors import AuthenticationError
@@ -28,7 +29,9 @@ def _set_session_cookie(response: Response, token: str) -> None:
 
 
 @router.post("/register", response_model=UserRead, status_code=201)
+@limiter.limit(settings.rate_limit_register)
 def register(
+    request: Request,
     payload: RegisterRequest,
     response: Response,
     service: AuthService = Depends(get_auth_service),
@@ -39,7 +42,9 @@ def register(
 
 
 @router.post("/login", response_model=UserRead)
+@limiter.limit(settings.rate_limit_login)
 def login(
+    request: Request,
     payload: LoginRequest,
     response: Response,
     service: AuthService = Depends(get_auth_service),

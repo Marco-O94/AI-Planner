@@ -10,7 +10,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.domain import entities as e
@@ -1080,3 +1080,9 @@ class SqlSessionRepository:
         if orm is not None:
             self.db.delete(orm)
             self.db.flush()
+
+    def delete_expired(self) -> int:
+        """Bulk-delete sessions past their expiry; returns the row count removed."""
+        result = self.db.execute(delete(m.Session).where(m.Session.expires_at < func.now()))
+        self.db.flush()
+        return result.rowcount or 0

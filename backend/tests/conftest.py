@@ -15,8 +15,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import Connection, Engine, create_engine
 
 from alembic import command
+from app.api.rate_limit import limiter
 from app.config import settings
 from app.main import app
+
+# Tests hammer /auth/* from one client IP; the rate limiter would 429 them.
+limiter.enabled = False
 
 
 @pytest.fixture(scope="session")

@@ -185,6 +185,15 @@ cmd_vps() {
     ok "Generated a random SERVICE_API_KEY shared by backend + mcp (stored in .env)."
   fi
 
+  # Production mode: the backend refuses default secrets and hides /docs.
+  env_set ENVIRONMENT production
+
+  if [ "$scheme" != "https" ]; then
+    warn "No --tls: session cookies are sent WITHOUT the Secure flag over plain HTTP."
+    warn "Prefer ./deploy.sh vps ${host} --tls behind a TLS reverse proxy."
+  fi
+  warn "The MCP SSE port (${MCP_PORT:-8050}) has no auth of its own — keep it firewalled (access via SSH tunnel)."
+
   ok "Updated .env: NEXT_PUBLIC_API_URL=$(env_get NEXT_PUBLIC_API_URL), CORS_ORIGINS=$(env_get CORS_ORIGINS)"
   info "Building images and starting the stack…"
   "${COMPOSE[@]}" up --build -d

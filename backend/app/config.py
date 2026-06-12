@@ -39,6 +39,10 @@ class Settings(BaseSettings):
         "http://localhost:3000"
     ]
 
+    # Deployment environment: "development" | "production". Production refuses to
+    # boot with default secrets and hides /docs + /openapi.json.
+    environment: str = "development"
+
     # --- Auth ---------------------------------------------------------------
     # Reserved for signing needs; rotate in production (deploy.sh vps does this).
     secret_key: str = "dev-insecure-change-me"
@@ -49,6 +53,9 @@ class Settings(BaseSettings):
     session_cookie_name: str = "ai_planner_session"
     session_cookie_secure: bool = False  # True behind TLS (deploy.sh vps --tls)
     session_cookie_samesite: str = "lax"
+    # Per-IP rate limits (slowapi syntax) on the unauthenticated auth endpoints.
+    rate_limit_login: str = "10/minute"
+    rate_limit_register: str = "5/hour"
 
 
 @lru_cache

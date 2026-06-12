@@ -56,6 +56,8 @@ services:
       FASTEMBED_CACHE_PATH: ${FASTEMBED_CACHE_PATH:-/data/fastembed}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       STORAGE_DIR: /data/storage
+      # "production" refuses default secrets + hides /docs (deploy.sh vps sets it).
+      ENVIRONMENT: ${ENVIRONMENT:-development}
       # Auth: rotate SECRET_KEY + SERVICE_API_KEY on public deploys (deploy.sh vps).
       # SERVICE_API_KEY must match the mcp service below or every MCP call 401s.
       SECRET_KEY: ${SECRET_KEY:-dev-insecure-change-me}
@@ -93,7 +95,9 @@ services:
       # Must equal the backend's SERVICE_API_KEY so the headless MCP passes the guard.
       SERVICE_API_KEY: ${SERVICE_API_KEY:-dev-service-key-change-me}
     ports:
-      - "${MCP_PORT:-8050}:8050"
+      # Bind to host loopback only: the MCP SSE endpoint has no auth of its own, so
+      # it must not be publicly reachable. Access it locally or via an SSH tunnel.
+      - "127.0.0.1:${MCP_PORT:-8050}:8050"
     depends_on:
       backend:
         condition: service_healthy

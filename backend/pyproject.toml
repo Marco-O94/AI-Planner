@@ -12,6 +12,7 @@ dependencies = [
     "pydantic-settings>=2.6",
     "pydantic[email]>=2.6",
     "pwdlib[argon2]>=0.2",
+    "slowapi>=0.1.9",
     "python-slugify>=8.0",
     "qdrant-client>=1.12",
     "fastembed>=0.4",
